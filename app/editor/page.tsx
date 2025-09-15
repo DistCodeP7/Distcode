@@ -1,5 +1,6 @@
 "use client";
 
+import { AuthProvider } from "@/components/custom/auth-provider";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
 import {
@@ -16,6 +17,7 @@ export default function IDE() {
   };
 
   return (
+    <AuthProvider>
     <ResizablePanelGroup
       direction="horizontal"
       className="h-full border md:min-w-[450px]"
@@ -37,5 +39,6 @@ export default function IDE() {
         <Editor onSubmit={onSubmit} />
       </ResizablePanel>
     </ResizablePanelGroup>
+    </AuthProvider>
   );
 }
