@@ -6,7 +6,6 @@ export function Navbar() {
   const navLinks = [
     { href: "#", label: "Features" },
     { href: "#", label: "Problems" },
-    { href: "#", label: "About" },
   ];
 
   return (

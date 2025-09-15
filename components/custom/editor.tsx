@@ -2,7 +2,10 @@
 
 import { Button } from "@/components/ui/button";
 import Editor, { OnMount, type EditorProps } from "@monaco-editor/react";
+import { Database, FileCode2, Play, File, Save, Send } from "lucide-react";
 import React, { useState } from "react";
+import { FileTypeIcon } from "./Icon";
+import { cn } from "@/lib/utils";
 
 type CustomEditorProps = EditorProps & {
   onSubmit?: (code: string) => void;
@@ -129,15 +132,54 @@ export default function CustomEditor({
           />
         </div>
       </div>
-      <div className="flex justify-end pt-3">
-        <Button
-          type="submit"
-          variant={canSubmit ? "default" : "disabled"}
-          disabled={!canSubmit}
-        >
-          Run
+    </form>
+  );
+}
+
+type Files = {
+  name: string;
+  fileType: "go" | "erlang" | "akka";
+};
+
+type EditorHeaderProps = {
+  files: Files[];
+  activeFile: number;
+  onFileChange: (index: number) => void;
+};
+
+export function EditorHeader({
+  files,
+  activeFile,
+  onFileChange,
+}: EditorHeaderProps) {
+  return (
+    <div className="flex items-center justify-between border-b">
+      <div className="flex">
+        {files.map((file, index) => (
+          <div
+            key={file.name}
+            onClick={() => onFileChange(index)}
+            className={cn(
+              "cursor-pointer border px-4 py-2 flex items-center gap-2",
+              index === activeFile ? "bg-secondary" : "hover:bg-muted"
+            )}
+          >
+            <FileTypeIcon className="h-6 w-6 mr-2" name={file.fileType} />
+            {file.name.replace(/\.[^/.]+$/, "")}
+          </div>
+        ))}
+      </div>
+
+      <div className="flex gap-2 pr-4">
+        <Button type="button" variant="secondary">
+          <Save className="mr-2 h-4 w-4" />
+          Save
+        </Button>
+        <Button type="button" variant="outline">
+          <Send className="mr-2 h-4 w-4" />
+          Submit
         </Button>
       </div>
-    </form>
+    </div>
   );
 }

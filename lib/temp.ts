@@ -88,4 +88,27 @@ function greet(name) {
 const user = "World";
 console.log(greet(user));
 \`\`\`
+
+
+---
+
+<details>
+<summary>Hint 1</summary>
+
+Some very convienient hidden text
+</details>
+
+<details>
+<summary>Hint 1</summary>
+
+Some very convienient hidden text
+</details>
+
+<details>
+<summary>Hint 1</summary>
+
+Some very convienient hidden text
+</details>
+
+
 `;
