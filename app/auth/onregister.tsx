@@ -3,6 +3,7 @@
 import { GenerateJWT } from "./generateJWT";
 import { db } from "@/lib/db";
 import { users } from "@/drizzle/schema";
+import { eq, and } from "drizzle-orm";
 
 export async function onRegister(data: FormData) {
     const email = data.get("email")?.toString();
@@ -10,7 +11,7 @@ export async function onRegister(data: FormData) {
     const password = data.get("password")?.toString();
     const confirmPassword = data.get("confirmPassword")?.toString();
 
-    if (!email || !password || !confirmPassword) {
+    if (!email || !name || !password || !confirmPassword) {
         return { success: false, error: "All fields are required" };
     }
     if (password !== confirmPassword) {
@@ -24,12 +25,10 @@ export async function onRegister(data: FormData) {
     }
 
     try {
-        const name = email.split('@')[0];
         await db.insert(users).values({
-            email,
-            name,
-            password,
-            createdAt: new Date(Date.now()),
+            email: email!,
+            name: name!,
+            password: password!,
         });
         const token = GenerateJWT(email); 
         console.log("Registering user:", { email, password, confirmPassword });
@@ -40,4 +39,20 @@ export async function onRegister(data: FormData) {
         }
         return { success: false, error: error.message || "Registration failed" };
     }
+}
+
+export async function onLogin(data: FormData) {
+    const email = data.get("email")?.toString();
+    const password = data.get("password")?.toString();
+    
+    if (!email || !password) {
+        return { success: false, error: "Email and password are required" };
+    }
+
+    const user = await db.select().from(users).where(and(eq(users.email, email), eq(users.password, password))).limit(1);
+if (!user || user.length === 0) {
+    return { success: false, error: "Invalid email or password" };
+}
+    const token = GenerateJWT(email);
+    return { success: true, token: token };
 }

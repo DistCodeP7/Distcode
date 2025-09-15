@@ -35,12 +35,12 @@ export default function Register() {
         const response = await onRegister(formData);
         if (response.success) {
             alert("Registered successfully!");
+            localStorage.setItem("token", response.token);
+            window.location.href = "/editor";
         }
         if (response.error) {
             alert("Registration failed: " + response.error);
         }
-        localStorage.setItem("token", response.token);
-        window.location.href = "/editor";
     };
 
     return (
