@@ -10,6 +10,7 @@ import { onRegister } from "./onregister";
 
 const schema = z.object({
     email: z.email("Invalid email address"),
+    name: z.string().min(1, "Name is required"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -28,6 +29,7 @@ export default function Register() {
     const onSubmit = async (data: FormData) => {
         const formData = new FormData();
         formData.append("email", (data as any).email);
+        formData.append("name", (data as any).name);
         formData.append("password", (data as any).password);
         formData.append("confirmPassword", (data as any).confirmPassword);
         const response = await onRegister(formData);
@@ -56,6 +58,16 @@ export default function Register() {
                     render={({ field, fieldState }) => (
                         <div>
                             <input {...field} value={field.value ?? ""} placeholder="Email here" />
+                            <FormMessage>{fieldState.error?.message}</FormMessage>
+                        </div>
+                    )}
+                />
+                <FormField
+                    control={control}
+                    name="name"
+                    render={({ field, fieldState }) => (
+                        <div>
+                            <input {...field} value={field.value ?? ""} placeholder="Name here" />
                             <FormMessage>{fieldState.error?.message}</FormMessage>
                         </div>
                     )}
