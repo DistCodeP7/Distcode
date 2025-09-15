@@ -11,5 +11,19 @@ services:
       - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+
+  app:
+    build: .
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://myuser:mypassword@db:5432/mydb
+    ports:
+      - "3000:3000"
+    command: pnpm start
+    volumes:
+      - .:/app
+    restart: unless-stopped
+
 volumes:
   pgdata:
