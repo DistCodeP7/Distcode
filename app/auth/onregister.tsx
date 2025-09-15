@@ -6,10 +6,11 @@ import { users } from "@/drizzle/schema";
 import { eq, and } from "drizzle-orm";
 
 export async function onRegister(data: FormData) {
-    const email = data.get("email")?.toString();
+    const email = data.get("email")?.toString().toLowerCase();
     const name = data.get("name")?.toString();
     const password = data.get("password")?.toString();
     const confirmPassword = data.get("confirmPassword")?.toString();
+    const bcrypt = require('bcrypt');
 
     if (!email || !name || !password || !confirmPassword) {
         return { success: false, error: "All fields are required" };
@@ -25,10 +26,11 @@ export async function onRegister(data: FormData) {
     }
 
     try {
+        const hashedPassword = await bcrypt.hash(password!, 10);
         await db.insert(users).values({
             email: email!,
             name: name!,
-            password: password!,
+            password: hashedPassword,
         });
         const token = GenerateJWT(email); 
         console.log("Registering user:", { email, password, confirmPassword });
@@ -42,15 +44,16 @@ export async function onRegister(data: FormData) {
 }
 
 export async function onLogin(data: FormData) {
-    const email = data.get("email")?.toString();
+    const email = data.get("email")?.toString().toLowerCase;
     const password = data.get("password")?.toString();
+    const bcrypt = require('bcrypt');
     
     if (!email || !password) {
         return { success: false, error: "Email and password are required" };
     }
 
-    const user = await db.select().from(users).where(and(eq(users.email, email), eq(users.password, password))).limit(1);
-if (!user || user.length === 0) {
+    const user = await db.select().from(users).where(eq(users.email, email)).limit(1);
+if (!user || user.length === 0 || !bcrypt.compareSync(password, user[0].password)) {
     return { success: false, error: "Invalid email or password" };
 }
     const token = GenerateJWT(email);
