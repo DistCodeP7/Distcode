@@ -11,6 +11,8 @@ type CustomEditorProps = EditorProps & {
   onSubmit?: (code: string) => void;
   canSubmit?: boolean;
   initialEditorContent?: string;
+  editorContent: string;
+  setEditorContent: React.Dispatch<React.SetStateAction<string>>;
 };
 
 function labToHex(l: number, a: number, b: number): string {
@@ -56,14 +58,12 @@ function labToHex(l: number, a: number, b: number): string {
 export default function CustomEditor({
   onSubmit,
   canSubmit = true,
-  language,
+  language = "go",
   initialEditorContent,
+  editorContent,
+  setEditorContent,
   ...props
 }: CustomEditorProps) {
-  const [editorContent, setEditorContent] = useState<string>(
-    initialEditorContent || "",
-  );
-
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     const styles = getComputedStyle(document.body);
     const rawColor = styles.getPropertyValue("background-color"); // "lab(2.51...)"
@@ -72,7 +72,7 @@ export default function CustomEditor({
     try {
       // Safely parse the lab(...) string
       const labMatch = rawColor.match(
-        /lab\(([\d.]+)%?\s+([-\d.]+)\s+([-\d.]+)/,
+        /lab\(([\d.]+)%?\s+([-\d.]+)\s+([-\d.]+)/
       );
       if (labMatch) {
         const l = parseFloat(labMatch[1]);
@@ -118,7 +118,7 @@ export default function CustomEditor({
         <div className="h-full overflow-hidden rounded-md border">
           <Editor
             height="100%"
-            defaultLanguage="javascript"
+            defaultLanguage={language}
             language={language}
             defaultValue="// Start coding here..."
             onChange={onChange}
@@ -161,7 +161,7 @@ export function EditorHeader({
             onClick={() => onFileChange(index)}
             className={cn(
               "cursor-pointer border px-4 py-2 flex items-center gap-2",
-              index === activeFile ? "bg-secondary" : "hover:bg-muted",
+              index === activeFile ? "bg-secondary" : "hover:bg-muted"
             )}
           >
             <FileTypeIcon className="h-6 w-6 mr-2" name={file.fileType} />
