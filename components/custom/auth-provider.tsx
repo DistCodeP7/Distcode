@@ -31,11 +31,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 window.location.href = "/auth";
             }
         }
-        else {
-            window.location.href = "/auth";
-        }
+    else {
+        fetch("/api/auth/session").then(res => res.json()).then(data => {
+            if (data?.user?.token) {
+                localStorage.setItem("token", data.user.token);
+                const decoded: any = jwtDecode(data.user.token);
+                setIsAuthenticated(true);
+                setUser(decoded);
+            }
+            else {
+                localStorage.removeItem("token");
+                window.location.href = "/auth";
+            }
+        });
     }
-    , []);
+}, []);
     
     return (
         <AuthContext.Provider value={{ isAuthenticated, user }}>

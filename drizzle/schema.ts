@@ -14,7 +14,9 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: varchar("email", { length: 256 }).notNull().unique(),
   name: varchar("name", { length: 256 }).notNull(),
-  password: text("password").notNull(),
+  password: text("password"),
+  provider: varchar("provider", { length: 50 }),
+  providerId: varchar("providerId", { length: 255 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

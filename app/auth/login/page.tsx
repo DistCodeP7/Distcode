@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { FormField, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { onLogin, onRegister } from "../signin-functions";
+import { signIn, useSession } from "next-auth/react";
 
 const schema = z.object({
     email: z.email("Invalid email address"),
@@ -67,6 +68,24 @@ export default function Login() {
                 <Button type="submit" disabled={!isValid || isSubmitting} style={{ marginTop: "1rem" }}>
                     {"Login"}
                 </Button>
+                 <Button
+                                    type="button"
+                                    onClick={() => {
+                                        signIn("google", { callbackUrl: "/editor" });
+                                    }}
+                                    style={{
+                                        marginTop: "1rem",
+                                        width: "100%",
+                                        padding: "0.5rem",
+                                        background: "#4285F4",
+                                        color: "white",
+                                        border: "none",
+                                        borderRadius: "4px",
+                                        cursor: "pointer"
+                                    }}
+                                >
+                                    Login with Google
+                                </Button>
             </form>
         </FormProvider>
     );

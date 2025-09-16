@@ -8,10 +8,24 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 
 export default function IDE() {
   const [file, setFile] = useState(0);
+
+   useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (localStorage.getItem("token") === null) {
+        fetch("/api/auth/jwt")
+          .then((res) => res.json())
+          .then((data) => {
+            localStorage.setItem("token", data.token);
+          });
+      }
+    }
+  }, []);
+
   const onSubmit = (code: string) => {
     console.log("Submitted code:", code);
   };

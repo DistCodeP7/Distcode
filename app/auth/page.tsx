@@ -1,12 +1,14 @@
 "use client";
 
-import React from "react";
+import React, { use } from "react";
 import {useForm, FormProvider } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormField, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { onRegister } from "./signin-functions";
+import { signIn, useSession } from "next-auth/react";
+import { GenerateJWT } from "./generateJWT";
 
 const schema = z.object({
     email: z.email("Invalid email address"),
@@ -42,6 +44,7 @@ export default function Register() {
             alert("Registration failed: " + response.error);
         }
     };
+
 
     return (
         <FormProvider {...methods}>
@@ -107,6 +110,24 @@ export default function Register() {
                     }}
                 >
                     Register
+                </Button>
+                <Button
+                    type="button"
+                    onClick={() => {
+                        signIn("google", { callbackUrl: "/editor" });
+                    }}
+                    style={{
+                        marginTop: "1rem",
+                        width: "100%",
+                        padding: "0.5rem",
+                        background: "#4285F4",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "4px",
+                        cursor: "pointer"
+                    }}
+                >
+                    Register with Google
                 </Button>
             </form>
         </FormProvider>
