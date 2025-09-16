@@ -1,92 +1,88 @@
 "use client";
 
-import React from "react";
-import {useForm, FormProvider } from "react-hook-form";
+import Link from "next/link";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FormField, FormMessage } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { onLogin } from "../signin-functions";
-import { signIn } from "next-auth/react";
 
 const schema = z.object({
-    email: z.email("Invalid email address"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.email("Please enter a valid email address").trim(),
+  password: z.string().min(1, "Password is required"),
 });
 
-type FormData = z.infer<typeof schema>;
+export type LoginForm = z.infer<typeof schema>;
 
-export default function Login() {
-    const methods = useForm<FormData>({
-        resolver: zodResolver(schema),
-        mode: "onChange",
-    });
-    const { control, formState: { isSubmitting, isValid }, getValues } = methods;
-    const onSubmit = async (data: FormData) => {
-        const formData = new FormData();
-        formData.append("email", (data as any).email);
-        formData.append("password", (data as any).password);
-        const response = await onLogin(formData);
-        if (response.success) {
-            alert("Logged in successfully!");
-            localStorage.setItem("token", response.token);
-            window.location.href = "/editor";
-        }
-        if (response.error) {
-            alert("Login failed: " + response.error);
-        }
-    }
-    return (
-        <FormProvider {...methods}>
-            <form
-                style={{ maxWidth: 400, margin: "2rem auto" }}
-                onSubmit={e => {
-                    e.preventDefault();
-                    onSubmit(getValues());
-                }}
-            >
-                <FormField
-                    control={control}
-                    name="email"
-                    render={({ field, fieldState }) => (
-                        <div>
-                            <input {...field} value={field.value ?? ""} placeholder="Email here" />
-                            <FormMessage>{fieldState.error?.message}</FormMessage>
-                        </div>
-                    )}
-                />
-                <FormField
-                    control={control}
-                    name="password"
-                    render={({ field, fieldState }) => (
-                        <div>
-                            <input {...field} type="password" value={field.value ?? ""} placeholder="Password here" />
-                            <FormMessage>{fieldState.error?.message}</FormMessage>
-                        </div>
-                    )}
-                />
-                <Button type="submit" disabled={!isValid || isSubmitting} style={{ marginTop: "1rem" }}>
-                    {"Login"}
-                </Button>
-                 <Button
-                                    type="button"
-                                    onClick={() => {
-                                        signIn("google", { callbackUrl: "/editor" });
-                                    }}
-                                    style={{
-                                        marginTop: "1rem",
-                                        width: "100%",
-                                        padding: "0.5rem",
-                                        background: "#4285F4",
-                                        color: "white",
-                                        border: "none",
-                                        borderRadius: "4px",
-                                        cursor: "pointer"
-                                    }}
-                                >
-                                    Login with Google
-                                </Button>
-            </form>
-        </FormProvider>
-    );
+export default function LoginPage() {
+  const form = useForm<LoginForm>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const onSubmit = (values: LoginForm) => {
+    console.log("Login submitted:", values);
+    // TODO: Replace with real login logic
+  };
+
+  return (
+    <div className="max-w-md mx-auto mt-10 p-6 rounded-2xl border bg-card shadow-lg">
+      <h1 className="text-2xl font-semibold mb-6 text-center">Login</h1>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input type="email" placeholder="you@email.com" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Password</FormLabel>
+                <FormControl>
+                  <Input type="password" placeholder="••••••••" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <Button type="submit" className="w-full">
+            Login
+          </Button>
+        </form>
+      </Form>
+
+      <p className="text-sm text-muted-foreground mt-4 text-center">
+        Don’t have an account?{" "}
+        <Link href="/auth" className="font-medium text-primary hover:underline">
+          Sign up
+        </Link>
+      </p>
+    </div>
+  );
 }

@@ -1,8 +1,6 @@
-// app/auth/layout.tsx
-
 import { Navbar } from "@/components/custom/navbar";
 
-export default function EditorLayout({
+export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
