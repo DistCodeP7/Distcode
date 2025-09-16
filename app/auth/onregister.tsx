@@ -44,7 +44,7 @@ export async function onRegister(data: FormData) {
 }
 
 export async function onLogin(data: FormData) {
-    const email = data.get("email")?.toString().toLowerCase;
+    const email = data.get("email")?.toString().toLowerCase();
     const password = data.get("password")?.toString();
     const bcrypt = require('bcrypt');
     
@@ -53,9 +53,9 @@ export async function onLogin(data: FormData) {
     }
 
     const user = await db.select().from(users).where(eq(users.email, email)).limit(1);
-if (!user || user.length === 0 || !bcrypt.compareSync(password, user[0].password)) {
-    return { success: false, error: "Invalid email or password" };
-}
+    if (!user || user.length === 0 || !bcrypt.compareSync(password, user[0].password)) {
+        return { success: false, error: "Invalid email or password" };
+    }
     const token = GenerateJWT(email);
     return { success: true, token: token };
 }
