@@ -3,7 +3,7 @@
 import { GenerateJWT } from "./generateJWT";
 import { db } from "@/lib/db";
 import { users } from "@/drizzle/schema";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 export async function onRegister(data: FormData) {
     const email = data.get("email")?.toString().toLowerCase();
@@ -38,6 +38,7 @@ export async function onRegister(data: FormData) {
         return { success: false, error: error.message || "Registration failed" };
     }
 }
+
 
 export async function onLogin(data: FormData) {
     const email = data.get("email")?.toString().toLowerCase();
