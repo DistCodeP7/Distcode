@@ -1,9 +1,11 @@
 "use client";
-
+import React from "react";
+import {useForm } from "react-hook-form";
 import Link from "next/link";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { onLogin } from "../signin-functions";
+import { signIn } from "next-auth/react";
 
 import {
   Form,
@@ -24,27 +26,35 @@ const schema = z.object({
 export type LoginForm = z.infer<typeof schema>;
 
 export default function LoginPage() {
-  const form = useForm<LoginForm>({
+  const methods = useForm<LoginForm>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+    mode: "onChange",
   });
+  const { control, formState: { isSubmitting, isValid }, getValues } = methods;
 
-  const onSubmit = (values: LoginForm) => {
-    console.log("Login submitted:", values);
-    // TODO: Replace with real login logic
-  };
+     const onSubmit = async (data: LoginForm) => {
+        const formData = new FormData();
+        formData.append("email", (data as any).email);
+        formData.append("password", (data as any).password);
+        const response = await onLogin(formData);
+        if (response.success) {
+            alert("Logged in successfully!");
+            localStorage.setItem("token", response.token);
+            window.location.href = "/editor";
+        }
+        if (response.error) {
+            alert("Login failed: " + response.error);
+        }
+    }
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 rounded-2xl border bg-card shadow-lg">
       <h1 className="text-2xl font-semibold mb-6 text-center">Login</h1>
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+      <Form {...methods}>
+        <form onSubmit={e => {e.preventDefault(); onSubmit(getValues());}} className="space-y-5">
           <FormField
-            control={form.control}
+            control={control}
             name="email"
             render={({ field }) => (
               <FormItem>
@@ -58,7 +68,7 @@ export default function LoginPage() {
           />
 
           <FormField
-            control={form.control}
+            control={control}
             name="password"
             render={({ field }) => (
               <FormItem>
@@ -71,9 +81,28 @@ export default function LoginPage() {
             )}
           />
 
-          <Button type="submit" className="w-full">
+          <Button type="submit" disabled={!isValid || isSubmitting} className="w-full">
             Login
           </Button>
+
+          <Button
+                                    type="button"
+                                    onClick={() => {
+                                        signIn("google", { callbackUrl: "/editor" });
+                                    }}
+                                    style={{
+                                        marginTop: "1rem",
+                                        width: "100%",
+                                        padding: "0.5rem",
+                                        background: "#4285F4",
+                                        color: "white",
+                                        border: "none",
+                                        borderRadius: "4px",
+                                        cursor: "pointer"
+                                    }}
+                                >
+                                    Login with Google
+                                </Button>
         </form>
       </Form>
 
