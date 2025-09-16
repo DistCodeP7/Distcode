@@ -6,7 +6,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormField, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { onRegister } from "./onregister";
+import { onRegister } from "./signin-funcitons";
 
 const schema = z.object({
     email: z.email("Invalid email address"),

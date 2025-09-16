@@ -33,12 +33,8 @@ export async function onRegister(data: FormData) {
             password: hashedPassword,
         });
         const token = GenerateJWT(email); 
-        console.log("Registering user:", { email, password, confirmPassword });
         return { success: true, token: token };
     } catch (error: any) {
-        if (error.code === '23505') { // Unique violation
-            return { success: false, error: "Email already registered" };
-        }
         return { success: false, error: error.message || "Registration failed" };
     }
 }
