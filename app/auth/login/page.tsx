@@ -6,8 +6,8 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FormField, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { onLogin, onRegister } from "../signin-functions";
-import { signIn, useSession } from "next-auth/react";
+import { onLogin } from "../signin-functions";
+import { signIn } from "next-auth/react";
 
 const schema = z.object({
     email: z.email("Invalid email address"),
