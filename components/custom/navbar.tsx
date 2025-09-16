@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Braces, Mountain, SquareTerminal } from "lucide-react";
+import { SquareTerminal } from "lucide-react";
+import { AuthButtons } from "@/components/custom/authbutton";
 
-import { Button } from "@/components/ui/button";
 export function Navbar() {
   const navLinks = [
     { href: "#", label: "Features" },
@@ -14,6 +14,7 @@ export function Navbar() {
         <SquareTerminal />
         <span className="font-bold">Distcode</span>
       </Link>
+
       <nav className="hidden flex-1 items-center gap-6 text-sm font-medium md:flex">
         {navLinks.map((link) => (
           <Link
@@ -25,10 +26,8 @@ export function Navbar() {
           </Link>
         ))}
       </nav>
-      <div className="flex items-center justify-end gap-2">
-        <Button variant="ghost">Login</Button>
-        <Button>Sign Up</Button>
-      </div>
+
+      <AuthButtons />
     </header>
   );
 }
