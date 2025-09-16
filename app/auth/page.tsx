@@ -25,9 +25,9 @@ const schema = z
         lastName: z.string().trim().min(2, "Last name must be at least 2 characters"),
         password: z
             .string()
-            .regex(/^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).{8,}$/, {
+            .regex(/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[\W_])[A-Za-z\d\W_]{8,}$/, {
                 message:
-                    "Password must be at least 8 characters and include an uppercase letter, a lowercase letter, and a number",
+                    "The password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.",
             }),
         confirmPassword: z.string(),
     })
