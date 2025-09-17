@@ -25,14 +25,17 @@ export async function onRegister(data: FormData) {
         return { success: false, error: "Invalid email address" };
     }
 
+    const userid = bcrypt.hashSync(name + email, 10);
+
     try {
         const hashedPassword = await bcrypt.hash(password!, 10);
         await db.insert(users).values({
-            email: email!,
+            email: email,
             name: name!,
+            userid: userid,
             password: hashedPassword,
         });
-        const token = GenerateJWT(email); 
+        const token = GenerateJWT(userid);
         return { success: true, token: token };
     } catch (error: any) {
         return { success: false, error: error.message || "Registration failed" };
@@ -53,6 +56,6 @@ export async function onLogin(data: FormData) {
     if (!user || user.length === 0 || !bcrypt.compareSync(password, user[0].password)) {
         return { success: false, error: "Invalid email or password" };
     }
-    const token = GenerateJWT(email);
+    const token = GenerateJWT(user[0].userid);
     return { success: true, token: token };
 }

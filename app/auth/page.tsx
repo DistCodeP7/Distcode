@@ -94,7 +94,7 @@ export default function Page() {
         if (response.success) {
             alert("Registered successfully!");
             localStorage.setItem("token", response.token);
-            window.location.href = "/editor";
+            window.location.href = "/authorized/editor";
         }
         if (response.error) {
             alert("Registration failed: " + response.error);
@@ -199,7 +199,7 @@ export default function Page() {
                          <Button
                     type="button"
                     onClick={() => {
-                        signIn("google", { callbackUrl: "/editor" });
+                        signIn("google", { callbackUrl: "/authorized/editor" });
                     }}
                     style={{
                         marginTop: "1rem",
@@ -213,6 +213,24 @@ export default function Page() {
                     }}
                 >
                     Register with Google
+                </Button>
+                <Button
+                    type="button"
+                    onClick={() => {
+                        signIn("github", { callbackUrl: "/authorized/editor" });
+                    }}
+                    style={{
+                        marginTop: "1rem",
+                        width: "100%",
+                        padding: "0.5rem",
+                        background: "#333",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "4px",
+                        cursor: "pointer"
+                    }}
+                >
+                    Register with GitHub
                 </Button>
         </form>
       </Form>

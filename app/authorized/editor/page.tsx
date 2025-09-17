@@ -18,7 +18,6 @@ export default function IDE() {
   };
 
   return (
-    <AuthProvider>
     <ResizablePanelGroup
       direction="horizontal"
       className="h-full border md:min-w-[450px]"
@@ -40,6 +39,5 @@ export default function IDE() {
         <Editor onSubmit={onSubmit} />
       </ResizablePanel>
     </ResizablePanelGroup>
-    </AuthProvider>
   );
 }

@@ -40,7 +40,7 @@ export default function LoginPage() {
         if (response.success) {
             alert("Logged in successfully!");
             localStorage.setItem("token", response.token);
-            window.location.href = "/editor";
+            window.location.href = "/authorized/editor";
         }
         if (response.error) {
             alert("Login failed: " + response.error);
@@ -88,7 +88,7 @@ export default function LoginPage() {
           <Button
                                     type="button"
                                     onClick={() => {
-                                        signIn("google", { callbackUrl: "/editor" });
+                                        signIn("google", { callbackUrl: "/authorized/editor" });
                                     }}
                                     style={{
                                         marginTop: "1rem",
@@ -102,6 +102,24 @@ export default function LoginPage() {
                                     }}
                                 >
                                     Login with Google
+                                </Button>
+                <Button
+                                    type="button"
+                                    onClick={() => {
+                                        signIn("github", { callbackUrl: "/authorized/editor" });
+                                    }}
+                                    style={{
+                                        marginTop: "1rem",
+                                        width: "100%",
+                                        padding: "0.5rem",
+                                        background: "#333",
+                                        color: "white",
+                                        border: "none",
+                                        borderRadius: "4px",
+                                        cursor: "pointer"
+                                    }}
+                                >
+                                    Login with GitHub
                                 </Button>
         </form>
       </Form>

@@ -1,63 +1,104 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+"use client";
+
+import React, {
+	createContext,
+	useContext,
+	useEffect,
+	useState,
+	ReactNode,
+} from "react";
 import { jwtDecode } from "jwt-decode";
+import { useSession } from "next-auth/react";
+
+// Define the shape of your decoded JWT payload for type safety
+interface UserPayload {
+	email: string; // Or whatever data you put in your JWT
+	iat: number;
+	exp: number;
+}
 
 interface AuthContextType {
-    isAuthenticated: boolean;
-    user: any;
+	isAuthenticated: boolean;
+	user: UserPayload | null;
+	token: string | null;
+	isLoading: boolean; // Crucial for initial page load
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [user, setUser] = useState<any>(null);;
-    
-    useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (token) {
-            try {
-                const decoded: any = jwtDecode(token);
-                if (decoded.exp * 1000 > Date.now()) {
-                    setIsAuthenticated(true);
-                    setUser(decoded);
-                }
-                else {
-                    localStorage.removeItem("token");
-                    window.location.href = "/auth";
-                }
-            }
-            catch (error) {
-                localStorage.removeItem("token");
-                window.location.href = "/auth";
-            }
-        }
-    else {
-        fetch("/api/auth/session").then(res => res.json()).then(data => {
-            if (data?.user?.token) {
-                localStorage.setItem("token", data.user.token);
-                const decoded: any = jwtDecode(data.user.token);
-                setIsAuthenticated(true);
-                setUser(decoded);
-            }
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({
+	children,
+}) => {
+	const { data: session} = useSession();
+	const [user, setUser] = useState<UserPayload | null>(null);
+	const [token, setToken] = useState<string | null>(null);
+	const [isLoading, setIsLoading] = useState(true);
+
+	useEffect(() => {
+		const initializeAuth = () => {
+			if (session?.token) {
+				const token = session.token;
+				try {
+					const decoded = jwtDecode<UserPayload>(token);
+					if (decoded.exp * 1000 > Date.now()) {
+						setToken(token);
+						setUser(decoded);
+						localStorage.setItem("token", token); 
+					} else {
+						localStorage.removeItem("token");
+						setToken(null);
+						setUser(null);
+					}
+				} catch (error) {
+					console.error("AuthProvider: Invalid token from session", error);
+					localStorage.removeItem("token");
+				}
+				setIsLoading(false);
+				return;
+			}
             else {
-                localStorage.removeItem("token");
-                window.location.href = "/auth";
-            }
-        });
-    }
-}, []);
-    
-    return (
-        <AuthContext.Provider value={{ isAuthenticated, user }}>
-            {children}
-        </AuthContext.Provider>
-    );
-}
+				const localToken = localStorage.getItem("token");
+				if (localToken) {
+					try {
+						const decoded = jwtDecode<UserPayload>(localToken);
+						if (decoded.exp * 1000 > Date.now()) {
+							setToken(localToken);
+							setUser(decoded);
+						} else {
+							console.log("AuthProvider: Token from localStorage expired.");
+							localStorage.removeItem("token");
+						}
+					} catch (error) {
+						console.error(
+							"AuthProvider: Invalid token in localStorage",
+							error,
+						);
+						localStorage.removeItem("token");
+					}
+				}
+				setIsLoading(false);
+				return;
+			}
+		};
+
+		initializeAuth();
+	}, [session]);
+
+	const isAuthenticated = !!token;
+
+	return (
+		<AuthContext.Provider
+			value={{ isAuthenticated, user, token, isLoading }}
+		>
+			{children}
+		</AuthContext.Provider>
+	);
+};
 
 export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error("useAuth must be used within an AuthProvider");
-    }
-    return context;
+	const context = useContext(AuthContext);
+	if (!context) {
+		throw new Error("useAuth must be used within an AuthProvider");
+	}
+	return context;
 };
