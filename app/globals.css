@@ -119,3 +119,41 @@
     @apply bg-background text-foreground;
   }
 }
+
+.neon-line {
+  animation-name: neonLineSpin;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-duration: 72s;
+  background-image: radial-gradient(
+    currentColor,
+    rgba(from currentColor r g b / 0.5),
+    transparent
+  );
+  animation: neonLineSpin 72s linear infinite, flicker 10s linear infinite;
+}
+
+@keyframes flicker {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  80% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.03;
+  }
+  20% {
+    opacity: 0.01;
+  }
+}
+
+@keyframes neonLineSpin {
+  from {
+    transform: rotate(var(--initial-angle));
+  }
+  to {
+    transform: rotate(calc(var(--initial-angle) + 360deg));
+  }
+}
