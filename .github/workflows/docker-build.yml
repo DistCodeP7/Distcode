@@ -33,9 +33,3 @@ jobs:
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-
-      - name: Run tests as an example step
-        run: echo "Image built successfully. You could run tests here."
-
-      - name: Push the Docker image
-        run: docker compose push
