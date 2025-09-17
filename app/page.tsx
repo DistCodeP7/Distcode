@@ -29,7 +29,7 @@ export default function Home() {
         <h1 className="text-5xl font-bold leading-tight">
           Learn Distributed Programming
         </h1>
-        <p className="text-muted-foreground text-lg sm:text-xl max-w-lg">
+        <p className="text-muted-foreground text-center text-lg sm:text-xl max-w-lg">
           Build, run, and understand distributed algorithms in a safe and
           interactive environment.
         </p>

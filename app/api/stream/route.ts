@@ -12,7 +12,6 @@ export async function GET() {
 
   const stream = new ReadableStream({
     async start(controller) {
-      // Handle client disconnect
       const cleanup = () => {
         stopped = true;
         receiver.disconnect().catch(console.error);
@@ -20,17 +19,14 @@ export async function GET() {
       };
 
       try {
-        // Initial "connected" message
         controller.enqueue(
           encoder.encode(
             `data: ${JSON.stringify({ status: "connected" })}\n\n`,
           ),
         );
 
-        // Connect to RabbitMQ
         await receiver.connect();
 
-        // Start consuming messages
         await receiver.consumeMessages((msg) => {
           if (stopped) return;
           controller.enqueue(
@@ -38,21 +34,14 @@ export async function GET() {
           );
         });
       } catch (err) {
-        if (err instanceof Error) {
-          console.error("SSE error:", err);
-          controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({ status: "error", message: err.message })}\n\n`,
-            ),
-          );
-        } else {
-          console.error("SSE error:", err);
-          controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({ status: "error", message: "Unknown error occurred" })}\n\n`,
-            ),
-          );
-        }
+        const message =
+          err instanceof Error ? err.message : "Unknown error occurred";
+        console.error("SSE error:", err);
+        controller.enqueue(
+          encoder.encode(
+            `data: ${JSON.stringify({ status: "error", message })}\n\n`,
+          ),
+        );
         cleanup();
       }
     },
@@ -67,7 +56,7 @@ export async function GET() {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache, no-transform",
       Connection: "keep-alive",
-      "Access-Control-Allow-Origin": "*", // optional if CORS needed
+      "Access-Control-Allow-Origin": "*",
     },
   });
 }
