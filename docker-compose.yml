@@ -17,7 +17,7 @@ services:
     depends_on:
       - db
     env_file:
-      - .env
+      - .local.env
     ports:
       - "3000:3000"
     command: npm run dev
