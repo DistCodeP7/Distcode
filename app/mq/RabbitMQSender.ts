@@ -1,14 +1,7 @@
 ﻿
 import amqp from "amqplib";
-import type {Connection, Channel} from 'amqplib';
-
-interface RabbitMQConfig {
-    url: string; // e.g., "amqp://localhost"
-    queue: string; // optional queue name
-    exchange?: string; // optional exchange name
-    exchangeType?: "direct" | "fanout" | "topic" | "headers";
-    routingKey?: string; // optional routing key
-}
+import type {Connection, Channel, ConsumeMessage} from 'amqplib';
+import type {RabbitMQConfig} from "./RabbitMQConfig";
 
 export class RabbitMQSender {
     private conn!: Connection;
@@ -79,6 +72,20 @@ export class RabbitMQSender {
             throw new Error("No exchange or queue configured to send messages.")
         }
     }
+
+    async consumeMessage(onMessage: (msg: any) => void): Promise<void> {
+        await this.channel.consume(this.config.queue, (msg: ConsumeMessage | null) => {
+            if (msg) {
+                const content = msg.content.toString();
+                try {
+                    onMessage(JSON.parse(content));
+                } catch {
+                    onMessage(content);
+                }
+                this.channel.ack(msg);
+            }
+        });
+    }
 }
 
 // Test message
@@ -91,5 +98,7 @@ export class RabbitMQSender {
 
     await sender.connect();
     await sender.sendMessage("test");
-    await sender.disconnect();
+    
+    //Keep running or disconnect later
+    //await sender.disconnect();
 })();
