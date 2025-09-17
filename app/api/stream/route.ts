@@ -7,8 +7,7 @@ export async function GET() {
 
   const receiver = new RabbitMQReceiver({
     url: "amqp://localhost",
-    queue: "my_queue",
-    routingKey: "my_routing_key",
+    queue: "results",
   });
 
   const stream = new ReadableStream({
@@ -38,10 +37,6 @@ export async function GET() {
             encoder.encode(`data: ${JSON.stringify(msg)}\n\n`),
           );
         });
-
-        // Optional: clean up on client disconnect
-        // @ts-ignore
-        controller.signal.addEventListener("abort", cleanup);
       } catch (err) {
         if (err instanceof Error) {
           console.error("SSE error:", err);
