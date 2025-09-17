@@ -1,42 +1,69 @@
 import { NextResponse } from "next/server";
+import { RabbitMQReceiver } from "@/app/mq/RabbitMQReceiver";
 
 export async function GET() {
   const encoder = new TextEncoder();
-  let progress = 0;
   let stopped = false;
 
+  const receiver = new RabbitMQReceiver({
+    url: "amqp://localhost",
+    queue: "my_queue",
+    routingKey: "my_routing_key",
+  });
+
   const stream = new ReadableStream({
-    start(controller) {
-      controller.enqueue(
-        encoder.encode(`data: ${JSON.stringify({ status: "started" })}\n\n`),
-      );
+    async start(controller) {
+      // Handle client disconnect
+      const cleanup = () => {
+        stopped = true;
+        receiver.disconnect().catch(console.error);
+        controller.close();
+      };
 
-      const interval = setInterval(() => {
-        if (stopped) {
-          clearInterval(interval);
-          return;
-        }
+      try {
+        // Initial "connected" message
+        controller.enqueue(
+          encoder.encode(
+            `data: ${JSON.stringify({ status: "connected" })}\n\n`,
+          ),
+        );
 
-        progress += 20;
+        // Connect to RabbitMQ
+        await receiver.connect();
 
-        if (progress < 100) {
+        // Start consuming messages
+        await receiver.consumeMessages((msg) => {
+          if (stopped) return;
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify(msg)}\n\n`),
+          );
+        });
+
+        // Optional: clean up on client disconnect
+        // @ts-ignore
+        controller.signal.addEventListener("abort", cleanup);
+      } catch (err) {
+        if (err instanceof Error) {
+          console.error("SSE error:", err);
           controller.enqueue(
             encoder.encode(
-              `data: ${JSON.stringify({ status: "running", progress })}\n\n`,
+              `data: ${JSON.stringify({ status: "error", message: err.message })}\n\n`,
             ),
           );
         } else {
+          console.error("SSE error:", err);
           controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ status: "done" })}\n\n`),
+            encoder.encode(
+              `data: ${JSON.stringify({ status: "error", message: "Unknown error occurred" })}\n\n`,
+            ),
           );
-          clearInterval(interval);
-          stopped = true;
-          controller.close();
         }
-      }, 1000);
+        cleanup();
+      }
     },
     cancel() {
-      stopped = true; // if client disconnects
+      stopped = true;
+      receiver.disconnect().catch(console.error);
     },
   });
 
@@ -45,6 +72,7 @@ export async function GET() {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache, no-transform",
       Connection: "keep-alive",
+      "Access-Control-Allow-Origin": "*", // optional if CORS needed
     },
   });
 }

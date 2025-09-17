@@ -24,18 +24,14 @@ export const useSSE = (url: string) => {
       try {
         const data = JSON.parse(event.data);
         setMessages((prev) => [...prev, data]);
-        lastMsgRef.current = data; // track latest message
-
-        if (data.status === "done") {
-          setIsConnected(false); // normal end
-        }
-      } catch (err) {
-        console.error("Invalid SSE data", err);
+        lastMsgRef.current = data;
+        if (data.status === "done") setIsConnected(false);
+      } catch {
+        console.error("Invalid SSE data");
       }
     };
 
     eventSource.onerror = () => {
-      // Check ref instead of state
       if (!lastMsgRef.current || lastMsgRef.current.status !== "done") {
         setError("Connection lost. Try again.");
       }
