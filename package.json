@@ -1,6 +1,7 @@
 {
   "name": "distcode",
   "version": "0.1.0",
+  "type": "module",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -36,6 +37,8 @@
     "@radix-ui/react-toggle-group": "^1.1.11",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@svgr/webpack": "^8.1.0",
+    "@types/amqplib": "0.10.6",
+    "amqplib": "^0.10.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
