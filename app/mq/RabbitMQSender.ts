@@ -52,7 +52,7 @@ export class RabbitMQSender {
             (this.config.exchange ? ` on Exchange ${this.config.exchange}` : ""));
     }
     
-    async sendMessage(msg: string, routingKey?: string): Promise<void> {
+    async sendMessage(msg: object, routingKey?: string): Promise<void> {
         if (!this.channel) {
             throw new Error("Channel is not initialized. Call connect() first.");
         }
@@ -97,7 +97,7 @@ export class RabbitMQSender {
     });
 
     await sender.connect();
-    await sender.sendMessage("test");
+    await sender.sendMessage({"test":"test"});
     
     //Keep running or disconnect later
     //await sender.disconnect();
