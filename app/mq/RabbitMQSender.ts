@@ -1,41 +1,50 @@
 ﻿import amqp from "amqplib";
 import type { Connection, Channel, ConsumeMessage } from "amqplib";
 import type { RabbitMQConfig } from "./RabbitMQConfig";
+import { getMQConnection } from "./getMQConnection.ts";
 
 export class RabbitMQSender {
   private conn!: Connection;
   private channel!: Channel;
-  private config: RabbitMQConfig;
+  private queue: string;
+  private exchange?: string;
+  private exchangeType: string;
+  private routingKey?: string;
 
-  constructor(config: RabbitMQConfig) {
-    this.config = config;
+  constructor(RabbitMQConfig: RabbitMQConfig) {
+    this.queue = RabbitMQConfig.queue;
+    this.exchange = RabbitMQConfig.exchange;
+    this.exchangeType = RabbitMQConfig.exchangeType || "direct";
+    this.routingKey = RabbitMQConfig.routingKey;
   }
 
   async connect(): Promise<void> {
     try {
-      this.conn = await amqp.connect(this.config.url);
+      this.conn = await getMQConnection()
       this.channel = await this.conn.createChannel();
 
-      if (this.config.queue) {
-        await this.channel.assertQueue(this.config.queue, { durable: true });
+      if (this.queue) {
+        await this.channel.assertQueue(
+          this.queue, 
+          { durable: true });
 
-        if (this.config.exchange) {
+        if (this.exchange) {
           await this.channel.assertExchange(
-            this.config.exchange,
-            this.config.exchangeType || "direct",
+            this.exchange,
+            this.exchangeType || "direct",
             { durable: true }
           );
 
           await this.channel.bindQueue(
-            this.config.queue,
-            this.config.exchange,
-            this.config.routingKey || ""
+            this.queue,
+            this.exchange,
+            this.routingKey || "routing_key"
           );
         }
 
         console.log(
-          `Connected: Queue ${this.config.queue}` +
-            (this.config.exchange ? ` on Exchange ${this.config.exchange}` : "")
+          `Connected: Queue ${this.queue}` +
+            (this.exchange ? ` on Exchange ${this.exchange}` : "")
         );
       }
     } catch (err) {
@@ -48,8 +57,8 @@ export class RabbitMQSender {
     await this.channel.close();
     await this.conn.close();
     console.log(
-      `Disconnected: Queue ${this.config.queue}` +
-        (this.config.exchange ? ` on Exchange ${this.config.exchange}` : "")
+      `Disconnected: Queue ${this.queue}` +
+        (this.exchange ? ` on Exchange ${this.exchange}` : "")
     );
   }
 
@@ -60,53 +69,21 @@ export class RabbitMQSender {
 
     const msgBuffer = Buffer.from(JSON.stringify(msg));
 
-    if (this.config.exchange) {
-      const key = routingKey || this.config.routingKey || "";
-      this.channel.publish(this.config.exchange, key, msgBuffer, {
+    if (this.exchange) {
+      const key = routingKey || this.routingKey || "";
+      this.channel.publish(this.exchange, key, msgBuffer, {
         persistent: true,
       });
       console.log(
-        `Message ${msgBuffer} sent to exchange "${this.config.exchange}" with key "${key}"`
+        `Message ${msgBuffer} sent to exchange "${this.exchange}" with key "${key}"`
       );
-    } else if (this.config.queue) {
-      this.channel.sendToQueue(this.config.queue, msgBuffer, {
+    } else if (this.queue) {
+      this.channel.sendToQueue(this.queue, msgBuffer, {
         persistent: true,
       });
-      console.log(`Message ${msgBuffer} sent to queue "${this.config.queue}"`);
+      console.log(`Message ${msgBuffer} sent to queue "${this.queue}"`);
     } else {
       throw new Error("No exchange or queue configured to send messages.");
     }
   }
-
-  async consumeMessage(onMessage: (msg: any) => void): Promise<void> {
-    await this.channel.consume(
-      this.config.queue,
-      (msg: ConsumeMessage | null) => {
-        if (msg) {
-          const content = msg.content.toString();
-          try {
-            onMessage(JSON.parse(content));
-          } catch {
-            onMessage(content);
-          }
-          this.channel.ack(msg);
-        }
-      }
-    );
-  }
 }
-
-// Test message
-(async () => {
-  const sender = new RabbitMQSender({
-    url: "amqp://localhost",
-    queue: "my_queue",
-    routingKey: "my_routing_key",
-  });
-
-  await sender.connect();
-  await sender.sendMessage({ test: "test" });
-
-  //Keep running or disconnect later
-  //await sender.disconnect();
-})();
