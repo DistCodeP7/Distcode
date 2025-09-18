@@ -207,42 +207,6 @@ export default function Page() {
           >
             Create Account
           </Button>
-          <Button
-            type="button"
-            onClick={() => {
-              signIn("google", { callbackUrl: "/authorized/editor" });
-            }}
-            style={{
-              marginTop: "1rem",
-              width: "100%",
-              padding: "0.5rem",
-              background: "#4285F4",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
-          >
-            Register with Google
-          </Button>
-          <Button
-            type="button"
-            onClick={() => {
-              signIn("github", { callbackUrl: "/authorized/editor" });
-            }}
-            style={{
-              marginTop: "1rem",
-              width: "100%",
-              padding: "0.5rem",
-              background: "#333",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
-          >
-            Register with GitHub
-          </Button>
         </form>
       </Form>
 

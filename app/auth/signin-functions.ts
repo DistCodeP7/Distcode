@@ -36,6 +36,5 @@ export async function onRegister(credentials: {
     password: hashedPassword,
     id: userid,
   };
-  console.log(user);
   return { success: true, user };
 }
