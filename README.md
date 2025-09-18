@@ -39,5 +39,8 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ```bash
 npx drizzle-kit generate
+# If in local docker environment
 npx drizzle-kit push
+# if not
+docker-compose exec app npx drizzle-kit push
 ```
