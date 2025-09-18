@@ -13,6 +13,8 @@ type CustomEditorProps = EditorProps & {
   initialEditorContent?: string;
   editorContent: string;
   setEditorContent: React.Dispatch<React.SetStateAction<string>>;
+  codePlaceholder?: string;
+  markdownPlaceholder?: string;
 };
 
 function labToHex(l: number, a: number, b: number): string {
@@ -62,6 +64,8 @@ export default function CustomEditor({
   initialEditorContent,
   editorContent,
   setEditorContent,
+  codePlaceholder = "// Start coding here...",
+  markdownPlaceholder = "# Start writing your problem in markdown...",
   ...props
 }: CustomEditorProps) {
   const handleEditorDidMount: OnMount = (editor, monaco) => {
@@ -109,6 +113,8 @@ export default function CustomEditor({
     }
   };
 
+  const placeholder = language === "markdown" ? markdownPlaceholder : codePlaceholder;
+
   return (
     <form onSubmit={handleSubmit} className="flex h-full flex-col">
       <div className="flex-grow">
@@ -120,7 +126,7 @@ export default function CustomEditor({
             height="100%"
             defaultLanguage={language}
             language={language}
-            defaultValue="// Start coding here..."
+            defaultValue={placeholder}
             onChange={onChange}
             value={editorContent}
             options={{
@@ -138,7 +144,7 @@ export default function CustomEditor({
 
 type Files = {
   name: string;
-  fileType: "go" | "erlang" | "akka";
+  fileType: "go" | "erlang" | "akka" | "markdown";
 };
 
 type EditorHeaderProps = {

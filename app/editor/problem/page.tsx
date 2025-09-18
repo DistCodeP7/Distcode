@@ -8,13 +8,12 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { useState } from "react";
+import { temp } from "@/lib/temp";
 
-export default function IDE() {
+export default function ProblemPage() {
   const [file, setFile] = useState(0);
-  const [code, setCode] = useState("// Start coding here...");
-  const onSubmit = (code: string) => {
-    console.log("Submitted code:", code);
-  };
+  const [markdownCode, setMarkdownCode] = useState("# Start writing your problem in markdown...");
+  const [exampleCode, setExampleCode] = useState(temp);
 
   return (
     <ResizablePanelGroup
@@ -22,23 +21,25 @@ export default function IDE() {
       className="h-full border md:min-w-[450px]"
     >
       <ResizablePanel minSize={20} className="overflow-y-auto">
-        <MarkdownPreview />
+        <MarkdownPreview content={file === 0 ? markdownCode : exampleCode} />
       </ResizablePanel>
       <ResizableHandle withHandle />
       <ResizablePanel minSize={20}>
         <EditorHeader
           files={[
-            { name: "file1.go", fileType: "go" },
-            { name: "file2.erl", fileType: "erlang" },
-            { name: "file2.akka", fileType: "akka" }
+            { name: "Problem.md", fileType: "markdown" },
+            { name: "Example.md", fileType: "markdown" },
           ]}
           activeFile={file}
           onFileChange={(index) => setFile(index)}
         />
         <Editor
-          editorContent={code}
-          setEditorContent={setCode}
-          onSubmit={onSubmit}
+          editorContent={file === 0 ? markdownCode : exampleCode}
+          setEditorContent={file === 0 ? setMarkdownCode : setExampleCode}
+          onSubmit={(code: string) => {
+            console.log("Submitted code:", code);
+          }}
+          language="markdown"
         />
       </ResizablePanel>
     </ResizablePanelGroup>
