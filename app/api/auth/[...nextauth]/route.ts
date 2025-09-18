@@ -4,11 +4,8 @@ import GitHubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { db } from "@/lib/db";
 import { users } from "@/drizzle/schema";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { GenerateJWT } from "@/app/auth/generateJWT";
-import { onRegister } from "@/app/auth/signin-functions";
-import { credentials } from "amqplib";
-import { decrypt } from "dotenv";
 
 export const authOptions = {
   providers: [
@@ -27,7 +24,6 @@ export const authOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        console.log("Login in");
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
@@ -79,13 +75,11 @@ export const authOptions = {
           return false;
         }
       }
-      // Always attach JWT to user object for downstream callbacks
       user.token = GenerateJWT(user.userid);
       return true;
     },
 
     async jwt({ token, user }: { token: any; user: any }) {
-      // If user is present (on sign in), set token
       if (user?.token) {
         token.token = user.token;
       }
@@ -93,12 +87,14 @@ export const authOptions = {
     },
 
     async session({ session, token }: { session: any; token: any }) {
-      // Always pass token from JWT callback to session
       session.token = token.token;
       return session;
     },
-  }, // End of callbacks
-}; // End of authOptions
+  },
+  pages: {
+    signIn: "/auth/login",
+  },
+};
 
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
