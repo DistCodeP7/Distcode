@@ -1,103 +1,103 @@
-import Image from "next/image";
+import Link from "next/link";
+import { Braces, Mountain } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import NeonLines from "@/components/custom/NeonLine";
+import { FeedbackStream } from "@/components/custom/feedbackstream";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const features = [
+    {
+      icon: Mountain,
+      title: "Interactive Simulations",
+      description:
+        "Run distributed algorithms in real-time and visualise the results.",
+    },
+    {
+      icon: Braces,
+      title: "Step-by-Step Tutorials",
+      description: "Learn each concept gradually with hands-on exercises.",
+    },
+  ];
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  return (
+    <div className="relative w-full">
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <NeonLines count={160} />
+      </div>
+
+      <main className="flex flex-col items-center text-center sm:text-left gap-6 max-w-3xl mx-auto py-16">
+        <h1 className="text-5xl font-bold leading-tight">
+          Learn Distributed Programming
+        </h1>
+        <p className="text-muted-foreground text-center text-lg sm:text-xl max-w-lg">
+          Build, run, and understand distributed algorithms in a safe and
+          interactive environment.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 mt-4">
+          <Link href="/auth">
+            <Button size="lg">Get Started</Button>
+          </Link>
+          <Link href="/docs">
+            <Button variant="outline" size="lg">
+              Learn More
+            </Button>
+          </Link>
         </div>
+
+        {/* Features */}
+        <section className="flex flex-wrap justify-center gap-6 w-full max-w-5xl">
+          {features.map((feature) => {
+            const Icon = feature.icon;
+            return (
+              <div
+                key={feature.title}
+                className="p-6 rounded-2xl border bg-card text-center flex flex-col items-center gap-4 hover:shadow-lg transition-shadow w-60"
+              >
+                <Icon className="w-10 h-10 text-primary" />
+                <h3 className="font-semibold text-lg">{feature.title}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {feature.description}
+                </p>
+              </div>
+            );
+          })}
+        </section>
+
+        {/* Example Section */}
+        <section className="flex flex-col items-center gap-4 max-w-3xl">
+          <h2 className="text-2xl font-semibold">
+            Start Experimenting Instantly
+          </h2>
+          <p className="text-muted-foreground text-center">
+            You don’t need to set up anything. Create an account and start
+            running algorithms in our interactive sandbox.
+          </p>
+          <Link href="/auth">
+            <Button size="lg">Start Experiment</Button>
+          </Link>
+        </section>
+
+        {/* SSE Feedback Stream Section */}
+        <FeedbackStream />
+
+        {/* Footer */}
+        <footer className="flex flex-col sm:flex-row gap-6 items-center justify-center text-sm text-muted-foreground mt-16 w-full">
+          <Link href="/docs" className="hover:underline">
+            Docs
+          </Link>
+          <Link
+            href="https://github.com"
+            target="_blank"
+            className="hover:underline"
+          >
+            GitHub
+          </Link>
+          <Link href="/about" className="hover:underline">
+            About
+          </Link>
+          <span className="mt-2 sm:mt-0">© 2025 Distcode</span>
+        </footer>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
