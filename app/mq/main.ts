@@ -1,11 +1,11 @@
-﻿import { RabbitMQSender } from "./RabbitMQSender";
-import { RabbitMQReceiver } from "./RabbitMQReceiver";
+﻿import { RabbitMQSender } from "./RabbitMQSender.ts";
+import { RabbitMQReceiver } from "./RabbitMQReceiver.ts";
 import type { RabbitMQConfig } from "./RabbitMQConfig";
+import "dotenv/config";
 
 async function main() {
   // Example configuration
   const config: RabbitMQConfig = {
-    url: "amqp://localhost",
     queue: "my_queue",
   };
 
