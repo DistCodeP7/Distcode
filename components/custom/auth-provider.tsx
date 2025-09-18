@@ -1,61 +1,33 @@
 "use client";
 
-import React, { useEffect, ReactNode } from "react";
+import React, { ReactNode } from "react";
 import { jwtDecode } from "jwt-decode";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
+import { useRouter } from "next/navigation"; // Use 'next/navigation' for Next.js 13+ App Router
 
 interface UserPayload {
   email: string;
-  exp: number;
+  exp: number; // Expiration time in seconds
 }
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
-  useEffect(() => {
-    const initializeAuth = () => {
-      if (session?.token) {
-        const token = session.token;
-        try {
-          const decoded = jwtDecode<UserPayload>(token);
-          if (decoded.exp * 1000 > Date.now()) {
-            localStorage.setItem("token", token);
-          } else {
-            localStorage.removeItem("token");
-            window.location.href = "/auth/login";
-          }
-        } catch (error) {
-          console.error("AuthProvider: Invalid token from session", error);
-          localStorage.removeItem("token");
-          window.location.href = "/auth/login";
-        }
-        return;
-      } else {
-        const localToken = localStorage.getItem("token");
-        if (localToken) {
-          try {
-            const decoded = jwtDecode<UserPayload>(localToken);
-            if (decoded.exp * 1000 < Date.now()) {
-              console.log("AuthProvider: Token from localStorage expired.");
-              localStorage.removeItem("token");
-              window.location.href = "/auth/login";
-            } else {
-              console.log("AuthProvider: Valid token found in localStorage.");
-            }
-          } catch (error) {
-            console.error("AuthProvider: Invalid token in localStorage", error);
-            localStorage.removeItem("token");
-            window.location.href = "/auth/login";
-          }
-        }
-        return;
+  if (status === "authenticated" && session?.token) {
+    const token = session.token;
+    try {
+      const decoded = jwtDecode<UserPayload>(token);
+
+      if (decoded.exp * 1000 < Date.now()) {
+        signOut({ redirect: false, callbackUrl: "/auth/login" });
       }
-    };
-
-    initializeAuth();
-  }, [session]);
+    } catch (error) {
+      signOut({ redirect: false, callbackUrl: "/auth/login" });
+    }
+  }
 
   return <main className="flex-1 flex flex-col">{children}</main>;
 };
