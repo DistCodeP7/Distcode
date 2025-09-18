@@ -1,7 +1,6 @@
-﻿import amqp from "amqplib";
-import type { Connection, Channel, ConsumeMessage } from "amqplib";
+﻿import type { Connection, Channel, ConsumeMessage } from "amqplib";
 import type { RabbitMQConfig } from "./RabbitMQConfig";
-import { getMQConnection } from "./getMQConnection.ts";
+import { getMQConnection } from "./getMQConnection";
 
 export class RabbitMQReceiver {
   private conn!: Connection;
@@ -20,7 +19,7 @@ export class RabbitMQReceiver {
 
   async connect(): Promise<void> {
     try {
-      this.conn = await getMQConnection()
+      this.conn = await getMQConnection();
       this.channel = await this.conn.createChannel();
 
       // Always assert queue
@@ -73,20 +72,17 @@ export class RabbitMQReceiver {
       throw new Error("Queue not configured for receiving messages.");
     }
 
-    await this.channel.consume(
-      this.queue,
-      (msg: ConsumeMessage | null) => {
-        if (msg) {
-          const content = msg.content.toString();
-          try {
-            onMessage(JSON.parse(content));
-          } catch {
-            onMessage(content);
-          }
-          this.channel.ack(msg);
+    await this.channel.consume(this.queue, (msg: ConsumeMessage | null) => {
+      if (msg) {
+        const content = msg.content.toString();
+        try {
+          onMessage(JSON.parse(content));
+        } catch {
+          onMessage(content);
         }
+        this.channel.ack(msg);
       }
-    );
+    });
 
     console.log(`Waiting for messages in queue "${this.queue}"...`);
   }

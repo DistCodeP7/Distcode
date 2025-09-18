@@ -2,73 +2,140 @@ import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { getUserIdByEmail } from "@/lib/user";
+import { RabbitMQReceiver } from "@/app/mq/RabbitMQReceiver";
 
 type Client = {
   controller: ReadableStreamDefaultController<Uint8Array>;
   encoder: TextEncoder;
 };
 
-const clients: Map<number, Set<Client>> = new Map();
+type JobResultMessage = {
+  JobId: number;
+  Result: {
+    Stdout: string;
+    Stderr: string;
+    Err: string;
+  };
+  UserId?: number;
+};
 
-function addClient(userId: number, client: Client) {
-  if (!clients.has(userId)) {
-    clients.set(userId, new Set());
+class JobResultQueueListener {
+  private mqReceiver: RabbitMQReceiver;
+  private isRunning: boolean = false;
+
+  constructor(mqReceiver = new RabbitMQReceiver({ queue: "results" })) {
+    this.mqReceiver = mqReceiver;
+    this.isRunning = false;
   }
-  clients.get(userId)!.add(client);
+
+  start<T>(messageCallback: (msg: T) => void) {
+    if (this.isRunning) return;
+    this.isRunning = true;
+    this.mqReceiver.connect().then(() => {
+      this.mqReceiver.consumeMessages(messageCallback);
+    });
+  }
+
+  stop() {
+    if (!this.isRunning) return;
+    this.isRunning = false;
+    this.mqReceiver.disconnect();
+  }
 }
 
-function removeClient(userId: number, client: Client) {
-  const set = clients.get(userId);
-  if (!set) return;
-  set.delete(client);
-  if (set.size === 0) clients.delete(userId);
+class ClientManager {
+  private clients: Map<number, Set<Client>> = new Map();
+  private heartBeatId: NodeJS.Timeout | undefined = undefined;
+
+  addClient(userId: number, client: Client) {
+    if (!this.clients.has(userId)) {
+      this.clients.set(userId, new Set());
+    }
+    this.clients.get(userId)!.add(client);
+
+    if (this.clients.size === 1 && !this.heartBeatId) {
+      this.heartBeatId = setInterval(() => this.heartbeat(), 15000);
+    }
+  }
+
+  removeClient(userId: number, client: Client) {
+    const set = this.clients.get(userId);
+    if (!set) return;
+    set.delete(client);
+    if (set.size === 0) this.clients.delete(userId);
+    if (this.clients.size === 0) {
+      clearInterval(this.heartBeatId);
+      this.heartBeatId = undefined;
+    }
+  }
+
+  hasClients(): boolean {
+    return this.clients.size > 0;
+  }
+
+  heartbeat() {
+    for (const [userId, userClients] of this.clients) {
+      for (const client of userClients) {
+        try {
+          client.controller.enqueue(client.encoder.encode(":\n\n"));
+        } catch {
+          this.removeClient(userId, client);
+        }
+      }
+    }
+  }
+
+  dispatchJobResultToClients(msg: JobResultMessage) {
+    const userId = msg.UserId;
+    if (!userId) return;
+
+    const userClients = this.clients.get(userId);
+    if (!userClients) return;
+
+    for (const client of userClients) {
+      try {
+        client.controller.enqueue(
+          client.encoder.encode(`data: ${JSON.stringify(msg)}\n\n`)
+        );
+      } catch {
+        this.removeClient(userId, client);
+      }
+    }
+  }
 }
 
-export async function GET(req: Request) {
+const clientManager = new ClientManager();
+const jobResultListener = new JobResultQueueListener();
+
+export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const userId = await getUserIdByEmail(session.user.email)
+  const userId = await getUserIdByEmail(session.user.email);
   if (!userId) {
-    return NextResponse.json({ error: "Missing userId" }, { status: 400 });
+    return NextResponse.json({ error: "User not found." }, { status: 404 });
   }
 
-  console.log(`User ${userId} connected to SSE`);
+  jobResultListener.start(
+    clientManager.dispatchJobResultToClients.bind(clientManager)
+  );
 
   const encoder = new TextEncoder();
-  let stopped = false;
+  let clientRef: Client;
 
   const stream = new ReadableStream<Uint8Array>({
-    start(controller) {
+    start: (controller) => {
       const client: Client = { controller, encoder };
-      addClient(userId, client);
-      controller.enqueue(
-        encoder.encode(`data: ${JSON.stringify({ status: `connected ${userId}` })}\n\n`)
-      );
+      clientRef = client;
+      clientManager.addClient(userId, client);
     },
-    cancel() {
-      stopped = true;
-      removeClient(userId, { controller: null! as any, encoder });
+    cancel: () => {
+      clientManager.removeClient(userId, clientRef);
+      if (!clientManager.hasClients()) jobResultListener.stop();
     },
   });
-
-  const heartbeat = setInterval(() => {
-    if (stopped) {
-      clearInterval(heartbeat);
-      return;
-    }
-
-    const userClients = clients.get(userId);
-    userClients?.forEach((client) => {
-      try {
-        client.controller.enqueue(encoder.encode(":\n\n"));
-      } catch {
-        removeClient(userId, client);
-      }
-    });
-  }, 15000);
 
   return new NextResponse(stream, {
     headers: {
@@ -79,5 +146,3 @@ export async function GET(req: Request) {
     },
   });
 }
-
-export { clients, addClient, removeClient };

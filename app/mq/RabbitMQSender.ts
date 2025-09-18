@@ -1,7 +1,7 @@
-﻿import amqp from "amqplib";
-import type { Connection, Channel, ConsumeMessage } from "amqplib";
+﻿import type { Connection, Channel, ConsumeMessage } from "amqplib";
 import type { RabbitMQConfig } from "./RabbitMQConfig";
-import { getMQConnection } from "./getMQConnection.ts";
+import { getMQConnection } from "./getMQConnection";
+
 
 export class RabbitMQSender {
   private conn!: Connection;

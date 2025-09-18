@@ -1,7 +1,7 @@
-﻿import { RabbitMQSender } from "./RabbitMQSender.ts";
-import { RabbitMQReceiver } from "./RabbitMQReceiver.ts";
-import type { RabbitMQConfig } from "./RabbitMQConfig";
+﻿import type { RabbitMQConfig } from "./RabbitMQConfig";
 import "dotenv/config";
+import { RabbitMQSender } from "./RabbitMQSender";
+import { RabbitMQReceiver } from "./RabbitMQReceiver";
 
 async function main() {
   // Example configuration
