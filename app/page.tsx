@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Braces, Mountain } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NeonLines from "@/components/custom/NeonLine";
+import { FeedbackStream } from "@/components/custom/feedbackstream";
 
 export default function Home() {
   const features = [
@@ -28,7 +29,7 @@ export default function Home() {
         <h1 className="text-5xl font-bold leading-tight">
           Learn Distributed Programming
         </h1>
-        <p className="text-muted-foreground text-lg sm:text-xl max-w-lg">
+        <p className="text-muted-foreground text-center text-lg sm:text-xl max-w-lg">
           Build, run, and understand distributed algorithms in a safe and
           interactive environment.
         </p>
@@ -75,6 +76,9 @@ export default function Home() {
             <Button size="lg">Start Experiment</Button>
           </Link>
         </section>
+
+        {/* SSE Feedback Stream Section */}
+        <FeedbackStream />
 
         {/* Footer */}
         <footer className="flex flex-col sm:flex-row gap-6 items-center justify-center text-sm text-muted-foreground mt-16 w-full">
