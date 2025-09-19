@@ -43,13 +43,7 @@ export class RabbitMQReceiver {
           );
         }
       }
-
-      console.log(
-        `Receiver connected: Queue ${this.queue}` +
-          (this.exchange ? ` on Exchange ${this.exchange}` : "")
-      );
     } catch (err) {
-      console.error("Failed to connect receiver:", err);
       throw err;
     }
   }
@@ -57,10 +51,6 @@ export class RabbitMQReceiver {
   async disconnect(): Promise<void> {
     if (this.channel) await this.channel.close();
     if (this.conn) await this.conn.close();
-    console.log(
-      `Receiver disconnected: Queue ${this.queue}` +
-        (this.exchange ? ` on Exchange ${this.exchange}` : "")
-    );
   }
 
   async consumeMessages(onMessage: (msg: any) => void): Promise<void> {
@@ -83,7 +73,5 @@ export class RabbitMQReceiver {
         this.channel.ack(msg);
       }
     });
-
-    console.log(`Waiting for messages in queue "${this.queue}"...`);
   }
 }

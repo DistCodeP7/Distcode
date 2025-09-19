@@ -1,9 +1,6 @@
 "use server";
 
-import { GenerateJWT } from "./generateJWT";
-import { db } from "@/lib/db";
-import { users } from "@/drizzle/schema";
-import { eq } from "drizzle-orm";
+import { createUser } from "@/lib/user";
 
 export async function onRegister(credentials: {
   email: string;
@@ -22,12 +19,11 @@ export async function onRegister(credentials: {
   const userid = bcrypt.hashSync(name + email, 10);
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  await db.insert(users).values({
+  createUser({
     email: email,
     name: name,
-    userid: userid,
     password: hashedPassword,
-    provider: "credentials",
+    userid: userid,
   });
 
   const user = {

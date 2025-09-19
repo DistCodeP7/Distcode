@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import Editor, { OnMount, type EditorProps } from "@monaco-editor/react";
-import { Database, FileCode2, Play, File, Save, Send } from "lucide-react";
+import { Save, Send } from "lucide-react";
 import React, { useState } from "react";
 import { FileTypeIcon } from "./Icon";
 import { cn } from "@/lib/utils";
@@ -61,7 +61,7 @@ export default function CustomEditor({
   ...props
 }: CustomEditorProps) {
   const [editorContent, setEditorContent] = useState<string>(
-    initialEditorContent || "",
+    initialEditorContent || ""
   );
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
@@ -72,7 +72,7 @@ export default function CustomEditor({
     try {
       // Safely parse the lab(...) string
       const labMatch = rawColor.match(
-        /lab\(([\d.]+)%?\s+([-\d.]+)\s+([-\d.]+)/,
+        /lab\(([\d.]+)%?\s+([-\d.]+)\s+([-\d.]+)/
       );
       if (labMatch) {
         const l = parseFloat(labMatch[1]);
@@ -161,7 +161,7 @@ export function EditorHeader({
             onClick={() => onFileChange(index)}
             className={cn(
               "cursor-pointer border px-4 py-2 flex items-center gap-2",
-              index === activeFile ? "bg-secondary" : "hover:bg-muted",
+              index === activeFile ? "bg-secondary" : "hover:bg-muted"
             )}
           >
             <FileTypeIcon className="h-6 w-6 mr-2" name={file.fileType} />
