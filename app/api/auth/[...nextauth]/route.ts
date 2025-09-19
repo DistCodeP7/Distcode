@@ -2,10 +2,8 @@ import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { db } from "@/lib/db";
-import { users } from "@/drizzle/schema";
-import { eq } from "drizzle-orm";
 import { GenerateJWT } from "@/app/auth/generateJWT";
+import { createUserWithOAuth, getUserByEmail } from "@/lib/user";
 
 export const authOptions = {
   providers: [
@@ -27,23 +25,18 @@ export const authOptions = {
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
-        const existingUser = await db
-          .select()
-          .from(users)
-          .where(eq(users.email, credentials.email));
-        if (!existingUser || existingUser.length === 0) {
+        const existingUser = await getUserByEmail(credentials.email);
+        if (!existingUser) {
           return null;
         }
         const bcrypt = require("bcrypt");
-        if (
-          bcrypt.compareSync(credentials.password, existingUser[0].password)
-        ) {
+        if (bcrypt.compareSync(credentials.password, existingUser.password)) {
           return {
-            id: existingUser[0].userid,
-            email: existingUser[0].email,
-            name: existingUser[0].name,
-            userid: existingUser[0].userid,
-            token: GenerateJWT(existingUser[0].userid),
+            id: existingUser.userid,
+            email: existingUser.email,
+            name: existingUser.name,
+            userid: existingUser.userid,
+            token: GenerateJWT(existingUser.userid),
           };
         }
 
@@ -55,20 +48,18 @@ export const authOptions = {
     async signIn({ user, account }: { user: any; account: any }) {
       if (account?.provider === "google" || account?.provider === "github") {
         try {
-          const existingUser = await db.query.users.findMany({
-            where: eq(users.email, user.email),
-          });
+          const existingUser = await getUserByEmail(user.email);
           const bcrypt = require("bcrypt");
           const userid = bcrypt.hashSync(user.name + user.id, 10);
           user.userId = userid;
-          if (!existingUser || existingUser.length === 0) {
-            await db.insert(users).values({
+          if (!existingUser) {
+            await createUserWithOAuth({
               email: user.email,
               name: user.name,
+              password: null,
               userid: userid,
               provider: account.provider,
               providerId: user.id,
-              password: null,
             });
           }
         } catch (error) {

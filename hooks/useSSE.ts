@@ -27,7 +27,7 @@ export const useSSE = (url: string) => {
         lastMsgRef.current = data;
         if (data.status === "done") setIsConnected(false);
       } catch (err) {
-        console.error("Invalid SSE data:", event.data, err);
+        throw err;
       }
     };
 
