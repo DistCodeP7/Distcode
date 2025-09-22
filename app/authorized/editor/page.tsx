@@ -7,15 +7,12 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import useCodeEditor from "@/hooks/useCodeEditor";
 import { useState } from "react";
 
 export default function IDE() {
   const [file, setFile] = useState(0);
-
-  const onSubmit = (code: string) => {
-    console.log("Submitted code:", code);
-  };
-
+  const { editorContent, setEditorContent, submit } = useCodeEditor();
   return (
     <ResizablePanelGroup
       direction="horizontal"
@@ -34,8 +31,12 @@ export default function IDE() {
           ]}
           activeFile={file}
           onFileChange={(index) => setFile(index)}
+          onSubmit={submit}
         />
-        <Editor onSubmit={onSubmit} />
+        <Editor
+          editorContent={editorContent}
+          setEditorContent={setEditorContent}
+        />
       </ResizablePanel>
     </ResizablePanelGroup>
   );
