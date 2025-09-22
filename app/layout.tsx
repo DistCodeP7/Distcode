@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../app/globals.css";
 import { ThemeProvider } from "@/components/custom/theme-provider";
-import {startMessageQueues} from "@/lib/mq";
+import { startMessageQueues } from "@/lib/mq";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 };
 
 if (typeof window === "undefined") {
-    startMessageQueues().catch(console.error);
+  startMessageQueues().catch(console.error);
 }
 
 export default function RootLayout({

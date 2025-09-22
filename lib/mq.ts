@@ -6,10 +6,10 @@ import { RabbitMQReceiver } from "@/app/mq/RabbitMQReceiver";
 let started = false;
 
 export async function startMessageQueues() {
-    if (started) return;
-    started = true;
-    
-    console.log("Starting message queues");
+  if (started) return;
+  started = true;
+
+  console.log("Starting message queues");
   // Example configuration
   const config: RabbitMQConfig = {
     queue: "my_queue",
