@@ -15,6 +15,9 @@ type CustomEditorProps = EditorProps & {
   setEditorContent: React.Dispatch<React.SetStateAction<string>>;
   codePlaceholder?: string;
   markdownPlaceholder?: string;
+  files?: Files[];
+  activeFile?: number;
+  onFileChange?: (index: number) => void;
 };
 
 function labToHex(l: number, a: number, b: number): string {
@@ -57,17 +60,21 @@ function labToHex(l: number, a: number, b: number): string {
   return `#${hexR}${hexG}${hexB}`;
 }
 
-export default function CustomEditor({
-  onSubmit,
-  canSubmit = true,
-  language = "go",
-  initialEditorContent,
-  editorContent,
-  setEditorContent,
-  codePlaceholder = "// Start coding here...",
-  markdownPlaceholder = "# Start writing your problem in markdown...",
-  ...props
-}: CustomEditorProps) {
+export default function CustomEditor(props: CustomEditorProps) {
+  const {
+    onSubmit,
+    canSubmit = true,
+    language = "go",
+    initialEditorContent,
+    editorContent,
+    setEditorContent,
+    codePlaceholder = "// Start coding here...",
+    markdownPlaceholder = "# Start writing your problem in markdown...",
+    files,
+    activeFile,
+    onFileChange,
+    ...rest
+  } = props;
 
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     const styles = getComputedStyle(document.body);
@@ -114,10 +121,20 @@ export default function CustomEditor({
     }
   };
 
-  const placeholder = language === "markdown" ? markdownPlaceholder : codePlaceholder;
+  const placeholder =
+    language === "markdown" ? markdownPlaceholder : codePlaceholder;
 
   return (
     <form onSubmit={handleSubmit} className="flex h-full flex-col">
+      {files && typeof activeFile === "number" && onFileChange && (
+        <EditorHeader
+          files={files}
+          activeFile={activeFile}
+          onFileChange={onFileChange}
+          onSave={() => onSubmit && onSubmit(editorContent)}
+          onSubmitBtn={() => onSubmit && onSubmit(editorContent)}
+        />
+      )}
       <div className="flex-grow">
         <label htmlFor="code-editor" className="sr-only">
           Add your code
@@ -135,7 +152,7 @@ export default function CustomEditor({
             }}
             onMount={handleEditorDidMount}
             theme="vs-dark"
-            {...props}
+            {...rest}
           />
         </div>
       </div>
@@ -152,12 +169,16 @@ type EditorHeaderProps = {
   files: Files[];
   activeFile: number;
   onFileChange: (index: number) => void;
+  onSave?: () => void;
+  onSubmitBtn?: () => void;
 };
 
 export function EditorHeader({
   files,
   activeFile,
   onFileChange,
+  onSave,
+  onSubmitBtn,
 }: EditorHeaderProps) {
   return (
     <div className="flex items-center justify-between border-b">
@@ -178,11 +199,11 @@ export function EditorHeader({
       </div>
 
       <div className="flex gap-2 pr-4">
-        <Button type="button" variant="secondary">
+        <Button type="button" variant="secondary" onClick={onSave}>
           <Save className="mr-2 h-4 w-4" />
           Save
         </Button>
-        <Button type="button" variant="outline">
+        <Button type="button" variant="outline" onClick={onSubmitBtn}>
           <Send className="mr-2 h-4 w-4" />
           Submit
         </Button>
