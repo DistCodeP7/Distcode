@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import Editor, { OnMount, type EditorProps } from "@monaco-editor/react";
-import { Database, FileCode2, Play, File, Save, Send } from "lucide-react";
+import { Save, Send } from "lucide-react";
 import React, { useState } from "react";
 import { FileTypeIcon } from "./Icon";
 import { cn } from "@/lib/utils";
@@ -68,6 +68,7 @@ export default function CustomEditor({
   markdownPlaceholder = "# Start writing your problem in markdown...",
   ...props
 }: CustomEditorProps) {
+
   const handleEditorDidMount: OnMount = (editor, monaco) => {
     const styles = getComputedStyle(document.body);
     const rawColor = styles.getPropertyValue("background-color"); // "lab(2.51...)"

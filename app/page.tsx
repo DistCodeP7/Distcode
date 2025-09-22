@@ -2,6 +2,8 @@ import Link from "next/link";
 import { Braces, Mountain } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NeonLines from "@/components/custom/NeonLine";
+import { FeedbackStream } from "@/components/custom/feedbackstream";
+import * as motion from "motion/react-client";
 
 export default function Home() {
   const features = [
@@ -25,14 +27,31 @@ export default function Home() {
       </div>
 
       <main className="flex flex-col items-center text-center sm:text-left gap-6 max-w-3xl mx-auto py-16">
-        <h1 className="text-5xl font-bold leading-tight">
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="text-5xl font-bold leading-tight"
+        >
           Learn Distributed Programming
-        </h1>
-        <p className="text-muted-foreground text-lg sm:text-xl max-w-lg">
+        </motion.h1>
+
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.4, ease: "easeOut" }}
+          className="text-muted-foreground text-center text-lg sm:text-xl max-w-lg"
+        >
           Build, run, and understand distributed algorithms in a safe and
           interactive environment.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-4 mt-4">
+        </motion.p>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.4, ease: "easeOut" }}
+          className="flex flex-col sm:flex-row gap-4 mt-4"
+        >
           <Link href="/auth">
             <Button size="lg">Get Started</Button>
           </Link>
@@ -41,15 +60,18 @@ export default function Home() {
               Learn More
             </Button>
           </Link>
-        </div>
+        </motion.div>
 
         {/* Features */}
         <section className="flex flex-wrap justify-center gap-6 w-full max-w-5xl">
-          {features.map((feature) => {
+          {features.map((feature, i) => {
             const Icon = feature.icon;
             return (
-              <div
+              <motion.div
                 key={feature.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 + i * 0.2, duration: 0.8 }}
                 className="p-6 rounded-2xl border bg-card text-center flex flex-col items-center gap-4 hover:shadow-lg transition-shadow w-60"
               >
                 <Icon className="w-10 h-10 text-primary" />
@@ -57,13 +79,18 @@ export default function Home() {
                 <p className="text-sm text-muted-foreground">
                   {feature.description}
                 </p>
-              </div>
+              </motion.div>
             );
           })}
         </section>
 
         {/* Example Section */}
-        <section className="flex flex-col items-center gap-4 max-w-3xl">
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.2, duration: 0.8 }}
+          className="flex flex-col items-center gap-4 max-w-3xl"
+        >
           <h2 className="text-2xl font-semibold">
             Start Experimenting Instantly
           </h2>
@@ -74,7 +101,10 @@ export default function Home() {
           <Link href="/auth">
             <Button size="lg">Start Experiment</Button>
           </Link>
-        </section>
+        </motion.section>
+
+        {/* SSE Feedback Stream Section */}
+        <FeedbackStream />
 
         {/* Footer */}
         <footer className="flex flex-col sm:flex-row gap-6 items-center justify-center text-sm text-muted-foreground mt-16 w-full">
