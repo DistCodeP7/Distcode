@@ -1,9 +1,10 @@
-import NextAuth from "next-auth";
+import NextAuth, { Session, User } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { GenerateJWT } from "@/app/auth/generateJWT";
 import { createUserWithOAuth, getUserByEmail } from "@/lib/user";
+import { JWT } from "next-auth/jwt";
 
 export const authOptions = {
   providers: [
@@ -22,25 +23,25 @@ export const authOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
-        const existingUser = await getUserByEmail(credentials.email);
-        if (!existingUser) {
-          return null;
-        }
-        const bcrypt = require("bcrypt");
-        if (bcrypt.compareSync(credentials.password, existingUser.password)) {
-          return {
-            id: existingUser.userid,
-            email: existingUser.email,
-            name: existingUser.name,
-            userid: existingUser.userid,
-            token: GenerateJWT(existingUser.userid),
-          };
-        }
+        if (!credentials?.email || !credentials?.password) return null;
 
-        return null;
+        const existingUser = await getUserByEmail(credentials.email);
+        if (!existingUser) return null;
+
+        const bcrypt = require("bcrypt");
+        const valid = bcrypt.compareSync(
+          credentials.password,
+          existingUser.password
+        );
+        if (!valid) return null;
+
+        return {
+          id: existingUser.userid,
+          userid: existingUser.userid,
+          name: existingUser.name,
+          email: existingUser.email,
+          token: GenerateJWT(existingUser.userid),
+        };
       },
     }),
   ],
@@ -70,15 +71,17 @@ export const authOptions = {
       return true;
     },
 
-    async jwt({ token, user }: { token: any; user: any }) {
+    async jwt({ token, user }: { token: JWT; user?: User }) {
       if (user?.token) {
         token.token = user.token;
+        token.id = user.id;
       }
       return token;
     },
 
-    async session({ session, token }: { session: any; token: any }) {
+    async session({ session, token }: { session: Session; token: JWT }) {
       session.token = token.token;
+      session.user.id = token.id;
       return session;
     },
   },
