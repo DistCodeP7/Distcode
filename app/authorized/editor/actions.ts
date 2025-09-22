@@ -7,7 +7,7 @@ import { getServerSession } from "next-auth";
 
 export async function submitCode(content: string) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
+  if (!session) {
     return { error: "Unauthorized", status: 401 };
   }
 

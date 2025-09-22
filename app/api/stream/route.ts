@@ -109,7 +109,7 @@ const jobResultListener = new JobResultQueueListener();
 
 export async function GET() {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
+  if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
