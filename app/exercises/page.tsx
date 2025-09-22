@@ -63,13 +63,8 @@ export default function ExercisesPage() {
     const exercise = data.find((e) => e.id === id);
     if (!exercise) return;
 
-    const confirmSelection = window.confirm(
-      `Are you sure you want to select the exercise "${exercise.name}"?`,
-    );
-
-    if (confirmSelection) {
-      alert("Mertz er en kæmpe fisse!");
-    }
+    setSelectedExercise(exercise.id);
+    alert("Selected Exercise: " + exercise.name);
   };
 
   return (
