@@ -2,7 +2,13 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+First, run the postgres db:
+
+```bash
+docker-compose up --build
+```
+
+Then, run the development server:
 
 ```bash
 npm run dev
@@ -12,6 +18,12 @@ yarn dev
 pnpm dev
 # or
 bun dev
+```
+
+Lastly run:
+
+```bash
+npx drizzle-kit push
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
