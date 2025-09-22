@@ -66,7 +66,7 @@ export default function CustomEditor({
         <div className="h-full overflow-hidden rounded-md border">
           <Editor
             height="100%"
-            defaultLanguage="javascript"
+            defaultLanguage="go"
             language={language}
             defaultValue="// Start coding here..."
             onChange={onChange}

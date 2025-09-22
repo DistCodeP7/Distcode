@@ -1,6 +1,7 @@
 "use server";
 
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { MQJobsSender } from "@/lib/mq";
 import { getUserIdByEmail } from "@/lib/user";
 import { getServerSession } from "next-auth";
 
@@ -15,7 +16,12 @@ export async function submitCode(content: string) {
     return { error: "User not found.", status: 404 };
   }
 
-  console.log(userId, content);
+  MQJobsSender.sendMessage({
+    //TODO MAKE THIS A VARIABLE
+    ProblemId: 0,
+    UserId: userId,
+    Code: content,
+  });
 
   return {
     success: true,
