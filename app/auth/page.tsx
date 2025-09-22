@@ -1,10 +1,13 @@
 "use client";
 
+import React from "react";
+import { useForm, FormProvider } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import Link from "next/link";
 import { useMemo } from "react";
+import { onRegister } from "./signin-functions";
+import { signIn } from "next-auth/react";
 
 import {
   Form,
@@ -73,22 +76,18 @@ function getColor(score: number) {
 }
 
 export default function Page() {
-  const form = useForm<RegisterForm>({
+  const methods = useForm<RegisterForm>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      email: "",
-      firstName: "",
-      lastName: "",
-      password: "",
-      confirmPassword: "",
-    },
+    mode: "onChange",
   });
 
-  const onSubmit = (values: RegisterForm) => {
-    console.log(values);
-  };
+  const {
+    control,
+    formState: { isSubmitting, isValid },
+    getValues,
+  } = methods;
 
-  const password = form.watch("password");
+  const password = methods.watch("password");
   const strength = useMemo(() => calculateStrength(password), [password]);
   const colorClass = useMemo(() => getColor(strength), [strength]);
 
@@ -98,10 +97,31 @@ export default function Page() {
         Create an account
       </h1>
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+      <Form {...methods}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            onRegister({
+              email: getValues("email"),
+              password: getValues("password"),
+              firstName: getValues("firstName"),
+              lastName: getValues("lastName"),
+            }).then((res) => {
+              if (res.success) {
+                signIn("credentials", {
+                  email: getValues("email"),
+                  password: getValues("password"),
+                  callbackUrl: "/authorized/editor",
+                });
+              } else {
+                alert(res.error);
+              }
+            });
+          }}
+          className="space-y-5"
+        >
           <FormField
-            control={form.control}
+            control={control}
             name="email"
             render={({ field }) => (
               <FormItem>
@@ -117,7 +137,7 @@ export default function Page() {
           <div className="grid grid-cols-12 gap-4">
             <div className="col-span-6">
               <FormField
-                control={form.control}
+                control={control}
                 name="firstName"
                 render={({ field }) => (
                   <FormItem>
@@ -133,7 +153,7 @@ export default function Page() {
 
             <div className="col-span-6">
               <FormField
-                control={form.control}
+                control={control}
                 name="lastName"
                 render={({ field }) => (
                   <FormItem>
@@ -148,7 +168,7 @@ export default function Page() {
             </div>
           </div>
           <FormField
-            control={form.control}
+            control={control}
             name="password"
             render={({ field }) => (
               <FormItem>
@@ -167,7 +187,7 @@ export default function Page() {
           />
 
           <FormField
-            control={form.control}
+            control={control}
             name="confirmPassword"
             render={({ field }) => (
               <FormItem>
@@ -180,7 +200,11 @@ export default function Page() {
             )}
           />
 
-          <Button type="submit" className="w-full">
+          <Button
+            type="submit"
+            disabled={!isValid || isSubmitting}
+            className="w-full"
+          >
             Create Account
           </Button>
         </form>
