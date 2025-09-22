@@ -50,6 +50,8 @@ const schema = z
     }
   });
 
+const callBackUrl = "/exercises";
+
 export type RegisterForm = z.infer<typeof schema>;
 
 function calculateStrength(password: string): number {
@@ -111,7 +113,7 @@ export default function Page() {
                 signIn("credentials", {
                   email: getValues("email"),
                   password: getValues("password"),
-                  callbackUrl: "/authorized/editor",
+                  callbackUrl: callBackUrl,
                 });
               } else {
                 alert(res.error);

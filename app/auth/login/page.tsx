@@ -22,8 +22,9 @@ const schema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
-export type LoginForm = z.infer<typeof schema>;
+const callBackUrl = "/exercises";
 
+export type LoginForm = z.infer<typeof schema>;
 export default function LoginPage() {
   const methods = useForm<LoginForm>({
     resolver: zodResolver(schema),
@@ -83,7 +84,7 @@ export default function LoginPage() {
                 signIn("credentials", {
                   email: values.email,
                   password: values.password,
-                  callbackUrl: "/authorized/editor",
+                  callbackUrl: callBackUrl,
                 });
               }}
             >
@@ -93,7 +94,7 @@ export default function LoginPage() {
             <Button
               type="button"
               onClick={() => {
-                signIn("google", { callbackUrl: "/authorized/editor" });
+                signIn("google", { callbackUrl: callBackUrl });
               }}
               style={{
                 marginTop: "1rem",
@@ -112,7 +113,7 @@ export default function LoginPage() {
               type="button"
               onClick={() => {
                 signIn("github", {
-                  callbackUrl: "/authorized/editor",
+                  callbackUrl: callBackUrl,
                 });
               }}
               style={{
