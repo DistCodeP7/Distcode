@@ -1,9 +1,15 @@
-﻿import type { RabbitMQConfig } from "./RabbitMQConfig";
+﻿import type { RabbitMQConfig } from "@/app/mq/RabbitMQConfig";
 import "dotenv/config";
-import { RabbitMQSender } from "./RabbitMQSender";
-import { RabbitMQReceiver } from "./RabbitMQReceiver";
+import { RabbitMQSender } from "@/app/mq/RabbitMQSender";
+import { RabbitMQReceiver } from "@/app/mq/RabbitMQReceiver";
 
-async function main() {
+let started = false;
+
+export async function startMessageQueues() {
+    if (started) return;
+    started = true;
+    
+    console.log("Starting message queues");
   // Example configuration
   const config: RabbitMQConfig = {
     queue: "my_queue",
@@ -33,6 +39,6 @@ async function main() {
   console.log("MQ system running. Press CTRL+C to exit.");
 }
 
-main().catch((err) => {
+startMessageQueues().catch((err) => {
   console.error("Error starting MQ system:", err);
 });
