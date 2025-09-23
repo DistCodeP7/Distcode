@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import Editor, { OnMount, type EditorProps } from "@monaco-editor/react";
 import { Save, Send } from "lucide-react";
-import React, { useState } from "react";
+import React from "react";
 import { FileTypeIcon } from "./Icon";
 import { cn } from "@/lib/utils";
 import { labToHex } from "../../utils/labToHex";
@@ -68,7 +68,6 @@ export default function CustomEditor({
             height="100%"
             defaultLanguage="go"
             language={language}
-            defaultValue="// Start coding here..."
             onChange={onChange}
             value={editorContent}
             options={{
@@ -86,7 +85,7 @@ export default function CustomEditor({
 
 type Files = {
   name: string;
-  fileType: "go" | "erlang" | "akka";
+  fileType: "go" | "erlang" | "akka" | "markdown";
 };
 
 type EditorHeaderProps = {

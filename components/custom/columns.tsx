@@ -11,10 +11,10 @@ export type exercises = {
   description: string;
   difficulty: "Easy" | "Medium" | "Hard";
 };
-
 export const columns: ColumnDef<exercises>[] = [
   {
     accessorKey: "rating",
+    size: 80,
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -31,6 +31,7 @@ export const columns: ColumnDef<exercises>[] = [
   },
   {
     accessorKey: "name",
+    size: 200,
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -42,28 +43,25 @@ export const columns: ColumnDef<exercises>[] = [
       </Button>
     ),
     cell: ({ row }) => (
-      <div className="font-medium">{row.getValue("name")}</div>
+      <div className="font-medium break-words whitespace-normal">
+        {row.getValue("name")}
+      </div>
     ),
   },
-
   {
     accessorKey: "description",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="flex items-center space-x-1"
-      >
-        <span>Description</span>
-        <ArrowUpDown className="h-4 w-4" />
-      </Button>
-    ),
+    size: 400,
+    header: "Description",
+    enableSorting: false,
     cell: ({ row }) => (
-      <div className="italic text-gray-500">{row.getValue("description")}</div>
+      <div className="italic text-gray-500 break-words whitespace-normal">
+        {row.getValue("description")}
+      </div>
     ),
   },
   {
     accessorKey: "difficulty",
+    size: 120,
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -80,21 +78,17 @@ export const columns: ColumnDef<exercises>[] = [
         Medium: 2,
         Hard: 3,
       };
-
       const a = rowA.getValue(columnId) as "Easy" | "Medium" | "Hard";
       const b = rowB.getValue(columnId) as "Easy" | "Medium" | "Hard";
-
       return order[a] - order[b];
     },
     cell: ({ row }) => {
       const value = row.getValue("difficulty") as "Easy" | "Medium" | "Hard";
-
       const difficultyColors: Record<typeof value, string> = {
         Easy: "text-chart-2",
         Medium: "text-chart-3",
         Hard: "text-primary",
       };
-
       return (
         <div className={`font-semibold text-center ${difficultyColors[value]}`}>
           {value}
