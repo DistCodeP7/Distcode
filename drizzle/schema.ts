@@ -4,7 +4,7 @@ import * as zod from "zod";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  email: varchar("email", { length: 256 }).unique(),
+  email: varchar("email", { length: 256 }).notNull().unique(),
   userid: varchar("userid", { length: 256 }).notNull().unique(),
   name: varchar("name", { length: 256 }).notNull(),
   password: text("password"),
