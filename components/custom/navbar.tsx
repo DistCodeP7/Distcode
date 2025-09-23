@@ -1,14 +1,19 @@
 import Link from "next/link";
 import { SquareTerminal } from "lucide-react";
 import { AuthButtons } from "@/components/custom/authbutton";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { AuthAvatar } from "./navbar-client-items";
 
-export function Navbar() {
+export async function Navbar() {
   const navLinks = [
     { href: "#", label: "Features" },
     { href: "/exercises", label: "Exercises" },
     { href: "/authorized/editor/problem", label: "Create Problem" },
     { href: "/authorized/editor", label: "Submit code" },
   ];
+
+  const session = await getServerSession(authOptions);
 
   return (
     <header className="sticky top-0 z-50 flex items-center gap-4 border-b bg-background/80 px-4 py-4 backdrop-blur-sm md:px-6">
@@ -28,8 +33,11 @@ export function Navbar() {
           </Link>
         ))}
       </nav>
-
-      <AuthButtons />
+      {session?.user?.email ? (
+        <AuthAvatar userInitials={session.user.email.charAt(0).toUpperCase()} />
+      ) : (
+        <AuthButtons />
+      )}
     </header>
   );
 }
