@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Editor, { EditorHeader } from "@/components/custom/editor";
+import { Input } from "@/components/ui/input";
 import MarkdownPreview from "@/components/custom/markdown-preview";
 import {
   ResizableHandle,
@@ -9,6 +10,13 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { useProblemEditor } from "@/hooks/useProblemEditor";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
 
 const files = [
   { name: "Problem.md", fileType: "markdown" as const },
@@ -31,13 +39,12 @@ export default function ProblemEditorPage() {
     handleSubmit,
     filesContent,
   } = useProblemEditor(files);
-  const [showDropdown, setShowDropdown] = useState(false);
 
   return (
     <div className="flex flex-col h-full">
       <div className="p-4 border-b bg-background flex flex-col gap-2">
         <div className="flex flex-row items-center gap-4">
-          <input
+          <Input
             type="text"
             placeholder="Problem title example: Leader Election"
             value={title}
@@ -45,83 +52,36 @@ export default function ProblemEditorPage() {
             className="flex-1 text-3xl font-bold bg-transparent outline-none border-none disabled:opacity-50 min-w-0"
             style={{ minHeight: "2.75rem" }}
           />
-          <div className="relative w-48 min-w-[10rem]">
-            <button
-              type="button"
-              className="w-full flex items-center justify-between px-4 py-2 border rounded bg-background text-base font-medium focus:outline-none focus:ring-2 focus:ring-primary"
-              onClick={() => setShowDropdown((v: boolean) => !v)}
-            >
-              {difficulty === "1" && (
-                <span className="font-semibold text-chart-2">Easy</span>
-              )}
-              {difficulty === "2" && (
-                <span className="font-semibold text-chart-3">Medium</span>
-              )}
-              {difficulty === "3" && (
-                <span className="font-semibold text-primary">Hard</span>
-              )}
-              {(!difficulty || !["1", "2", "3"].includes(difficulty)) && (
-                <span className="text-muted-foreground">Select difficulty</span>
-              )}
-              <svg
-                className="w-4 h-4 ml-2"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </button>
-            {showDropdown && (
-              <div className="absolute z-10 mt-1 w-full bg-popover border border-border rounded shadow-lg">
-                <ul className="py-1">
-                  <li>
-                    <button
-                      type="button"
-                      className="w-full flex items-center gap-2 px-4 py-2 hover:bg-accent"
-                      onClick={() => {
-                        setDifficulty("1");
-                        setShowDropdown(false);
-                      }}
-                    >
-                      <span className="font-semibold text-chart-2">Easy</span>
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      className="w-full flex items-center gap-2 px-4 py-2 hover:bg-accent"
-                      onClick={() => {
-                        setDifficulty("2");
-                        setShowDropdown(false);
-                      }}
-                    >
-                      <span className="font-semibold text-chart-3">Medium</span>
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      className="w-full flex items-center gap-2 px-4 py-2 hover:bg-accent"
-                      onClick={() => {
-                        setDifficulty("3");
-                        setShowDropdown(false);
-                      }}
-                    >
-                      <span className="font-semibold text-primary">Hard</span>
-                    </button>
-                  </li>
-                </ul>
-              </div>
-            )}
+          <div className="w-48 min-w-[10rem]">
+            <Select value={difficulty} onValueChange={setDifficulty}>
+              <SelectTrigger className="w-full text-base font-medium">
+                <SelectValue placeholder="Select difficulty">
+                  {difficulty === "1" && (
+                    <span className="font-semibold text-chart-2">Easy</span>
+                  )}
+                  {difficulty === "2" && (
+                    <span className="font-semibold text-chart-3">Medium</span>
+                  )}
+                  {difficulty === "3" && (
+                    <span className="font-semibold text-primary">Hard</span>
+                  )}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">
+                  <span className="font-semibold text-chart-2">Easy</span>
+                </SelectItem>
+                <SelectItem value="2">
+                  <span className="font-semibold text-chart-3">Medium</span>
+                </SelectItem>
+                <SelectItem value="3">
+                  <span className="font-semibold text-primary">Hard</span>
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
-        <input
+        <Input
           type="text"
           placeholder="Short description of the problem..."
           value={description}
