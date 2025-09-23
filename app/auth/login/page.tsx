@@ -2,6 +2,7 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import Link from "next/link";
+import Image from "next/image";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
@@ -90,45 +91,64 @@ export default function LoginPage() {
             >
               Login
             </Button>
-
-            <Button
-              type="button"
-              onClick={() => {
-                signIn("google", { callbackUrl: callBackUrl });
-              }}
+            <div
               style={{
-                marginTop: "1rem",
-                width: "100%",
-                padding: "0.5rem",
-                background: "#4285F4",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
+                display: "flex",
+                gap: "1rem",
+                justifyContent: "center",
               }}
             >
-              Login with Google
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                signIn("github", {
-                  callbackUrl: callBackUrl,
-                });
-              }}
-              style={{
-                marginTop: "1rem",
-                width: "100%",
-                padding: "0.5rem",
-                background: "#333",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
-            >
-              Login with GitHub
-            </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  signIn("github", { callbackUrl: callBackUrl });
+                }}
+                style={{
+                  width: "64px",
+                  height: "64px",
+                  background: "#333",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Image
+                  src="/github-mark-white.svg"
+                  alt="GitHub"
+                  width={32}
+                  height={32}
+                />
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  signIn("google", { callbackUrl: callBackUrl });
+                }}
+                style={{
+                  width: "64px",
+                  height: "64px",
+                  background: "#ffffffff",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Image
+                  src="/google-login.svg"
+                  alt="Google"
+                  width={32}
+                  height={32}
+                />
+              </Button>
+            </div>
           </form>
         </Form>
 
