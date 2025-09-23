@@ -5,11 +5,27 @@ import { eq } from "drizzle-orm";
 export async function submitSubmission(
   userId: number,
   title: string,
-  markdown: string
+  description: string,
+  difficulty: number,
+  rating: number,
+  problemMarkdown: string,
+  templateCode: string,
+  solutionCode: string,
+  testCasesCode: string
 ) {
   const result = await db
     .insert(submissions)
-    .values({ userId, title, markdown })
+    .values({
+      userId,
+      title,
+      description,
+      difficulty,
+      rating,
+      problemMarkdown,
+      templateCode,
+      solutionCode,
+      testCasesCode,
+    })
     .returning();
 
   return result[0];

@@ -117,16 +117,13 @@ const MarkdownPreview = ({ content }: MarkdownPreviewProps) => {
           </code>
         );
       }
-      <>
-      {'\n'}
       return (
         <pre className="rounded-lg bg-muted p-4 whitespace-pre-wrap break-words">
           <code className={cn("font-mono", className)} {...props}>
             {children}
           </code>
         </pre>
-      )
-      </>;
+      );
     },
   };
 

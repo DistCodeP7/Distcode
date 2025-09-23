@@ -5,8 +5,9 @@ import { AuthButtons } from "@/components/custom/authbutton";
 export function Navbar() {
   const navLinks = [
     { href: "#", label: "Features" },
-    { href: "/editor", label: "Problems" },
-    { href: "/editor/problem", label: "Create Problem" },
+    { href: "/exercises", label: "Exercises" },
+    { href: "/authorized/editor/problem", label: "Create Problem" },
+    { href: "/authorized/editor", label: "Submit code" },
   ];
 
   return (
