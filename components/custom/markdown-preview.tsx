@@ -1,5 +1,5 @@
-import React from "react";
-import ReactMarkdown, { Components } from "react-markdown";
+import type React from "react";
+import ReactMarkdown, { type Components } from "react-markdown";
 import { cn } from "@/lib/utils";
 import { temp } from "@/lib/temp";
 import remarkGfm from "remark-gfm";

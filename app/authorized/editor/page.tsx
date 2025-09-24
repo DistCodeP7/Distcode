@@ -1,6 +1,6 @@
 "use client";
 import { useSSE } from "@/hooks/useSSE";
-import { StreamingJobResult } from "@/app/api/stream/route";
+import type { StreamingJobResult } from "@/app/api/stream/route";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
 import {

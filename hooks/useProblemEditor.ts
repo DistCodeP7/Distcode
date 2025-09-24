@@ -1,4 +1,4 @@
-import { useState, useCallback, SetStateAction } from "react";
+import { useState, useCallback, type SetStateAction } from "react";
 import { submitProblem } from "@/app/authorized/editor/problem/submitProblem";
 
 type ProblemFile = {

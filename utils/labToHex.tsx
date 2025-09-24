@@ -22,7 +22,7 @@ export function labToHex(l: number, a: number, b: number): string {
   // Step 3: Convert Linear sRGB to gamma-corrected sRGB
   const linearToSrgb = (c: number) => {
     if (c > 0.0031308) {
-      return 1.055 * Math.pow(c, 1 / 2.4) - 0.055;
+      return 1.055 * c ** (1 / 2.4) - 0.055;
     }
     return 12.92 * c;
   };

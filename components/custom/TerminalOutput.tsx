@@ -1,5 +1,5 @@
 "use client";
-import {
+import type {
   StreamingJobResult,
   StreamingJobResultEvent,
 } from "@/app/api/stream/route";
