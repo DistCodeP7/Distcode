@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/resizable";
 import useCodeEditor from "@/hooks/useCodeEditor";
 import { useState } from "react";
-import { TerminalOutput } from "../../../components/custom/TerminalOutput";
+import { TerminalOutput } from "@/components/custom/TerminalOutput";
 
 export default function IDE() {
   const [file, setFile] = useState(0);

@@ -3,10 +3,10 @@
 import { Button } from "@/components/ui/button";
 import Editor, { OnMount, type EditorProps } from "@monaco-editor/react";
 import { Save, Send } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import { FileTypeIcon } from "./Icon";
 import { cn } from "@/lib/utils";
-import { labToHex } from "../../utils/labToHex";
+import { labToHex } from "@/utils/labToHex";
 
 type CustomEditorProps = EditorProps & {
   initialEditorContent?: string;
