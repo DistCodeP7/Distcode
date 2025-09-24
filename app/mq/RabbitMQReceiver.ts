@@ -49,7 +49,9 @@ export class RabbitMQReceiver {
     if (this.conn) await this.conn.close();
   }
 
-  async consumeMessages(onMessage: (msg: unknown) => void): Promise<void> {
+  async consumeMessages<T extends object>(
+    onMessage: (msg: T) => void
+  ): Promise<void> {
     if (!this.channel) {
       throw new Error("Channel not initialized. Call connect() first.");
     }
@@ -64,7 +66,7 @@ export class RabbitMQReceiver {
         try {
           onMessage(JSON.parse(content));
         } catch {
-          onMessage(content);
+          throw new Error("Failed to parse message content as JSON.");
         }
         this.channel.ack(msg);
       }

@@ -30,7 +30,7 @@ class JobResultQueueListener {
     this.isRunning = false;
   }
 
-  start<T>(messageCallback: (msg: T) => void) {
+  start<T extends object>(messageCallback: (msg: T) => void) {
     if (this.isRunning) return;
     this.isRunning = true;
     this.mqReceiver.connect().then(() => {
