@@ -60,7 +60,6 @@ export default function useShortcut({
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const mainKey = shortcut_keys.at(-1);
-      console.log(mainKey);
       if (!mainKey || event.key.toLowerCase() !== mainKey) return;
       const metaRequired = shortcut_keys.includes("meta");
       const shiftRequired = shortcut_keys.includes("shift");

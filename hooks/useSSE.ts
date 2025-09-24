@@ -1,23 +1,27 @@
 "use client";
 import { useRef, useState } from "react";
 
-export const useSSE = (url: string) => {
+export const useSSE = <T>(url: string) => {
+  const [isLoading, setIsLoading] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<T[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const lastMsgRef = useRef<any>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
 
+  const clearMessages = () => setMessages([]);
+
   const connect = () => {
     if (eventSourceRef.current) eventSourceRef.current.close();
-
+    setIsLoading(true);
     const eventSource = new EventSource(url);
     eventSourceRef.current = eventSource;
 
     eventSource.onopen = () => {
       setIsConnected(true);
       setError(null);
+      setIsLoading(false);
     };
 
     eventSource.onmessage = (event) => {
@@ -45,5 +49,13 @@ export const useSSE = (url: string) => {
     setIsConnected(false);
   };
 
-  return { isConnected, messages, error, connect, disconnect };
+  return {
+    isLoading,
+    isConnected,
+    messages,
+    error,
+    connect,
+    disconnect,
+    clearMessages,
+  };
 };

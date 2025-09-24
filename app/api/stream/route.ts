@@ -9,14 +9,16 @@ type Client = {
   encoder: TextEncoder;
 };
 
-type JobResultMessage = {
+export type StreamingJobResultEvent = {
+  Kind: "stdout" | "stderr" | "error";
+  Message: string;
+};
+
+export type StreamingJobResult = {
   JobId: number;
-  Result: {
-    Stdout: string;
-    Stderr: string;
-    Err: string;
-  };
-  UserId?: number;
+  Events: StreamingJobResultEvent[];
+  UserId: number;
+  SequenceIndex: number;
 };
 
 class JobResultQueueListener {
@@ -85,7 +87,8 @@ class ClientManager {
     }
   }
 
-  dispatchJobResultToClients(msg: JobResultMessage) {
+  dispatchJobResultToClients(msg: StreamingJobResult) {
+    console.log("Dispatching job result to clients:", msg);
     const userId = msg.UserId;
     if (!userId) return;
 
@@ -130,6 +133,12 @@ export async function GET() {
       const client: Client = { controller, encoder };
       clientRef = client;
       clientManager.addClient(userId, client);
+      clientManager.dispatchJobResultToClients({
+        JobId: 0,
+        SequenceIndex: 0,
+        Events: [{ Kind: "stdout", Message: "Connected to stream." }],
+        UserId: userId,
+      });
     },
     cancel: () => {
       clientManager.removeClient(userId, clientRef);

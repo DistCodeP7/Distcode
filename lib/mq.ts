@@ -12,10 +12,6 @@ const receiver = new RabbitMQReceiver({
 async function init() {
   await sender.connect();
   await receiver.connect();
-
-  await receiver.consumeMessages((msg) => {
-    console.log("Received message in main:", msg);
-  });
 }
 
 const ready = init();
