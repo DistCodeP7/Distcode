@@ -1,5 +1,5 @@
-import amqp from "amqplib";
 import type { Connection } from "amqplib";
+import amqp from "amqplib";
 
 const connection = null;
 

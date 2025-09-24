@@ -1,5 +1,5 @@
-import { db } from "@/lib/db";
 import { submissions } from "@/drizzle/schema";
+import { db } from "@/lib/db";
 
 export type ExerciseRow = {
   id: number;

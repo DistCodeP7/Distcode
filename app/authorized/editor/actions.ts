@@ -1,9 +1,9 @@
 "use server";
 
+import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { MQJobsSender } from "@/lib/mq";
 import { getUserIdByEmail } from "@/lib/user";
-import { getServerSession } from "next-auth";
 
 export async function submitCode(content: string) {
   const session = await getServerSession(authOptions);

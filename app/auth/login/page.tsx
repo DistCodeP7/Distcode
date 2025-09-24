@@ -1,22 +1,21 @@
 "use client";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Image from "next/image";
+import Link from "next/link";
+import { signIn } from "next-auth/react";
 import React from "react";
 import { useForm } from "react-hook-form";
-import Link from "next/link";
-import Image from "next/image";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
-
+import { Button } from "@/components/ui/button";
 import {
   Form,
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 
 const schema = z.object({
   email: z.email("Please enter a valid email address").trim(),

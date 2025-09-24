@@ -1,13 +1,13 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import Editor, { type OnMount, type EditorProps } from "@monaco-editor/react";
+import Editor, { type EditorProps, type OnMount } from "@monaco-editor/react";
 import { Save, Send } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
-import { FileTypeIcon } from "./Icon";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { labToHex } from "@/utils/labToHex";
+import { FileTypeIcon } from "./Icon";
 
 type CustomEditorProps = EditorProps & {
   initialEditorContent?: string;

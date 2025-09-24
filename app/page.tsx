@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { Braces, Mountain } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import NeonLines from "@/components/custom/NeonLine";
 import * as motion from "motion/react-client";
+import Link from "next/link";
+import NeonLines from "@/components/custom/NeonLine";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const features = [

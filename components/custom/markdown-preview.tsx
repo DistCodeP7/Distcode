@@ -1,9 +1,9 @@
 import type React from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
-import { cn } from "@/lib/utils";
-import { temp } from "@/lib/temp";
-import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+import remarkGfm from "remark-gfm";
+import { temp } from "@/lib/temp";
+import { cn } from "@/lib/utils";
 import { ScrollArea } from "../ui/scroll-area";
 import { Separator } from "../ui/separator";
 

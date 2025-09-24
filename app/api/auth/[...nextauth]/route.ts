@@ -1,10 +1,10 @@
 import NextAuth, { type Session, type User } from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
-import GitHubProvider from "next-auth/providers/github";
+import type { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GitHubProvider from "next-auth/providers/github";
+import GoogleProvider from "next-auth/providers/google";
 import { GenerateJWT } from "@/app/auth/generateJWT";
 import { createUserWithOAuth, getUserByEmail } from "@/lib/user";
-import type { JWT } from "next-auth/jwt";
 
 export const authOptions = {
   providers: [

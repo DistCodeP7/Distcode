@@ -1,8 +1,8 @@
 "use client";
 
+import { columns } from "@/components/custom/columns";
 import { DataTable } from "@/components/custom/data-table";
 import type { ExerciseRow } from "@/lib/fetchExercises";
-import { columns } from "@/components/custom/columns";
 
 export default function ExercisesTable({
   exercises,
