@@ -1,4 +1,4 @@
-// NeonLine.jsx
+// NeonLine.tsx
 interface NeonLineProps {
   index: number;
   total: number;
@@ -13,7 +13,7 @@ function NeonLine({ index, total }: NeonLineProps) {
 
   return (
     <div
-      className="neon-line  w-[2px] absolute  animate-pulse" // Use a consistent class name
+      className="neon-line w-[2px] absolute animate-pulse"
       style={{
         "--initial-angle": `${angle}deg`,
         top: `${top}%`,
@@ -26,10 +26,15 @@ function NeonLine({ index, total }: NeonLineProps) {
 }
 
 export default function NeonLines({ count = 45 }) {
+  const lines = Array.from({ length: count }, (_, i) => ({
+    index: i,
+    key: `neon-${i}`,
+  }));
+
   return (
     <>
-      {Array.from({ length: count }).map((_, i) => (
-        <NeonLine key={i} index={i} total={count} />
+      {lines.map((line) => (
+        <NeonLine key={line.key} index={line.index} total={count} />
       ))}
     </>
   );

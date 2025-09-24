@@ -103,7 +103,7 @@ const MarkdownPreview = ({ content }: MarkdownPreviewProps) => {
       className,
       children,
       ...props
-    }: React.ComponentProps<"code"> & { inline?: boolean; node?: any }) => {
+    }: React.ComponentProps<"code"> & { inline?: boolean; node?: unknown }) => {
       if (inline) {
         return (
           <code

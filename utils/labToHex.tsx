@@ -32,7 +32,7 @@ export function labToHex(l: number, a: number, b: number): string {
   // Step 4: Convert sRGB (0-1) to sRGB (0-255) and then to HEX
   const toHexComponent = (c: number) => {
     const hex = Math.round(Math.max(0, Math.min(1, c)) * 255).toString(16);
-    return hex.length === 1 ? "0" + hex : hex;
+    return hex.length === 1 ? `0${hex}` : hex;
   };
   const hexR = toHexComponent(r);
   const hexG = toHexComponent(g);

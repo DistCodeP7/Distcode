@@ -53,7 +53,7 @@ class ClientManager {
     if (!this.clients.has(userId)) {
       this.clients.set(userId, new Set());
     }
-    this.clients.get(userId)!.add(client);
+    this.clients.get(userId)?.add(client);
 
     if (this.clients.size === 1 && !this.heartBeatId) {
       this.heartBeatId = setInterval(() => this.heartbeat(), 15000);

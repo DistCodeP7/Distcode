@@ -1,4 +1,5 @@
-import NextAuth, { type Session, type User } from "next-auth";
+import NextAuth, { type Account, type Session, type User } from "next-auth";
+import type { AdapterUser } from "next-auth/adapters";
 import type { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GitHubProvider from "next-auth/providers/github";
@@ -46,13 +47,19 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account }: { user: any; account: any }) {
+    async signIn({
+      user,
+      account,
+    }: {
+      user: User | AdapterUser;
+      account: Account | null;
+    }) {
       if (account?.provider === "google" || account?.provider === "github") {
         try {
           const existingUser = await getUserByEmail(user.email);
           const bcrypt = require("bcrypt");
           const userid = bcrypt.hashSync(user.name + user.id, 10);
-          user.userId = userid;
+          user.userid = userid;
           if (!existingUser) {
             await createUserWithOAuth({
               email: user.email,
@@ -63,7 +70,7 @@ export const authOptions = {
               providerId: user.id,
             });
           }
-        } catch (error) {
+        } catch (_error) {
           return false;
         }
       }

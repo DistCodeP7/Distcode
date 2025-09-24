@@ -42,7 +42,7 @@ export async function submitProblem({
       };
     }
   }
-  if (typeof difficulty !== "number" || isNaN(difficulty)) {
+  if (typeof difficulty !== "number" || Number.isNaN(difficulty)) {
     return {
       success: false,
       error: `Difficulty must be selected`,
@@ -93,7 +93,7 @@ export async function submitProblem({
       message: "Problem submitted successfully!",
       status: 200,
     };
-  } catch (err) {
+  } catch (_err) {
     return {
       success: false,
       error: "An internal server error occurred.",

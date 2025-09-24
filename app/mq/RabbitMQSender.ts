@@ -1,4 +1,4 @@
-﻿import type { Channel, Connection, ConsumeMessage } from "amqplib";
+﻿import type { Channel, Connection } from "amqplib";
 import { getMQConnection } from "./getMQConnection";
 import type { RabbitMQConfig } from "./RabbitMQConfig";
 
@@ -18,29 +18,25 @@ export class RabbitMQSender {
   }
 
   async connect(): Promise<void> {
-    try {
-      this.conn = await getMQConnection();
-      this.channel = await this.conn.createChannel();
+    this.conn = await getMQConnection();
+    this.channel = await this.conn.createChannel();
 
-      if (this.queue) {
-        await this.channel.assertQueue(this.queue, { durable: true });
+    if (this.queue) {
+      await this.channel.assertQueue(this.queue, { durable: true });
 
-        if (this.exchange) {
-          await this.channel.assertExchange(
-            this.exchange,
-            this.exchangeType || "direct",
-            { durable: true }
-          );
+      if (this.exchange) {
+        await this.channel.assertExchange(
+          this.exchange,
+          this.exchangeType || "direct",
+          { durable: true }
+        );
 
-          await this.channel.bindQueue(
-            this.queue,
-            this.exchange,
-            this.routingKey || "routing_key"
-          );
-        }
+        await this.channel.bindQueue(
+          this.queue,
+          this.exchange,
+          this.routingKey || "routing_key"
+        );
       }
-    } catch (err) {
-      throw err;
     }
   }
 

@@ -1,5 +1,4 @@
 import type { LucideProps } from "lucide-react";
-import React from "react";
 import AkkaLogo from "@/assets/icons/akka.svg";
 import ErlangLogo from "@/assets/icons/erlang.svg";
 import GoLogo from "@/assets/icons/go.svg";

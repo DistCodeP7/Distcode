@@ -11,7 +11,7 @@ export default function ExercisesTable({
 }) {
   const handleSelectExercise = (id: number) => {
     const exercise = exercises.find((e) => e.id === id);
-    if (exercise) alert("Selected Exercise: " + exercise.id + exercise.name); //TODO router.push to exercise page
+    if (exercise) alert(`Selected Exercise: ${exercise.id}${exercise.name}`); //TODO router.push to exercise page
   };
 
   return (

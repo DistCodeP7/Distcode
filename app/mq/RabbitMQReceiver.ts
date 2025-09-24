@@ -18,33 +18,29 @@ export class RabbitMQReceiver {
   }
 
   async connect(): Promise<void> {
-    try {
-      this.conn = await getMQConnection();
-      this.channel = await this.conn.createChannel();
+    this.conn = await getMQConnection();
+    this.channel = await this.conn.createChannel();
 
-      // Always assert queue
+    // Always assert queue
+    if (this.queue) {
+      await this.channel.assertQueue(this.queue, { durable: true });
+    }
+
+    // Optionally assert and bind exchange
+    if (this.exchange) {
+      await this.channel.assertExchange(
+        this.exchange,
+        this.exchangeType || "direct",
+        { durable: true }
+      );
+
       if (this.queue) {
-        await this.channel.assertQueue(this.queue, { durable: true });
-      }
-
-      // Optionally assert and bind exchange
-      if (this.exchange) {
-        await this.channel.assertExchange(
+        await this.channel.bindQueue(
+          this.queue,
           this.exchange,
-          this.exchangeType || "direct",
-          { durable: true }
+          this.routingKey || ""
         );
-
-        if (this.queue) {
-          await this.channel.bindQueue(
-            this.queue,
-            this.exchange,
-            this.routingKey || ""
-          );
-        }
       }
-    } catch (err) {
-      throw err;
     }
   }
 
@@ -53,7 +49,7 @@ export class RabbitMQReceiver {
     if (this.conn) await this.conn.close();
   }
 
-  async consumeMessages(onMessage: (msg: any) => void): Promise<void> {
+  async consumeMessages(onMessage: (msg: unknown) => void): Promise<void> {
     if (!this.channel) {
       throw new Error("Channel not initialized. Call connect() first.");
     }
