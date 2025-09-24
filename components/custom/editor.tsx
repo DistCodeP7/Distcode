@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import Editor, { OnMount, type EditorProps } from "@monaco-editor/react";
 import { Save, Send } from "lucide-react";
-import React, { useState } from "react";
+import React from "react";
 import { FileTypeIcon } from "./Icon";
 import { cn } from "@/lib/utils";
 import { labToHex } from "../../utils/labToHex";
@@ -100,7 +100,7 @@ func main() {
 
 type Files = {
   name: string;
-  fileType: "go" | "erlang" | "akka";
+  fileType: "go" | "erlang" | "akka" | "markdown";
 };
 
 type EditorHeaderProps = {

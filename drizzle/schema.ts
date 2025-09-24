@@ -1,4 +1,13 @@
-import { pgTable, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  serial,
+  text,
+  timestamp,
+  varchar,
+  integer,
+  check,
+} from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm/sql/sql";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import * as zod from "zod";
 
@@ -17,3 +26,30 @@ export const UsersSchema = createSelectSchema(users);
 export const NewUserSchema = createInsertSchema(users).omit({ id: true });
 
 export type TUser = zod.infer<typeof UsersSchema>;
+
+export const submissions = pgTable(
+  "submissions",
+  {
+    id: serial("id").primaryKey(),
+    userId: serial("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    title: varchar("title", { length: 256 }).notNull(),
+    description: text("description").notNull(),
+    difficulty: integer("difficulty").notNull(),
+    rating: integer("rating").notNull(),
+    problemMarkdown: text("problem_markdown").notNull(),
+    templateCode: text("template_code").notNull(),
+    solutionCode: text("solution_code").notNull(),
+    testCasesCode: text("test_cases_code").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (column) => [check("difficulty_check", sql`${column.difficulty} in (1, 2, 3)`)]
+);
+
+export const SubmissionsSchema = createSelectSchema(submissions);
+export const NewSubmissionSchema = createInsertSchema(submissions).omit({
+  id: true,
+});
+
+export type TSubmission = zod.infer<typeof SubmissionsSchema>;

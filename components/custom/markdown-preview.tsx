@@ -6,7 +6,12 @@ import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import { ScrollArea } from "../ui/scroll-area";
 import { Separator } from "../ui/separator";
-const MarkdownPreview = () => {
+
+type MarkdownPreviewProps = {
+  content?: string;
+};
+
+const MarkdownPreview = ({ content }: MarkdownPreviewProps) => {
   const components: Components = {
     h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
       <h1 className="text-3xl font-bold mb-4" {...props}>
@@ -104,7 +109,7 @@ const MarkdownPreview = () => {
           <code
             className={cn(
               "rounded bg-muted px-1 py-0.5 font-mono text-sm",
-              className,
+              className
             )}
             {...props}
           >
@@ -112,7 +117,6 @@ const MarkdownPreview = () => {
           </code>
         );
       }
-
       return (
         <pre className="rounded-lg bg-muted p-4 whitespace-pre-wrap break-words">
           <code className={cn("font-mono", className)} {...props}>
@@ -130,7 +134,7 @@ const MarkdownPreview = () => {
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw]}
       >
-        {temp}
+        {content || temp}
       </ReactMarkdown>
     </ScrollArea>
   );

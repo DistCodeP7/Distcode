@@ -8,7 +8,9 @@ import { AuthAvatar } from "./navbar-client-items";
 export async function Navbar() {
   const navLinks = [
     { href: "#", label: "Features" },
-    { href: "#", label: "Problems" },
+    { href: "/exercises", label: "Exercises" },
+    { href: "/authorized/editor/problem", label: "Create Problem" },
+    { href: "/authorized/editor", label: "Submit code" },
   ];
 
   const session = await getServerSession(authOptions);
