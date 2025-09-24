@@ -5,8 +5,11 @@
     "ignoreUnknown": false,
     "includes": [
       "**",
+      "!.next",
       "!node_modules",
       "!**/*.css",
+      "!drizzle",
+      "!components/ui",
       "**/*.js",
       "**/*.ts",
       "**/*.tsx",
@@ -31,8 +34,11 @@
     "rules": { "recommended": true },
     "includes": [
       "**",
+      "!.next",
       "!node_modules",
       "!**/*.css",
+      "!drizzle/**",
+      "!components/ui/**",
       "**/*.js",
       "**/*.ts",
       "**/*.tsx",

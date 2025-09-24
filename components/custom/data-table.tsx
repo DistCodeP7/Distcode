@@ -51,7 +51,7 @@ export function DataTable<TData extends { id: number }, TValue>({
     { id: "rating", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    [],
+    []
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -122,7 +122,7 @@ export function DataTable<TData extends { id: number }, TValue>({
                     <div className="flex items-center gap-1">
                       {flexRender(
                         header.column.columnDef.header,
-                        header.getContext(),
+                        header.getContext()
                       )}
                       {{
                         asc: "▲",
@@ -153,7 +153,7 @@ export function DataTable<TData extends { id: number }, TValue>({
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
-                          cell.getContext(),
+                          cell.getContext()
                         )}
                       </TableCell>
                     ))}
