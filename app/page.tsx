@@ -2,7 +2,6 @@ import Link from "next/link";
 import { Braces, Mountain } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NeonLines from "@/components/custom/NeonLine";
-import { FeedbackStream } from "@/components/custom/feedbackstream";
 import * as motion from "motion/react-client";
 
 export default function Home() {
@@ -102,9 +101,6 @@ export default function Home() {
             <Button size="lg">Start Experiment</Button>
           </Link>
         </motion.section>
-
-        {/* SSE Feedback Stream Section */}
-        <FeedbackStream />
 
         {/* Footer */}
         <footer className="flex flex-col sm:flex-row gap-6 items-center justify-center text-sm text-muted-foreground mt-16 w-full">
