@@ -1,6 +1,6 @@
 // app/editor/layout.tsx
 
-import { Navbar } from '@/components/custom/navbar';
+import { Navbar } from "@/components/custom/navbar";
 
 export default function EditorLayout({
   children,

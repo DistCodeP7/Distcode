@@ -80,7 +80,7 @@ export default function useShortcut({
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [os, callback, shortCutOS]);
+  }, [callback, shortcut_keys.at, shortcut_keys.includes]);
 
   return os !== "Unknown" ? shortCutOS[os] : "";
 }

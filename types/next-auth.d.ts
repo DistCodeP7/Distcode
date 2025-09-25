@@ -1,4 +1,5 @@
 // types/next-auth.d.ts
+// biome-ignore lint/correctness/noUnusedImports: Need elsewhere
 import NextAuth from "next-auth";
 
 declare module "next-auth" {

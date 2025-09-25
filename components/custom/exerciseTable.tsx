@@ -2,8 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { DataTable } from "@/components/custom/data-table";
-import { ExerciseRow } from "@/lib/fetchExercises";
-import { columns } from "@/components/custom/columns";
+import type { ExerciseRow } from "@/lib/fetchExercises";
 
 export default function ExercisesTable({ exercises }: { exercises: ExerciseRow[] }) {
   const router = useRouter();

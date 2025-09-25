@@ -1,22 +1,21 @@
 "use client";
 
-import React from "react";
 import Editor, { EditorHeader } from "@/components/custom/editor";
-import { Input } from "@/components/ui/input";
 import MarkdownPreview from "@/components/custom/markdown-preview";
+import { Input } from "@/components/ui/input";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import { useProblemEditor } from "@/hooks/useProblemEditor";
 import {
   Select,
-  SelectTrigger,
   SelectContent,
   SelectItem,
+  SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useProblemEditor } from "@/hooks/useProblemEditor";
 
 const files = [
   { name: "Problem.md", fileType: "markdown" as const },

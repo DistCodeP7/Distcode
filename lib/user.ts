@@ -1,6 +1,6 @@
+import { eq } from "drizzle-orm";
 import { users } from "@/drizzle/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
 
 export async function getUserByEmail(email: string) {
   const results = await db.select().from(users).where(eq(users.email, email));
