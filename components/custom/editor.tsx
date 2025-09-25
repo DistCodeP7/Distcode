@@ -57,20 +57,6 @@ export default function CustomEditor({
     }
   };
 
-  const defaultCode = `package main
-
-import "fmt"
-
-func main() {
-    fib1 := 0
-    fib2 := 1
-
-    for i := 0; i < 10; i++ {
-        fib1, fib2 = fib2, fib1 + fib2
-        fmt.Println(fib2)
-    }
-}`;
-
   return (
     <div className="flex h-full flex-col">
       <div className="flex-grow">
@@ -82,7 +68,6 @@ func main() {
             height="100%"
             defaultLanguage="go"
             language={language}
-            defaultValue={defaultCode}
             onChange={onChange}
             value={editorContent}
             options={{
@@ -107,7 +92,7 @@ type EditorHeaderProps = {
   files: Files[];
   activeFile: number;
   onFileChange: (index: number) => void;
-  onSubmit: () => Promise<void>;
+  onSubmit: () => void;
 };
 
 export function EditorHeader({
@@ -116,7 +101,6 @@ export function EditorHeader({
   onFileChange,
   onSubmit,
 }: EditorHeaderProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
   return (
     <div className="flex items-center justify-between border-b">
       <div className="flex">
@@ -140,16 +124,7 @@ export function EditorHeader({
           <Save className="mr-2 h-4 w-4" />
           Save
         </Button>
-        <Button
-          onClick={async () => {
-            setIsSubmitting(true);
-            await onSubmit();
-            setIsSubmitting(false);
-          }}
-          type="button"
-          variant={isSubmitting ? "disabled" : "default"}
-          disabled={isSubmitting}
-        >
+        <Button onClick={() => onSubmit()} type="button" variant="outline">
           <Send className="mr-2 h-4 w-4" />
           Submit
         </Button>
