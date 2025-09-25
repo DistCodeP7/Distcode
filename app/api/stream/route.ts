@@ -1,8 +1,8 @@
-import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
-import { authOptions } from "../auth/[...nextauth]/route";
-import { getUserIdByEmail } from "@/lib/user";
+import { getServerSession } from "next-auth/next";
 import { RabbitMQReceiver } from "@/app/mq/RabbitMQReceiver";
+import { getUserIdByEmail } from "@/lib/user";
+import { authOptions } from "../auth/[...nextauth]/route";
 
 type Client = {
   controller: ReadableStreamDefaultController<Uint8Array>;
@@ -30,7 +30,7 @@ class JobResultQueueListener {
     this.isRunning = false;
   }
 
-  start<T>(messageCallback: (msg: T) => void) {
+  start<T extends object>(messageCallback: (msg: T) => void) {
     if (this.isRunning) return;
     this.isRunning = true;
     this.mqReceiver.connect().then(() => {
@@ -53,7 +53,7 @@ class ClientManager {
     if (!this.clients.has(userId)) {
       this.clients.set(userId, new Set());
     }
-    this.clients.get(userId)!.add(client);
+    this.clients.get(userId)?.add(client);
 
     if (this.clients.size === 1 && !this.heartBeatId) {
       this.heartBeatId = setInterval(() => this.heartbeat(), 15000);

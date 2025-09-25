@@ -1,5 +1,5 @@
 "use client";
-import {
+import type {
   StreamingJobResult,
   StreamingJobResultEvent,
 } from "@/app/api/stream/route";
@@ -24,11 +24,13 @@ export const TerminalOutput = ({ messages }: TerminalOutputProps) => {
   return (
     <div className="h-full w-full bg-muted text-sm text-muted-foreground">
       <div className="p-4 h-full overflow-y-auto">
-        {messages.map((msg, index) => (
-          <div key={index} className="mb-2">
+        {messages.map((msg) => (
+          <div key={msg.SequenceIndex} className="mb-2">
             <div className="mb-1 font-semibold">Job ID: {msg.JobId}</div>
-            {msg.Events.map((event, idx) => (
-              <div key={idx}>{renderEventText(event)}</div>
+            {msg.Events.map((event) => (
+              <div key={event.Message + event.Kind}>
+                {renderEventText(event)}
+              </div>
             ))}
           </div>
         ))}

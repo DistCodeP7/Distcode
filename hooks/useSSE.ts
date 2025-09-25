@@ -7,7 +7,7 @@ export const useSSE = <T>(url: string) => {
   const [messages, setMessages] = useState<T[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const lastMsgRef = useRef<any>(null);
+  const lastMsgRef = useRef<T>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
 
   const clearMessages = () => setMessages([]);
@@ -24,19 +24,14 @@ export const useSSE = <T>(url: string) => {
       setIsLoading(false);
     };
 
-    eventSource.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        setMessages((prev) => [...prev, data]);
-        lastMsgRef.current = data;
-        if (data.status === "done") setIsConnected(false);
-      } catch (err) {
-        throw err;
-      }
+    eventSource.onmessage = (event: MessageEvent) => {
+      const data: T = JSON.parse(event.data);
+      setMessages((prev) => [...prev, data]);
+      lastMsgRef.current = data;
     };
 
     eventSource.onerror = () => {
-      if (!lastMsgRef.current || lastMsgRef.current.status !== "done") {
+      if (!lastMsgRef.current) {
         setError("Connection lost. Try again.");
       }
       setIsConnected(false);

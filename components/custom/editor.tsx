@@ -1,12 +1,13 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import Editor, { OnMount, type EditorProps } from "@monaco-editor/react";
+import Editor, { type EditorProps, type OnMount } from "@monaco-editor/react";
 import { Save, Send } from "lucide-react";
-import React, { useState } from "react";
-import { FileTypeIcon } from "./Icon";
+import type React from "react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { labToHex } from "@/utils/labToHex";
+import { FileTypeIcon } from "./Icon";
 
 type CustomEditorProps = EditorProps & {
   initialEditorContent?: string;
@@ -121,17 +122,18 @@ export function EditorHeader({
     <div className="flex items-center justify-between border-b">
       <div className="flex">
         {files.map((file, index) => (
-          <div
+          <button
             key={file.name}
             onClick={() => onFileChange(index)}
             className={cn(
-              "cursor-pointer border px-4 py-2 flex items-center gap-2",
+              "border px-4 py-2 flex items-center gap-2",
               index === activeFile ? "bg-secondary" : "hover:bg-muted"
             )}
+            type="button"
           >
             <FileTypeIcon className="h-6 w-6 mr-2" name={file.fileType} />
             {file.name.replace(/\.[^/.]+$/, "")}
-          </div>
+          </button>
         ))}
       </div>
 

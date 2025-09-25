@@ -1,16 +1,16 @@
 "use client";
-import { useSSE } from "@/hooks/useSSE";
-import { StreamingJobResult } from "@/app/api/stream/route";
+import { useState } from "react";
+import type { StreamingJobResult } from "@/app/api/stream/route";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
+import { TerminalOutput } from "@/components/custom/TerminalOutput";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import useCodeEditor from "@/hooks/useCodeEditor";
-import { useState } from "react";
-import { TerminalOutput } from "@/components/custom/TerminalOutput";
+import { useSSE } from "@/hooks/useSSE";
 
 export default function IDE() {
   const [file, setFile] = useState(0);

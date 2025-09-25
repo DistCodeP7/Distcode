@@ -1,9 +1,9 @@
-import React from "react";
-import ReactMarkdown, { Components } from "react-markdown";
-import { cn } from "@/lib/utils";
-import { temp } from "@/lib/temp";
-import remarkGfm from "remark-gfm";
+import type React from "react";
+import ReactMarkdown, { type Components } from "react-markdown";
 import rehypeRaw from "rehype-raw";
+import remarkGfm from "remark-gfm";
+import { temp } from "@/lib/temp";
+import { cn } from "@/lib/utils";
 import { ScrollArea } from "../ui/scroll-area";
 import { Separator } from "../ui/separator";
 
@@ -103,7 +103,7 @@ const MarkdownPreview = ({ content }: MarkdownPreviewProps) => {
       className,
       children,
       ...props
-    }: React.ComponentProps<"code"> & { inline?: boolean; node?: any }) => {
+    }: React.ComponentProps<"code"> & { inline?: boolean; node?: unknown }) => {
       if (inline) {
         return (
           <code

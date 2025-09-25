@@ -1,17 +1,18 @@
 "use client";
 
+import { Avatar, AvatarFallback } from "@radix-ui/react-avatar";
 import { signOut } from "next-auth/react";
-import { DropdownMenuItem, DropdownMenuShortcut } from "../ui/dropdown-menu";
+import useShortcut from "@/hooks/useShortcut";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@radix-ui/react-avatar";
-import useShortcut from "@/hooks/useShortcut";
 
 export const AuthAvatar = ({ userInitials }: { userInitials: string }) => {
   const profileShortcut = useShortcut({

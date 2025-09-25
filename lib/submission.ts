@@ -1,6 +1,6 @@
-import { db } from "./db";
-import { submissions } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
+import { submissions } from "@/drizzle/schema";
+import { db } from "./db";
 
 export async function submitSubmission(
   userId: number,

@@ -1,6 +1,6 @@
-﻿import type { Connection, Channel, ConsumeMessage } from "amqplib";
-import type { RabbitMQConfig } from "./RabbitMQConfig";
+﻿import type { Channel, Connection, ConsumeMessage } from "amqplib";
 import { getMQConnection } from "./getMQConnection";
+import type { RabbitMQConfig } from "./RabbitMQConfig";
 
 export class RabbitMQReceiver {
   private conn!: Connection;
@@ -18,33 +18,29 @@ export class RabbitMQReceiver {
   }
 
   async connect(): Promise<void> {
-    try {
-      this.conn = await getMQConnection();
-      this.channel = await this.conn.createChannel();
+    this.conn = await getMQConnection();
+    this.channel = await this.conn.createChannel();
 
-      // Always assert queue
+    // Always assert queue
+    if (this.queue) {
+      await this.channel.assertQueue(this.queue, { durable: true });
+    }
+
+    // Optionally assert and bind exchange
+    if (this.exchange) {
+      await this.channel.assertExchange(
+        this.exchange,
+        this.exchangeType || "direct",
+        { durable: true }
+      );
+
       if (this.queue) {
-        await this.channel.assertQueue(this.queue, { durable: true });
-      }
-
-      // Optionally assert and bind exchange
-      if (this.exchange) {
-        await this.channel.assertExchange(
+        await this.channel.bindQueue(
+          this.queue,
           this.exchange,
-          this.exchangeType || "direct",
-          { durable: true }
+          this.routingKey || ""
         );
-
-        if (this.queue) {
-          await this.channel.bindQueue(
-            this.queue,
-            this.exchange,
-            this.routingKey || ""
-          );
-        }
       }
-    } catch (err) {
-      throw err;
     }
   }
 
@@ -53,7 +49,9 @@ export class RabbitMQReceiver {
     if (this.conn) await this.conn.close();
   }
 
-  async consumeMessages(onMessage: (msg: any) => void): Promise<void> {
+  async consumeMessages<T extends object>(
+    onMessage: (msg: T) => void
+  ): Promise<void> {
     if (!this.channel) {
       throw new Error("Channel not initialized. Call connect() first.");
     }
@@ -68,7 +66,7 @@ export class RabbitMQReceiver {
         try {
           onMessage(JSON.parse(content));
         } catch {
-          onMessage(content);
+          throw new Error("Failed to parse message content as JSON.");
         }
         this.channel.ack(msg);
       }
