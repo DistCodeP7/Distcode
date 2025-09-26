@@ -5,7 +5,7 @@ const useCodeEditor = () => {
   const [editorContent, setEditorContent] = useState<string>("");
 
   const submit = async () => {
-    await submitCode(editorContent);
+    await submitCode([editorContent]);
   };
 
   return { editorContent, setEditorContent, submit };

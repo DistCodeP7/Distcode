@@ -5,7 +5,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { MQJobsSender } from "@/lib/mq";
 import { getUserIdByEmail } from "@/lib/user";
 
-export async function submitCode(content: string) {
+export async function submitCode(content: string[]) {
   const session = await getServerSession(authOptions);
   if (!session) {
     return { error: "Unauthorized", status: 401 };
