@@ -1,0 +1,23 @@
+"use client";
+
+import { SessionProvider } from "next-auth/react";
+import { ThemeProvider } from "@/components/custom/theme-provider";
+
+interface AppProvidersProps {
+  children: React.ReactNode;
+}
+
+export function AppProviders({ children }: AppProvidersProps) {
+  return (
+    <SessionProvider>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+      >
+        {children}
+      </ThemeProvider>
+    </SessionProvider>
+  );
+}
