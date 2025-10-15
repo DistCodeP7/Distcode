@@ -23,16 +23,21 @@ export async function getExercise({ params }: ExercisePageProps) {
   // If unpublished, restrict access to owner
   if (!exercise.isPublished) {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) return { error: "Exercise not found", status: 404 };
+    if (!session?.user?.email)
+      return { error: "Exercise not found", status: 404 };
 
     const userId = await getUserIdByEmail(session.user.email);
-    if (!userId || exercise.userId !== userId) return { error: "Exercise not found", status: 404 };
+    if (!userId || exercise.userId !== userId)
+      return { error: "Exercise not found", status: 404 };
   }
 
   return exercise;
 }
 
-export async function submitCode(content: string[], { params }: ExercisePageProps) {
+export async function submitCode(
+  content: string[],
+  { params }: ExercisePageProps
+) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return { error: "Unauthorized", status: 401 };
 
@@ -40,7 +45,8 @@ export async function submitCode(content: string[], { params }: ExercisePageProp
   if (!userId) return { error: "User not found.", status: 404 };
 
   const problemId = Number(params.id);
-  if (Number.isNaN(problemId)) return { error: "Invalid exercise id", status: 400 };
+  if (Number.isNaN(problemId))
+    return { error: "Invalid exercise id", status: 400 };
 
   MQJobsSender.sendMessage({
     ProblemId: problemId,
