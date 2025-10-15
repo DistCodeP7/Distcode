@@ -13,6 +13,8 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
     return notFound();
   }
 
+  const { id } = params;
+
   return (
     <div className="h-screen flex flex-col">
       <header className="p-4 border-b">
@@ -21,7 +23,7 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
       </header>
 
       <ExerciseEditor
-        exerciseId={params.id}
+        exerciseId={id}
         problemMarkdown={exercise.problemMarkdown}
         templateCode={exercise.templateCode || []}
         solutionCode={exercise.solutionCode || []}
