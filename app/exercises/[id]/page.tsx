@@ -21,9 +21,10 @@ export default async function ExercisePage({ params }: ExercisePageProps) {
       </header>
 
       <ExerciseEditor
+        exerciseId={params.id}
         problemMarkdown={exercise.problemMarkdown}
-        templateCode={exercise.templateCode}
-        solutionCode={exercise.solutionCode}
+        templateCode={exercise.templateCode || []}
+        solutionCode={exercise.solutionCode || []}
         testCasesCode={exercise.testCasesCode}
       />
     </div>

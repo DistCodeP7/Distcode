@@ -3,14 +3,12 @@
 import Editor, { type EditorProps, type OnMount } from "@monaco-editor/react";
 import { Save, Send } from "lucide-react";
 import type React from "react";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { labToHex } from "@/utils/labToHex";
 import { FileTypeIcon } from "./Icon";
 
 type CustomEditorProps = EditorProps & {
-  initialEditorContent?: string;
   editorContent: string;
   setEditorContent: React.Dispatch<React.SetStateAction<string>>;
 };
@@ -18,10 +16,9 @@ type CustomEditorProps = EditorProps & {
 const handleEditorDidMount: OnMount = (_, monaco) => {
   const styles = getComputedStyle(document.body);
   const rawColor = styles.getPropertyValue("background-color");
-  let backgroundColor = "#FFFFFF"; // Default fallback
+  let backgroundColor = "#FFFFFF";
 
   try {
-    // Safely parse the lab(...) string
     const labMatch = rawColor.match(/lab\(([\d.]+)%?\s+([-\d.]+)\s+([-\d.]+)/);
     if (labMatch) {
       const l = parseFloat(labMatch[1]);
@@ -30,16 +27,14 @@ const handleEditorDidMount: OnMount = (_, monaco) => {
       backgroundColor = labToHex(l, a, b);
     }
   } catch (error) {
-    console.error("Failed to parse and convert LAB color:", error);
+    console.error("Failed to parse LAB color:", error);
   }
 
   monaco.editor.defineTheme("shadcn-theme", {
     base: "vs-dark",
     inherit: true,
     rules: [],
-    colors: {
-      "editor.background": backgroundColor,
-    },
+    colors: { "editor.background": backgroundColor },
   });
 
   monaco.editor.setTheme("shadcn-theme");
@@ -47,33 +42,20 @@ const handleEditorDidMount: OnMount = (_, monaco) => {
 
 export default function CustomEditor({
   language,
-  initialEditorContent,
   editorContent,
   setEditorContent,
   ...props
 }: CustomEditorProps) {
-  const onChange = (value: string | undefined) => {
-    if (value !== undefined) {
-      setEditorContent(value);
-    }
-  };
-
   return (
     <div className="flex h-full flex-col">
-      <div className="flex-grow">
-        <label htmlFor="code-editor" className="sr-only">
-          Add your code
-        </label>
+      <div className="flex-1">
         <div className="h-full overflow-hidden rounded-md border">
           <Editor
             height="100%"
-            defaultLanguage="go"
             language={language}
-            onChange={onChange}
             value={editorContent}
-            options={{
-              minimap: { enabled: false },
-            }}
+            onChange={(value) => value && setEditorContent(value)}
+            options={{ minimap: { enabled: false } }}
             onMount={handleEditorDidMount}
             theme="vs-dark"
             {...props}
@@ -94,6 +76,7 @@ type EditorHeaderProps = {
   activeFile: number;
   onFileChange: (index: number) => void;
   onSubmit: () => void;
+  onSave?: () => void;
 };
 
 export function EditorHeader({
@@ -101,35 +84,56 @@ export function EditorHeader({
   activeFile,
   onFileChange,
   onSubmit,
+  onSave,
 }: EditorHeaderProps) {
-  return (
-    <div className="flex items-center justify-between border-b">
-      <div className="flex">
-        {files.map((file, index) => (
-          <button
-            key={file.name}
-            onClick={() => onFileChange(index)}
-            className={cn(
-              "border px-4 py-2 flex items-center gap-2",
-              index === activeFile ? "bg-secondary" : "hover:bg-muted"
-            )}
-            type="button"
-          >
-            <FileTypeIcon className="h-6 w-6 mr-2" name={file.fileType} />
-            {file.name.replace(/\.[^/.]+$/, "")}
-          </button>
-        ))}
-      </div>
+  const visibleFiles = files;
 
-      <div className="flex gap-2 pr-4">
-        <Button type="button" variant="secondary">
-          <Save className="mr-2 h-4 w-4" />
-          Save
-        </Button>
-        <Button onClick={() => onSubmit()} type="button" variant="outline">
-          <Send className="mr-2 h-4 w-4" />
-          Submit
-        </Button>
+  return (
+    <div className="border-b bg-background flex flex-col">
+      <div className="flex items-center justify-between px-2 py-1">
+        {/* Left side: file tabs */}
+        <div className="flex items-center gap-1 overflow-x-auto flex-1 pr-20">
+          {visibleFiles.map((file, idx) => {
+            const trueIndex = idx;
+            return (
+              <Button
+                key={file.name}
+                onClick={() => onFileChange(trueIndex)}
+                className={cn(
+                  "flex items-center gap-1 px-2 py-1 flex-shrink-0 transition-colors truncate",
+                  trueIndex === activeFile
+                    ? "bg-secondary text-secondary-foreground"
+                    : "hover:bg-muted"
+                )}
+              >
+                <FileTypeIcon className="w-4 h-4" name={file.fileType} />
+                <span className="truncate max-w-[12ch]">{file.name}</span>
+              </Button>
+            );
+          })}
+        </div>
+
+        {/* Right side: Save / Submit */}
+        <div className="flex items-center gap-2 flex-shrink-0 ml-2 relative z-10">
+          <Button
+            type="button"
+            variant="secondary"
+            className="flex items-center gap-1 px-2 py-1 text-base"
+            onClick={onSave}
+          >
+            <Save className="w-4 h-4" />
+            Save
+          </Button>
+          <Button
+            onClick={onSubmit}
+            type="button"
+            variant="outline"
+            className="flex items-center gap-1 px-2 py-1 text-base"
+          >
+            <Send className="w-4 h-4" />
+            Submit
+          </Button>
+        </div>
       </div>
     </div>
   );

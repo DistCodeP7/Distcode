@@ -5,7 +5,6 @@ import { MQJobsSender } from "@/lib/mq";
 import { getUserIdByEmail } from "@/lib/user";
 import { getServerSession } from "next-auth";
 import { db } from "@/lib/db";
-import { notFound } from "next/dist/client/components/navigation";
 
 export interface ExercisePageProps {
   params: { id: string };
@@ -13,7 +12,7 @@ export interface ExercisePageProps {
 
 export async function getExercise({ params }: ExercisePageProps) {
   const id = Number(params.id);
-  if (isNaN(id)) {
+  if (Number.isNaN(id)) {
     return { error: "Invalid exercise id", status: 400 };
   }
 
@@ -25,11 +24,28 @@ export async function getExercise({ params }: ExercisePageProps) {
     return { error: "Exercise not found", status: 404 };
   }
 
+  // If the exercise exists but is not published, restrict access to the owner only
+  if (exercise && !exercise.isPublished) {
+    try {
+      const session = await getServerSession(authOptions);
+      if (!session?.user?.email) return { error: "Exercise not found", status: 404 };
+
+      const userId = await getUserIdByEmail(session.user.email);
+      if (!userId) return { error: "Exercise not found", status: 404 };
+
+      if (exercise.userId !== userId) {
+        return { error: "Exercise not found", status: 404 };
+      }
+    } catch (_) {
+      return { error: "Exercise not found", status: 404 };
+    }
+  }
+
   return exercise;
 }
 
 export async function submitCode(
-  content: string,
+  content: string[],
   { params }: ExercisePageProps
 ) {
   const session = await getServerSession(authOptions);
@@ -43,9 +59,10 @@ export async function submitCode(
   }
 
   MQJobsSender.sendMessage({
-    ProblemId: params.id,
+    ProblemId: Number(params.id),
     UserId: userId,
     Code: content,
+    Timeoutlimit: 60,
   });
 
   return {
