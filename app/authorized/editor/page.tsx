@@ -1,98 +1,71 @@
-import Link from "next/link";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { getUserIdByEmail } from "@/lib/user";
-import { getSubmissionsByUserId } from "@/lib/submission";
-import { Button } from "@/components/ui/button";
+"use client";
+import { useState, useRef } from "react";
+import type { StreamingJobResult } from "@/app/api/stream/route";
+import Editor, { EditorHeader } from "@/components/custom/editor";
+import MarkdownPreview from "@/components/custom/markdown-preview";
+import { TerminalOutput } from "@/components/custom/TerminalOutput";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
+import useCodeEditor from "@/hooks/useCodeEditor";
+import { useSSE } from "@/hooks/useSSE";
+import type { ImperativePanelHandle } from "react-resizable-panels";
 
-export default async function EditorIndexPage() {
-  const session = await getServerSession(authOptions);
+export default function IDE() {
+  const [file, setFile] = useState(0);
+  const { editorContent, setEditorContent, submit } = useCodeEditor();
+  const { messages, connect, clearMessages } =
+    useSSE<StreamingJobResult>("/api/stream");
+  const terminalPanelRef = useRef<ImperativePanelHandle | null>(null);
 
-  if (!session?.user?.email) {
-    return (
-      <div className="container mx-auto py-10">
-        <h1 className="text-2xl font-bold">Create Exercises</h1>
-        <p className="mt-4 text-muted-foreground">You must be signed in to view or create exercises.</p>
-        <div className="mt-6">
-          <Link href="/auth/signin">
-            <Button>Sign in</Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  const userId = await getUserIdByEmail(session.user.email);
-  if (!userId) {
-    return (
-      <div className="container mx-auto py-10">
-        <h1 className="text-2xl font-bold">Create Exercises</h1>
-        <p className="mt-4 text-muted-foreground">User not found.</p>
-      </div>
-    );
-  }
-
-  const submissions = await getSubmissionsByUserId(userId);
+  const onSubmit = async () => {
+    terminalPanelRef.current?.resize(30);
+    clearMessages();
+    connect();
+    await submit();
+  };
 
   return (
-    <div className="container mx-auto py-10">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Create Exercises</h1>
-          <p className="mt-1 text-muted-foreground">Your written exercises (drafts and published). Create a new problem or edit existing ones.</p>
-        </div>
-        <div>
-          <Link href="/authorized/editor/problem">
-            <Button>Create new exercise</Button>
-          </Link>
-        </div>
-      </div>
+    <ResizablePanelGroup
+      direction="horizontal"
+      className="h-full border md:min-w-[450px]"
+    >
+      {/* Left panel: Markdown Preview */}
+      <ResizablePanel minSize={20} className="overflow-y-auto">
+        <MarkdownPreview />
+      </ResizablePanel>
 
-      <div className="mt-6">
-        {submissions.length === 0 ? (
-          <div className="rounded-md border p-6">
-            <p className="text-muted-foreground">You don't have any exercises yet.</p>
-            <div className="mt-4">
-              <Link href="/authorized/editor/problem">
-                <Button>Create your first exercise</Button>
-              </Link>
-            </div>
-          </div>
-        ) : (
-          <div className="rounded-md border">
-            <table className="w-full table-auto">
-              <thead>
-                <tr className="text-left">
-                  <th className="p-3">Title</th>
-                  <th className="p-3">Status</th>
-                  <th className="p-3">Difficulty</th>
-                  <th className="p-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {submissions.map((s) => (
-                  <tr key={s.id} className="border-t">
-                    <td className="p-3">{s.title}</td>
-                    <td className="p-3">{s.isPublished ? "Published" : "Draft"}</td>
-                    <td className="p-3">{s.difficulty}</td>
-                    <td className="p-3">
-                      <div className="flex items-center gap-2">
-                        <Link href={`/authorized/editor/problem/${s.id}`}>
-                          <Button size="sm">Edit</Button>
-                        </Link>
-                        <Link href={`/exercises/${s.id}`}>
-                          <Button size="sm" variant="ghost">Open</Button>
-                        </Link>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-    </div>
+      <ResizableHandle withHandle />
+
+      {/* Right panel: Editor + Extra resizable panel */}
+      <ResizablePanel minSize={20}>
+        <ResizablePanelGroup direction="vertical">
+          {/* Top half: Editor */}
+          <ResizablePanel defaultSize={50}>
+            <EditorHeader
+              files={[
+                { name: "file1.go", fileType: "go" },
+                { name: "file2.erl", fileType: "erlang" },
+                { name: "file2.akka", fileType: "akka" },
+              ]}
+              activeFile={file}
+              onFileChange={(index) => setFile(index)}
+              onSubmit={onSubmit}
+            />
+            <Editor
+              editorContent={editorContent}
+              setEditorContent={setEditorContent}
+            />
+          </ResizablePanel>
+
+          <ResizableHandle withHandle />
+          <ResizablePanel ref={terminalPanelRef} defaultSize={0} maxSize={70}>
+            <TerminalOutput messages={messages} />
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </ResizablePanel>
+    </ResizablePanelGroup>
   );
 }
-
