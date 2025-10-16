@@ -28,7 +28,10 @@ export default async function EditProblemPage({ params }: Props) {
   if (!exercise || exercise.userId !== userId) return notFound();
 
   const makeFiles = (prefix: string, codes: string[]) =>
-    codes.map((_, i) => ({ name: `${prefix}${i === 0 ? "" : i + 1}.go`, fileType: "go" as const }));
+    codes.map((_, i) => ({
+      name: `${prefix}${i === 0 ? "" : i + 1}.go`,
+      fileType: "go" as const,
+    }));
 
   const files = [
     { name: "problem.md", fileType: "markdown" as const },
@@ -42,12 +45,18 @@ export default async function EditProblemPage({ params }: Props) {
     "testCases.go": exercise.testCasesCode,
   };
 
-  (exercise.templateCode || []).forEach((c, i) => {
-    initialFilesContent[`template${i === 0 ? "" : i + 1}.go`] = c;
-  });
-  (exercise.solutionCode || []).forEach((c, i) => {
-    initialFilesContent[`solution${i === 0 ? "" : i + 1}.go`] = c;
-  });
+  function assignFilesContent(
+    prefix: string,
+    codes: string[],
+    target: Record<string, string>
+  ) {
+    codes.forEach((code, i) => {
+      target[`${prefix}${i === 0 ? "" : i + 1}.go`] = code;
+    });
+  }
+
+  assignFilesContent("template", exercise.templateCode, initialFilesContent);
+  assignFilesContent("solution", exercise.solutionCode, initialFilesContent);
 
   return (
     <ProblemEditorClient
