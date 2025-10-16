@@ -51,7 +51,7 @@ export default function Home() {
           transition={{ delay: 0.4, duration: 0.4, ease: "easeOut" }}
           className="flex flex-col sm:flex-row gap-4 mt-4"
         >
-          <Link href="/auth">
+          <Link href="/auth/login">
             <Button size="lg">Get Started</Button>
           </Link>
           <Link href="/docs">
@@ -97,7 +97,7 @@ export default function Home() {
             You don’t need to set up anything. Create an account and start
             running algorithms in our interactive sandbox.
           </p>
-          <Link href="/auth">
+          <Link href="/auth/login">
             <Button size="lg">Start Experiment</Button>
           </Link>
         </motion.section>
