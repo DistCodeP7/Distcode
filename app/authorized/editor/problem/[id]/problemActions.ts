@@ -64,26 +64,20 @@ export async function saveProblem(data: SaveProblemParams) {
           status: 400,
         };
       }
-      // For publish, require non-empty; for draft, allow empty
-      if (isPublished) {
-        if (isArrayField) {
-          if (!Array.isArray(field.value) || field.value.length === 0) {
-            return {
-              success: false,
-              error: `${field.name} is required (empty).`,
-              status: 400,
-            };
-          }
-        } else if (
-          typeof field.value === "string" &&
-          field.value.trim() === ""
-        ) {
+      if (isArrayField) {
+        if (!Array.isArray(field.value) || field.value.length === 0) {
           return {
             success: false,
             error: `${field.name} is required (empty).`,
             status: 400,
           };
         }
+      } else if (typeof field.value === "string" && field.value.trim() === "") {
+        return {
+          success: false,
+          error: `${field.name} is required (empty).`,
+          status: 400,
+        };
       }
     }
     if (dataToValidate.difficulty < 1 || dataToValidate.difficulty > 3) {

@@ -88,24 +88,18 @@ export default async function ProblemListPage() {
                     </span>
                   )}
                 </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span>Difficulty:</span>
-                  <span
-                    className={
-                      s.difficulty === 1
-                        ? "text-chart-2"
-                        : s.difficulty === 2
-                          ? "text-chart-3"
-                          : "text-primary"
-                    }
-                  >
-                    {s.difficulty === 1
-                      ? "Easy"
-                      : s.difficulty === 2
-                        ? "Medium"
-                        : "Hard"}
-                  </span>
-                </div>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <span>Difficulty:</span>
+                      <span className={s.difficulty === 1 ? "text-chart-2" : s.difficulty === 2 ? "text-chart-3" : "text-primary"}>
+                        {s.difficulty === 1 ? "Easy" : s.difficulty === 2 ? "Medium" : "Hard"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span>Rating:</span>
+                      <span className="font-semibold text-foreground">{s.rating ?? 0}</span>
+                    </div>
+                  </div>
                 <div className="flex gap-2 mt-2">
                   <Link href={`/authorized/editor/problem/${s.id}`}>
                     <Button size="sm">Edit</Button>

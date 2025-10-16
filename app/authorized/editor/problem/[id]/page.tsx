@@ -18,7 +18,8 @@ export default async function EditProblemPage({ params }: Props) {
   const userId = await getUserIdByEmail(session.user.email);
   if (!userId) return notFound();
 
-  const id = Number(params.id);
+  const { id: idStr } = params;
+  const id = Number(idStr);
   if (Number.isNaN(id)) return notFound();
 
   const exercise = await db.query.submissions.findFirst({
@@ -31,14 +32,14 @@ export default async function EditProblemPage({ params }: Props) {
 
   const files = [
     { name: "problem.md", fileType: "markdown" as const },
-    ...makeFiles("template", exercise.templateCode || [""]),
-    ...makeFiles("solution", exercise.solutionCode || [""]),
+    ...makeFiles("template", exercise.templateCode),
+    ...makeFiles("solution", exercise.solutionCode),
     { name: "testCases.go", fileType: "go" as const },
   ];
 
   const initialFilesContent: Record<string, string> = {
-    "problem.md": exercise.problemMarkdown || "",
-    "testCases.go": exercise.testCasesCode || "",
+    "problem.md": exercise.problemMarkdown,
+    "testCases.go": exercise.testCasesCode,
   };
 
   (exercise.templateCode || []).forEach((c, i) => {
