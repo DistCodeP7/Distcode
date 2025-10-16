@@ -47,33 +47,19 @@
     {
       "idx": 6,
       "version": "7",
-      "when": 1759225318898,
-      "tag": "0006_exotic_post",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1759225597578,
-      "tag": "0007_illegal_metal_master",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
       "when": 1759225924172,
       "tag": "0008_ordinary_peter_parker",
       "breakpoints": true
     },
     {
-      "idx": 9,
+      "idx": 7,
       "version": "7",
       "when": 1760521919329,
       "tag": "0009_ambitious_crusher_hogan",
       "breakpoints": true
     },
     {
-      "idx": 10,
+      "idx": 8,
       "version": "7",
       "when": 1760595597393,
       "tag": "0010_colossal_hellion",
