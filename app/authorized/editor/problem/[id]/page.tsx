@@ -7,23 +7,23 @@ import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
 import ProblemEditorClient from "@/components/custom/problemEditorClient";
 
-interface Props {
-  params: { id: string };
-}
+export default async function EditProblemPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
 
-export default async function EditProblemPage({ params }: Props) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return notFound();
 
   const userId = await getUserIdByEmail(session.user.email);
   if (!userId) return notFound();
 
-  const { id: idStr } = params;
-  const id = Number(idStr);
   if (Number.isNaN(id)) return notFound();
 
   const exercise = await db.query.submissions.findFirst({
-    where: (s, { eq }) => eq(s.id, id),
+    where: (s, { eq }) => eq(s.id, Number(id)),
   });
   if (!exercise || exercise.userId !== userId) return notFound();
 

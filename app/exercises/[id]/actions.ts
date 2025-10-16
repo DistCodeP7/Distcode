@@ -6,12 +6,9 @@ import { getUserIdByEmail } from "@/lib/user";
 import { getServerSession } from "next-auth";
 import { db } from "@/lib/db";
 
-export interface ExercisePageProps {
-  params: { id: string };
-}
-
-export async function getExercise({ params }: ExercisePageProps) {
+export async function getExercise({ params }: { params: { id: number } }) {
   const id = Number(params.id);
+
   if (Number.isNaN(id)) return { error: "Invalid exercise id", status: 400 };
 
   const exercise = await db.query.submissions.findFirst({
@@ -36,7 +33,7 @@ export async function getExercise({ params }: ExercisePageProps) {
 
 export async function submitCode(
   content: string[],
-  { params }: ExercisePageProps
+  { params }: { params: { id: number } }
 ) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return { error: "Unauthorized", status: 401 };

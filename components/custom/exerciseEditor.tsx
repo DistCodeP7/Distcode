@@ -16,7 +16,7 @@ import { BookOpen, Code } from "lucide-react";
 import { submitCode } from "@/app/exercises/[id]/actions";
 
 type ExerciseEditorProps = {
-  exerciseId: string;
+  exerciseId: number;
   userId?: number;
   problemMarkdown: string;
   templateCode: string[];

@@ -7,8 +7,8 @@ import { db } from "@/lib/db";
 import { submissions } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 
-type SaveProblemParams = {
-  id?: number; // If present, it's an update
+export type SaveProblemParams = {
+  id?: number;
   title: string;
   description: string;
   difficulty: number;
