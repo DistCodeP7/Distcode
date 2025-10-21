@@ -70,18 +70,9 @@ export default function ExerciseEditor({
 
     const submissionContent = fileContents;
 
-    try {
-      const result = await submitCode(submissionContent, {
-        params: { id: exerciseId },
-      });
-      if (result.success) {
-        console.log("Code submitted successfully");
-      } else {
-        console.error("Submission failed:", result.error);
-      }
-    } catch (error) {
-      console.error("Error submitting code:", error);
-    }
+    await submitCode(submissionContent, {
+      params: { id: exerciseId },
+    });
   };
 
   function setEditorContent(value: React.SetStateAction<string>): void {

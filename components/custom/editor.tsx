@@ -27,7 +27,7 @@ const handleEditorDidMount: OnMount = (_, monaco) => {
       backgroundColor = labToHex(l, a, b);
     }
   } catch (error) {
-    console.error("Failed to parse and convert LAB color:", error);
+    throw new Error(`Failed to parse and convert LAB color: ${error}`);
   }
 
   monaco.editor.defineTheme("shadcn-theme", {

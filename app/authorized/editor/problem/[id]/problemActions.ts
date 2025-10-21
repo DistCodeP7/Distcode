@@ -107,10 +107,9 @@ export async function saveProblem(data: SaveProblemParams) {
       status: 200,
     };
   } catch (err) {
-    console.error(err);
     return {
       success: false,
-      error: "An internal server error occurred.",
+      error: `An internal server error occurred.${err}`,
       status: 500,
     };
   }

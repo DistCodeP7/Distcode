@@ -182,8 +182,7 @@ export const useProblemEditor = (
           alert(result.error || "An error occurred.");
         }
       } catch (err) {
-        console.error(err);
-        alert("An unexpected server error occurred.");
+        alert(`An unexpected server error occurred.${err}`);
       } finally {
         setState((prev) => ({ ...prev, isSubmitting: false }));
       }
