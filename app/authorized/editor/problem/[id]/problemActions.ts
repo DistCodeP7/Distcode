@@ -56,7 +56,7 @@ export async function saveProblem(data: SaveProblemParams) {
   for (const field of fieldsToValidate) {
     const isArrayField =
       field.name.includes("Template") || field.name.includes("Solution");
-    if (field.value === undefined || field.value === null) {
+    if (!field.value) {
       return {
         success: false,
         error: `${field.name} is required (missing).`,
