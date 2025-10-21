@@ -122,10 +122,7 @@ export const useProblemEditor = (
         if (!state.description.trim()) missingFields.push("Description");
         if (!state.difficulty || !["1", "2", "3"].includes(state.difficulty))
           missingFields.push("Difficulty");
-        if (
-          !state.filesContent["problem.md"] ||
-          !state.filesContent["problem.md"].trim()
-        )
+        if (!state.filesContent["problem.md"].trim())
           missingFields.push("Problem markdown");
 
         const templateFiles = files.filter((f) =>
@@ -151,10 +148,7 @@ export const useProblemEditor = (
           solutionCode.some((code) => !code.trim())
         )
           missingFields.push("Solution code");
-        if (
-          !state.filesContent["testCases.go"] ||
-          !state.filesContent["testCases.go"].trim()
-        )
+        if (!state.filesContent["testCases.go"].trim())
           missingFields.push("Test cases code");
 
         if (missingFields.length > 0) {
