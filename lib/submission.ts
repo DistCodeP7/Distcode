@@ -9,9 +9,10 @@ export async function submitSubmission(
   difficulty: number,
   rating: number,
   problemMarkdown: string,
-  templateCode: string,
-  solutionCode: string,
-  testCasesCode: string
+  templateCode: string[],
+  solutionCode: string[],
+  testCasesCode: string,
+  isPublished = true
 ) {
   const result = await db
     .insert(submissions)
@@ -25,6 +26,7 @@ export async function submitSubmission(
       templateCode,
       solutionCode,
       testCasesCode,
+      isPublished,
     })
     .returning();
 

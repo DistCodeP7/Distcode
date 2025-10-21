@@ -1,5 +1,6 @@
 import { submissions } from "@/drizzle/schema";
 import { db } from "@/lib/db";
+import { eq } from "drizzle-orm";
 
 export type ExerciseRow = {
   id: number;
@@ -20,7 +21,8 @@ export async function fetchExercises(): Promise<ExerciseRow[]> {
       description: submissions.description,
       difficulty: submissions.difficulty,
     })
-    .from(submissions);
+    .from(submissions)
+    .where(eq(submissions.isPublished, true));
 
   return dbExercises.map((ex) => ({
     id: ex.id,

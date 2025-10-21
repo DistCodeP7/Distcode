@@ -6,6 +6,8 @@ import {
   varchar,
   integer,
   check,
+  json,
+  boolean,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm/sql/sql";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
@@ -31,7 +33,7 @@ export const submissions = pgTable(
   "submissions",
   {
     id: serial("id").primaryKey(),
-    userId: serial("user_id")
+    userId: integer("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     title: varchar("title", { length: 256 }).notNull(),
@@ -39,9 +41,10 @@ export const submissions = pgTable(
     difficulty: integer("difficulty").notNull(),
     rating: integer("rating").notNull(),
     problemMarkdown: text("problem_markdown").notNull(),
-    templateCode: text("template_code").notNull(),
-    solutionCode: text("solution_code").notNull(),
+    templateCode: json("template_code").$type<string[]>().notNull(),
+    solutionCode: json("solution_code").$type<string[]>().notNull(),
     testCasesCode: text("test_cases_code").notNull(),
+    isPublished: boolean("is_published").default(true).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (column) => [check("difficulty_check", sql`${column.difficulty} in (1, 2, 3)`)]
