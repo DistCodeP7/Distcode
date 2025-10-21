@@ -73,29 +73,34 @@ export default function ProblemEditorClient({
     f.name.startsWith("template")
   ).length;
 
-const addFilesPair = () => {
-  const next = pairCount + 1;
-  const newFiles: FileDef[] = [
-    { name: `template${next === 1 ? "" : next}.go`, fileType: "go" },
-    { name: `solution${next === 1 ? "" : next}.go`, fileType: "go" },
-  ];
+  const addFilesPair = () => {
+    const next = pairCount + 1;
+    const newFiles: FileDef[] = [
+      { name: `template${next === 1 ? "" : next}.go`, fileType: "go" },
+      { name: `solution${next === 1 ? "" : next}.go`, fileType: "go" },
+    ];
 
-  setCurrentFiles((prev) => {
-    const index = prev.findIndex((f) => f.name === "testCases.go");
-    if (index === -1) return [...prev, ...newFiles]; // Append if testCases.go not found
-    return [...prev.slice(0, index), ...newFiles, ...prev.slice(index)]; // Insert before testCases.go
-  });
-};
+    setCurrentFiles((prev) => {
+      const index = prev.findIndex((f) => f.name === "testCases.go");
+      if (index === -1) return [...prev, ...newFiles]; // Append if testCases.go not found
+      return [...prev.slice(0, index), ...newFiles, ...prev.slice(index)]; // Insert before testCases.go
+    });
+  };
 
-const removeFilesPair = () => {
-  if (pairCount <= 1) return;
-  setCurrentFiles((prev) => {
-    const lastTemplate = [...prev].reverse().find((f) => f.name.startsWith("template"))?.name;
-    const lastSolution = [...prev].reverse().find((f) => f.name.startsWith("solution"))?.name;
-    return prev.filter((f) => f.name !== lastTemplate && f.name !== lastSolution);
-  });
-};
-
+  const removeFilesPair = () => {
+    if (pairCount <= 1) return;
+    setCurrentFiles((prev) => {
+      const lastTemplate = [...prev]
+        .reverse()
+        .find((f) => f.name.startsWith("template"))?.name;
+      const lastSolution = [...prev]
+        .reverse()
+        .find((f) => f.name.startsWith("solution"))?.name;
+      return prev.filter(
+        (f) => f.name !== lastTemplate && f.name !== lastSolution
+      );
+    });
+  };
 
   useEffect(() => {
     if (activeFile >= currentFiles.length)

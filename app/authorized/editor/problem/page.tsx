@@ -68,16 +68,21 @@ export default async function ProblemListPage() {
                 key={s.id}
                 className="rounded-md border p-6 flex flex-col gap-3 bg-background shadow"
               >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <h2 className="text-xl font-bold text-foreground overflow-hidden text-ellipsis whitespace-nowrap" title={s.title}>
-                          {s.title}
-                        </h2>
-                      </div>
-                      <span className={`px-2 py-1 rounded text-xs font-semibold flex-shrink-0 ${s.isPublished ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}>
-                        {s.isPublished ? "Published" : "Draft"}
-                      </span>
-                    </div>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <h2
+                      className="text-xl font-bold text-foreground overflow-hidden text-ellipsis whitespace-nowrap"
+                      title={s.title}
+                    >
+                      {s.title}
+                    </h2>
+                  </div>
+                  <span
+                    className={`px-2 py-1 rounded text-xs font-semibold flex-shrink-0 ${s.isPublished ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}
+                  >
+                    {s.isPublished ? "Published" : "Draft"}
+                  </span>
+                </div>
                 <div
                   className="text-sm text-muted-foreground max-w-full overflow-hidden text-ellipsis whitespace-nowrap"
                   title={s.description}
@@ -88,18 +93,32 @@ export default async function ProblemListPage() {
                     </span>
                   )}
                 </div>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-2">
-                      <span>Difficulty:</span>
-                      <span className={s.difficulty === 1 ? "text-chart-2" : s.difficulty === 2 ? "text-chart-3" : "text-primary"}>
-                        {s.difficulty === 1 ? "Easy" : s.difficulty === 2 ? "Medium" : "Hard"}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span>Rating:</span>
-                      <span className="font-semibold text-foreground">{s.rating ?? 0}</span>
-                    </div>
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <span>Difficulty:</span>
+                    <span
+                      className={
+                        s.difficulty === 1
+                          ? "text-chart-2"
+                          : s.difficulty === 2
+                            ? "text-chart-3"
+                            : "text-primary"
+                      }
+                    >
+                      {s.difficulty === 1
+                        ? "Easy"
+                        : s.difficulty === 2
+                          ? "Medium"
+                          : "Hard"}
+                    </span>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <span>Rating:</span>
+                    <span className="font-semibold text-foreground">
+                      {s.rating ?? 0}
+                    </span>
+                  </div>
+                </div>
                 <div className="flex gap-2 mt-2">
                   <Link href={`/authorized/editor/problem/${s.id}`}>
                     <Button size="sm">Edit</Button>

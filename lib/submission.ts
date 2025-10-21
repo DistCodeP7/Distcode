@@ -12,7 +12,7 @@ export async function submitSubmission(
   templateCode: string[],
   solutionCode: string[],
   testCasesCode: string,
-  isPublished = true,
+  isPublished = true
 ) {
   const result = await db
     .insert(submissions)

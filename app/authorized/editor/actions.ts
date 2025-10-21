@@ -21,7 +21,7 @@ export async function submitCode(content: string) {
     ProblemId: 0,
     UserId: userId,
     Code: content,
-    Timeoutlimit: 60
+    Timeoutlimit: 60,
   });
 
   return {
