@@ -42,12 +42,20 @@ jobs:
           platforms: linux/amd64,linux/arm64
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          build-args: |
-            DATABASE_URL=postgresql://dummy:dummy@localhost:5432/dummy
-            RABBITMQ_URL=amqp://dummy
-            NEXTAUTH_SECRET=dummy-build-secret
-            NEXTAUTH_URL=http://localhost:3000
-            GOOGLE_CLIENT_ID=dummy
-            GOOGLE_CLIENT_SECRET=dummy
-            GITHUB_CLIENT_ID=dummy
-            GITHUB_CLIENT_SECRET=dummy
+          secrets: |
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
+            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+            GLITHUB_CLIENT_ID=${{ secrets.GLITHUB_CLIENT_ID }}
+            GLITHUB_CLIENT_SECRET=${{ secrets.GLITHUB_CLIENT_SECRET }}
+            GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+            RABBITMQ_URL=${{ secrets.RABBITMQ_URL }}
+            RABBITMQ_EXCHANGE=${{ secrets.RABBITMQ_EXCHANGE }}
+            RABBITMQ_EXCHANGETYPE=${{ secrets.RABBITMQ_EXCHANGETYPE }}
+            RABBITMQ_QUEUE=${{ secrets.RABBITMQ_QUEUE }}
+            RABBITMQ_ROUTING_KEY=${{ secrets.RABBITMQ_ROUTING_KEY }}
+            
