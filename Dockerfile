@@ -1,17 +1,22 @@
-# 1. Install dependencies only when needed
-FROM node:22-alpine AS deps
+# Use the official Node.js 22 Alpine image as a base
+FROM node:22-alpine AS base
+
+# Stage 1: Install dependencies
+FROM base AS deps
+# Install libc6-compat for compatibility
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
-RUN npm install -g pnpm
 
-COPY package.json pnpm-lock.yaml* ./
-RUN pnpm install --frozen-lockfile
+# Copy only pnpm-related files and install dependencies
+COPY package.json pnpm-lock.yaml* .npmrc* ./
+RUN corepack enable pnpm && pnpm i --frozen-lockfile
 
-# 2. Rebuild the source code only when needed
-FROM node:22-alpine AS builder
+# Stage 2: Build the application
+FROM base AS builder
 WORKDIR /app
-RUN npm install -g pnpm
 
-ARG  DATABASE_URL
+# Define build-time arguments for environment variables
+ARG DATABASE_URL
 ARG NEXTAUTH_URL
 ARG NEXTAUTH_SECRET
 ARG GLITHUB_CLIENT_ID
@@ -27,6 +32,7 @@ ARG RABBITMQ_EXCHANGETYPE
 ARG RABBITMQ_QUEUE
 ARG RABBITMQ_ROUTING_KEY
 
+# Set environment variables for the build process
 ENV DATABASE_URL=$DATABASE_URL
 ENV NEXTAUTH_URL=$NEXTAUTH_URL
 ENV NEXTAUTH_SECRET=$NEXTAUTH_SECRET
@@ -43,17 +49,30 @@ ENV RABBITMQ_EXCHANGETYPE=$RABBITMQ_EXCHANGETYPE
 ENV RABBITMQ_QUEUE=$RABBITMQ_QUEUE
 ENV RABBITMQ_ROUTING_KEY=$RABBITMQ_ROUTING_KEY
 
+# Copy dependencies and source code
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN pnpm build
 
-# 3. Production image, copy all the files and run nextjs
-FROM node:22-alpine AS runner
+# Disable Next.js telemetry during build (optional)
+# ENV NEXT_TELEMETRY_DISABLED=1
+
+# Build the Next.js application using pnpm
+RUN corepack enable pnpm && pnpm run build
+
+# Stage 3: Production image
+FROM base AS runner
 WORKDIR /app
-ENV NODE_ENV production
-RUN npm install -g pnpm
 
-ARG  DATABASE_URL
+ENV NODE_ENV=production
+# Disable Next.js telemetry during runtime (optional)
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Create a non-root user for security
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Define runtime arguments for environment variables
+ARG DATABASE_URL
 ARG NEXTAUTH_URL
 ARG NEXTAUTH_SECRET
 ARG GLITHUB_CLIENT_ID
@@ -69,6 +88,7 @@ ARG RABBITMQ_EXCHANGETYPE
 ARG RABBITMQ_QUEUE
 ARG RABBITMQ_ROUTING_KEY
 
+# Set environment variables for the runtime
 ENV DATABASE_URL=$DATABASE_URL
 ENV NEXTAUTH_URL=$NEXTAUTH_URL
 ENV NEXTAUTH_SECRET=$NEXTAUTH_SECRET
@@ -85,10 +105,20 @@ ENV RABBITMQ_EXCHANGETYPE=$RABBITMQ_EXCHANGETYPE
 ENV RABBITMQ_QUEUE=$RABBITMQ_QUEUE
 ENV RABBITMQ_ROUTING_KEY=$RABBITMQ_ROUTING_KEY
 
+# Copy public assets
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
+
+# Copy standalone output and static files, setting correct ownership
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Switch to the non-root user
+USER nextjs
 
 EXPOSE 3000
-CMD ["pnpm", "start"]
+
+ENV PORT=3000
+ENV HOSTNAME="10.92.0.155"
+
+# Start the Next.js server
+CMD ["node", "server.js"]
