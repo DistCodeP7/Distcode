@@ -107,9 +107,9 @@ ENV RABBITMQ_ROUTING_KEY=$RABBITMQ_ROUTING_KEY
 
 # Copy public assets
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
 
-# Copy standalone output and static files, setting correct ownership
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Switch to the non-root user
