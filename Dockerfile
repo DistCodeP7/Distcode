@@ -1,15 +1,12 @@
-# Use the official Node.js 22 Alpine image as a base
-FROM node:22-alpine AS base
+# Use the official Node.js 22 Slim image as a base for better compatibility
+FROM node:22-slim AS base
 
 # Stage 1: Install dependencies
 FROM base AS deps
-# Install libc6-compat for compatibility
-RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copy only pnpm-related files and install dependencies
+# Copy package manifests and install all dependencies
 COPY package.json pnpm-lock.yaml* .npmrc* ./
-# Install ALL dependencies, including dev dependencies needed for `next build`
 RUN corepack enable pnpm && pnpm i --frozen-lockfile
 
 # Stage 2: Build the application
@@ -32,6 +29,7 @@ ARG RABBITMQ_EXCHANGE
 ARG RABBITMQ_EXCHANGETYPE
 ARG RABBITMQ_QUEUE
 ARG RABBITMQ_ROUTING_KEY
+
 # Set environment variables for the build process
 ENV DATABASE_URL=$DATABASE_URL
 ENV NEXTAUTH_URL=$NEXTAUTH_URL
@@ -62,7 +60,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Create a non-root user for security
+# Create a non-root user for security (Debian-style)
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
@@ -87,6 +85,7 @@ ARG RABBITMQ_EXCHANGE
 ARG RABBITMQ_EXCHANGETYPE
 ARG RABBITMQ_QUEUE
 ARG RABBITMQ_ROUTING_KEY
+
 # Set environment variables for the build process
 ENV DATABASE_URL=$DATABASE_URL
 ENV NEXTAUTH_URL=$NEXTAUTH_URL
@@ -104,10 +103,11 @@ ENV RABBITMQ_EXCHANGETYPE=$RABBITMQ_EXCHANGETYPE
 ENV RABBITMQ_QUEUE=$RABBITMQ_QUEUE
 ENV RABBITMQ_ROUTING_KEY=$RABBITMQ_ROUTING_KEY
 
-
-# Copy the built application from the builder stage
+# Copy the built application from the builder stage, setting ownership
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/package.json .
 
 # Switch to the non-root user
 USER nextjs
