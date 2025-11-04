@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { deleteProblem } from "@/app/authorized/editor/problem/[id]/problemActions";
+import { deleteProblem } from "@/app/authorized/[id]/problemActions";
 
 export async function deleteProblemFromList(id: number) {
   const res = await deleteProblem(id);
