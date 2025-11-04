@@ -1,7 +1,7 @@
 "use client";
 import { signOut } from "next-auth/react";
 
-export default function LoginPage() {
+export default function AutoSignOutPage() {
   signOut({ callbackUrl: "/auth/login" });
   return;
 }
