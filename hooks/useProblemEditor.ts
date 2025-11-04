@@ -1,5 +1,5 @@
 import { type SetStateAction, useCallback, useState, useEffect } from "react";
-import { saveProblem } from "@/app/authorized/editor/problem/[id]/problemActions";
+import { saveProblem } from "@/app/authorized/[id]/problemActions";
 
 type ProblemFile = {
   name: string;
