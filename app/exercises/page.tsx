@@ -3,7 +3,7 @@ import NeonLines from "@/components/custom/NeonLine";
 import { fetchExercises } from "@/lib/fetchExercises";
 
 export default async function ExercisesPage() {
-  const exercises = await fetchExercises();
+  const exercises = (await fetchExercises()) ?? [];
 
   return (
     <div className="relative w-full min-h-screen py-10">
@@ -19,7 +19,16 @@ export default async function ExercisesPage() {
           Click on an exercise to select it.
         </p>
 
-        <ExercisesTable exercises={exercises} />
+        {exercises.length === 0 ? (
+          <div className="rounded-lg border border-border bg-card p-6 text-center">
+            <h2 className="text-2xl font-semibold">No exercises yet</h2>
+            <p className="text-muted-foreground mt-2">
+              There are currently no published exercises.
+            </p>
+          </div>
+        ) : (
+          <ExercisesTable exercises={exercises} />
+        )}
       </div>
     </div>
   );
