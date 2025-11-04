@@ -17,8 +17,7 @@ export default withAuth(function middleware() {}, {
           return false;
         }
         return true;
-      } catch (error) {
-        console.error("Error verifying user in middleware:", error);
+      } catch (_e) {
         return false;
       }
     },
@@ -30,7 +29,6 @@ export default withAuth(function middleware() {}, {
   },
 });
 
-// Your matcher config remains the same
 export const config = {
   matcher: ["/authorized/:path*"],
 };
