@@ -45,7 +45,7 @@ export default async function ProblemListPage() {
           Drafts and published exercises you can edit.
         </p>
         <div className="flex justify-end">
-          <Link href="/authorized/new">
+          <Link href="/authorized/newProblem">
             <Button>Create new exercise</Button>
           </Link>
         </div>
@@ -56,7 +56,7 @@ export default async function ProblemListPage() {
               You don't have any exercises yet.
             </p>
             <div className="mt-4">
-              <Link href="/authorized/new">
+              <Link href="/authorized/newProblem">
                 <Button>Create your first exercise</Button>
               </Link>
             </div>
