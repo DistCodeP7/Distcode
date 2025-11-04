@@ -130,7 +130,7 @@ export async function deleteProblem(id: number): Promise<ApiResult> {
     return { success: false, error: "User not found", status: 404 };
   }
 
-  if (!Number.isInteger(id) || id <= 0) {
+  if (!Number.isInteger(id)) {
     return { success: false, error: "Problem ID is required", status: 400 };
   }
 
