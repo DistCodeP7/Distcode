@@ -9,5 +9,5 @@ export async function deleteProblemFromList(id: number) {
     throw new Error(res.error);
   }
   // Revalidate the list page after deletion
-  revalidatePath("/authorized/editor/problem");
+  revalidatePath("/authorized");
 }
