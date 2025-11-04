@@ -1,12 +1,36 @@
 import { withAuth } from "next-auth/middleware";
+import { getUserById } from "./lib/user";
+import { getSession } from "next-auth/react";
 
-export default withAuth({
+export const runtime = "nodejs";
+
+export default withAuth(function middleware() {}, {
+  callbacks: {
+    authorized: async () => {
+      const session = await getSession();
+      if (!session || !session.user.id) {
+        return false;
+      }
+      try {
+        const user = await getUserById(session.user.id);
+        if (!user) {
+          return false;
+        }
+        return true;
+      } catch (error) {
+        console.error("Error verifying user in middleware:", error);
+        return false;
+      }
+    },
+  },
   pages: {
-    signIn: "/auth/login",
-    error: "/auth/login",
+    signIn: "/auth/signout", //For some reason authorized when return false calls signIn
+    error: "/api/auth/signout",
+    signOut: "/auth/login",
   },
 });
 
+// Your matcher config remains the same
 export const config = {
   matcher: ["/authorized/:path*"],
 };
