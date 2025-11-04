@@ -24,7 +24,7 @@ export async function fetchExercises(): Promise<ExerciseRow[]> {
     .from(submissions)
     .where(eq(submissions.isPublished, true));
 
-  if (!dbExercises || dbExercises.length === 0) return [];
+  if (!dbExercises) return [];
 
   return dbExercises.map((ex) => ({
     id: ex.id,
