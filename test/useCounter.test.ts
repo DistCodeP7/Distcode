@@ -1,5 +1,6 @@
 import { act, renderHook } from "@testing-library/react";
 import { useCounter } from "@/hooks/useCounter";
+import { expect, test } from "vitest";
 
 test("useCounter works correctly", () => {
   const { result } = renderHook(() => useCounter(5));
