@@ -92,7 +92,7 @@ describe("deleteProblem", () => {
     getServerSession.mockResolvedValue({ user: { email: "a@b.com" } });
     getUserIdByEmail.mockResolvedValue(123);
 
-    const res = await deleteProblem(0);
+    const res = await deleteProblem(NaN);
     expect(res).toEqual({
       success: false,
       error: "Problem ID is required",
