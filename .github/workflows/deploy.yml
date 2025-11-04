@@ -43,6 +43,6 @@ jobs:
           context: .
           file: ./server/Dockerfile
           push: true
-          tags: ghcr.io/${{ github.repository }}:latest
+          tags: ghcr.io/distcodep7/distcode:latest
 
       # 6. (Optional) Pull and refresh image within Strato automatically
