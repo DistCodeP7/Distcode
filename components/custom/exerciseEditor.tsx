@@ -13,7 +13,7 @@ import type { StreamingJobResult } from "@/app/api/stream/route";
 import { TerminalOutput } from "@/components/custom/TerminalOutput";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Code } from "lucide-react";
-import { submitCode } from "@/app/exercises/[id]/actions";
+import {saveCode, submitCode} from "@/app/exercises/[id]/actions";
 
 type ExerciseEditorProps = {
   exerciseId: number;
@@ -73,6 +73,21 @@ export default function ExerciseEditor({
     await submitCode(submissionContent, {
       params: { id: exerciseId },
     });
+  };
+  const onSave = async () => {
+    clearMessages();
+
+    const savedContent = fileContents[activeFile];
+
+    const result = await saveCode([savedContent], {
+      params: { id: exerciseId },
+    });
+
+    if (result.error) {
+      console.log(`Save failed: ${result.error}`);
+    } else {
+      console.log("Code saved successfully!");
+    }
   };
 
   function setEditorContent(value: React.SetStateAction<string>): void {
@@ -180,6 +195,7 @@ export default function ExerciseEditor({
               activeFile={activeFile}
               onFileChange={setActiveFile}
               onSubmit={onSubmit}
+              onSave={onSave}
             />
             <Editor
               editorContent={fileContents[activeFile]}

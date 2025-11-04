@@ -8,7 +8,9 @@ import {
   check,
   json,
   boolean,
+  jsonb,
 } from "drizzle-orm/pg-core";
+
 import { sql } from "drizzle-orm/sql/sql";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import * as zod from "zod";
@@ -56,3 +58,19 @@ export const NewSubmissionSchema = createInsertSchema(submissions).omit({
 });
 
 export type TSubmission = zod.infer<typeof SubmissionsSchema>;
+
+export const attempts = pgTable("attempts", {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+        .notNull()
+        .references(() => users.id, { onDelete: "cascade" }),
+    submissionId: integer("submission_id")
+        .notNull()
+        .references(() => submissions.id, { onDelete: "cascade" }),
+    codeSubmitted: json("code_submitted").$type<string[]>().notNull(),
+});
+
+export const AttemptsSchema = createSelectSchema(attempts);
+export const NewAttemptSchema = createInsertSchema(attempts).omit({ id: true });
+
+export type TAttempt = zod.infer<typeof AttemptsSchema>;

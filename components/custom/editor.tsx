@@ -76,7 +76,7 @@ type EditorHeaderProps = {
   activeFile: number;
   onFileChange: (index: number) => void;
   onSubmit: () => void;
-  onSave?: () => void;
+  onSave: () => void;
 };
 
 export function EditorHeader({
