@@ -6,7 +6,7 @@ import { getUserIdByEmail } from "@/lib/user";
 import { getServerSession } from "next-auth";
 import { db } from "@/lib/db";
 import {attempts, submissions} from "@/drizzle/schema";
-import { eq } from "drizzle-orm";
+import {and, desc, eq} from "drizzle-orm";
 
 export async function getExercise({ params }: { params: { id: number } }) {
   const id = Number(params.id);
@@ -88,4 +88,39 @@ export async function saveCode(
   });
 
   return { success: true, message: "Code saved successfully." };
+}
+
+export async function loadSavedCode({ params }: { params: { id: number } }) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) return { error: "Unauthorized", status: 401 };
+
+  const userId = await getUserIdByEmail(session.user.email);
+  if (!userId) return { error: "User not found.", status: 404 };
+
+  const submissionId = Number(params.id);
+  if (Number.isNaN(submissionId))
+    return { error: "Invalid submission id", status: 400 };
+
+  const [latestAttempt] = await db
+      .select()
+      .from(attempts)
+      .where(and(eq(attempts.userId, userId), eq(attempts.submissionId, submissionId)))
+      .orderBy(desc(attempts.id))
+      .limit(1);
+
+  if (latestAttempt) {
+    return { success: true, code: latestAttempt.codeSubmitted };
+  }
+
+  const [submission] = await db
+      .select()
+      .from(submissions)
+      .where(eq(submissions.id, submissionId))
+      .limit(1);
+
+  if (!submission) {
+    return { error: "Submission not found.", status: 404 };
+  }
+
+  return { success: true, code: submission.templateCode };
 }
