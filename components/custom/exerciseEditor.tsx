@@ -25,11 +25,11 @@ type ExerciseEditorProps = {
 };
 
 export default function ExerciseEditor({
-                                         exerciseId,
-                                         problemMarkdown,
-                                         templateCode,
-                                         solutionCode,
-                                       }: ExerciseEditorProps) {
+exerciseId,
+problemMarkdown,
+templateCode,
+solutionCode,
+}: ExerciseEditorProps) {
   const [activeFile, setActiveFile] = useState(0);
   const [fileContents, setFileContents] = useState<string[]>(templateCode);
   const [loading, setLoading] = useState(true);
@@ -53,7 +53,6 @@ export default function ExerciseEditor({
   const { messages, connect, clearMessages } =
       useSSE<StreamingJobResult>("/api/stream");
 
-  // 🔹 Load saved code on mount
   useEffect(() => {
     const fetchSavedCode = async () => {
       try {
@@ -89,10 +88,15 @@ export default function ExerciseEditor({
 
   const onSave = async () => {
     clearMessages();
+
     const savedContent = fileContents[activeFile];
     const result = await saveCode([savedContent], { params: { id: exerciseId } });
-    if (result.error) console.log(`Save failed: ${result.error}`);
-    else console.log("Code saved successfully!");
+
+    if (result.error) {
+        alert(`Error saving code: ${result.error}`);
+    } else {
+        alert("Code saved successfully!");
+    }
   };
 
   function setEditorContent(value: React.SetStateAction<string>): void {
