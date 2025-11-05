@@ -14,6 +14,7 @@ import { TerminalOutput } from "@/components/custom/TerminalOutput";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Code } from "lucide-react";
 import { saveCode, submitCode, loadSavedCode } from "@/app/exercises/[id]/actions";
+import { toast } from "sonner";
 
 type ExerciseEditorProps = {
   exerciseId: number;
@@ -93,9 +94,9 @@ solutionCode,
     const result = await saveCode([savedContent], { params: { id: exerciseId } });
 
     if (result.error) {
-        alert(`Error saving code: ${result.error}`);
+        toast.error(`Error saving code: ${result.error}`);
     } else {
-        alert("Code saved successfully!");
+        toast.success("Code saved successfully!");
     }
   };
 
