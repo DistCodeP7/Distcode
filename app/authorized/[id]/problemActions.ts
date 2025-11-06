@@ -7,6 +7,10 @@ import { db } from "@/lib/db";
 import { submissions } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 
+export type ApiResult =
+  | { success: true; message: string; status: number }
+  | { success: false; error: string; status: number };
+
 export type SaveProblemParams = {
   id?: number;
   title: string;
@@ -110,6 +114,47 @@ export async function saveProblem(data: SaveProblemParams) {
     return {
       success: false,
       error: `An internal server error occurred.${err}`,
+      status: 500,
+    };
+  }
+}
+
+export async function deleteProblem(id: number): Promise<ApiResult> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) {
+    return { success: false, error: "Not authenticated", status: 401 };
+  }
+
+  const userId = await getUserIdByEmail(session.user.email);
+  if (!userId) {
+    return { success: false, error: "User not found", status: 404 };
+  }
+
+  if (!Number.isInteger(id)) {
+    return { success: false, error: "Problem ID is required", status: 400 };
+  }
+
+  const existingProblem = await db.query.submissions.findFirst({
+    where: (s, { eq: _eq }) => _eq(s.id, id),
+  });
+  if (!existingProblem) {
+    return { success: false, error: "Problem not found", status: 404 };
+  }
+  if (existingProblem.userId !== userId) {
+    return { success: false, error: "Forbidden", status: 403 };
+  }
+
+  try {
+    await db.delete(submissions).where(eq(submissions.id, id));
+    return {
+      success: true,
+      message: "Problem deleted successfully.",
+      status: 200,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      error: `An internal server error occurred. ${String(err)}`,
       status: 500,
     };
   }

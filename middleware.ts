@@ -1,5 +1,5 @@
 import { withAuth } from "next-auth/middleware";
-import { getUserByEmail, getUserById } from "./lib/user";
+import { getUserById } from "./lib/user";
 import { getServerSession } from "next-auth";
 import { authOptions } from "./app/api/auth/[...nextauth]/route";
 
@@ -9,6 +9,7 @@ export default withAuth(function middleware() {}, {
   callbacks: {
     authorized: async () => {
       const session = await getServerSession(authOptions);
+
       if (!session || !session.user.id) {
         return false;
       }
