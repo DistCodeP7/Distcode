@@ -1,13 +1,15 @@
 import { withAuth } from "next-auth/middleware";
 import { getUserById } from "./lib/user";
-import { getSession } from "next-auth/react";
+import { getServerSession } from "next-auth";
+import { authOptions } from "./app/api/auth/[...nextauth]/route";
 
 export const runtime = "nodejs";
 
 export default withAuth(function middleware() {}, {
   callbacks: {
     authorized: async () => {
-      const session = await getSession();
+      const session = await getServerSession(authOptions);
+
       if (!session || !session.user.id) {
         return false;
       }

@@ -64,6 +64,13 @@
       "when": 1760595597393,
       "tag": "0010_colossal_hellion",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1762427789585,
+      "tag": "0009_bizarre_firebird",
+      "breakpoints": true
     }
   ]
 }

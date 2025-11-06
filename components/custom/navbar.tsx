@@ -32,8 +32,10 @@ export async function Navbar() {
           </Link>
         ))}
       </nav>
-      {session?.user?.email ? (
-        <AuthAvatar userInitials={session.user.email.charAt(0).toUpperCase()} />
+      {session?.user?.image ? (
+        <AuthAvatar userAvatar={session.user.image} />
+      ) : session?.user?.email ? (
+        <AuthAvatar userAvatar={session.user.email.charAt(0).toUpperCase()} />
       ) : (
         <AuthButtons />
       )}
