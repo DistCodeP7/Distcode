@@ -36,11 +36,13 @@ export const AuthAvatar = ({ userInitials }: { userInitials: string }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Avatar className="cursor-pointer text-xl hover:opacity-80 transition-opacity">
+        <Avatar className="cursor-pointer text-xl hover:opacity-80 transition-opacity rounded-full">
           {userInitials.length > 1 ? (
-            <AvatarImage src={userInitials} className="w-8" />
+            <AvatarImage src={userInitials} className="w-8 rounded-full" />
           ) : (
-            <AvatarFallback>{userInitials}</AvatarFallback>
+            <AvatarFallback className="rounded-full">
+              {userInitials}
+            </AvatarFallback>
           )}
         </Avatar>
       </DropdownMenuTrigger>

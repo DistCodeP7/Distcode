@@ -4,7 +4,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { AuthButtons } from "@/components/custom/authbutton";
 import { AuthAvatar } from "./navbar-client-items";
-import { Avatar } from "@radix-ui/react-avatar";
 
 export async function Navbar() {
   const navLinks = [
