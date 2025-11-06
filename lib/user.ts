@@ -37,7 +37,6 @@ export async function createUserWithOAuth(user: {
   userid: string;
   email: string;
   name: string;
-  image: null | string | undefined;
   password: null | string;
   provider: string;
   providerId: string;
