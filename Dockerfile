@@ -19,15 +19,14 @@ FROM node:22-alpine AS runner
 WORKDIR /app
 RUN npm install -g pnpm ts-node typescript
 
-# Copy built Next.js files
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
+COPY package.json pnpm-lock.yaml* ./
+COPY node_modules ./node_modules
+COPY public ./public
+COPY .next ./.next
 
-# Copy Drizzle schema and config with the correct path
-COPY --from=builder /app/drizzle ./drizzle
-COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
+# Copy Drizzle schema and config
+COPY drizzle ./drizzle
+COPY drizzle.config.ts ./drizzle.config.ts
 
 EXPOSE 3000
 CMD ["pnpm", "start"]
