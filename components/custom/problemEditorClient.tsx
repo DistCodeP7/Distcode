@@ -170,12 +170,13 @@ export default function ProblemEditorClient({
           className="flex-1 flex flex-col min-w-0 overflow-hidden"
         >
           <EditorHeader
-            files={currentFiles}
-            activeFile={activeFile}
-            onFileChange={setActiveFile}
-            onSubmit={handleSubmit}
-            onSave={handleSave}
-          />
+              files={currentFiles}
+              activeFile={activeFile}
+              onFileChange={setActiveFile}
+              onSubmit={handleSubmit}
+              onSave={handleSave} onReset={function (): void {
+            throw new Error("Function not implemented.");
+          }}          />
 
           <div className="flex-shrink-0 flex items-center justify-between gap-2 p-2 border-b bg-muted/30 flex-wrap">
             <div className="flex items-center gap-2 flex-wrap">
