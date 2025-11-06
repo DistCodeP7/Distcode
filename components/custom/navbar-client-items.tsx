@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, AvatarFallback } from "@radix-ui/react-avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { signOut } from "next-auth/react";
 import useShortcut from "@/hooks/useShortcut";
 import {
@@ -37,7 +37,11 @@ export const AuthAvatar = ({ userInitials }: { userInitials: string }) => {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Avatar className="cursor-pointer text-xl hover:opacity-80 transition-opacity">
-          <AvatarFallback>{userInitials}</AvatarFallback>
+          {userInitials.length > 1 ? (
+            <AvatarImage src={userInitials} className="w-8" />
+          ) : (
+            <AvatarFallback>{userInitials}</AvatarFallback>
+          )}
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end">

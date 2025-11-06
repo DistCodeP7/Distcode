@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { AuthButtons } from "@/components/custom/authbutton";
 import { AuthAvatar } from "./navbar-client-items";
+import { Avatar } from "@radix-ui/react-avatar";
 
 export async function Navbar() {
   const navLinks = [
@@ -32,7 +33,9 @@ export async function Navbar() {
           </Link>
         ))}
       </nav>
-      {session?.user?.email ? (
+      {session?.user?.image ? (
+        <AuthAvatar userInitials={session.user.image} />
+      ) : session?.user?.email ? (
         <AuthAvatar userInitials={session.user.email.charAt(0).toUpperCase()} />
       ) : (
         <AuthButtons />
