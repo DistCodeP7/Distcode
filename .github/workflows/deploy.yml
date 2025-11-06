@@ -18,17 +18,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      # 2. Set up Node.js
+      # 2. Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
           node-version: 22
 
-      # 3. Enable Corepack (pnpm)
+      # 3. Enable Corepack for pnpm
       - name: Enable Corepack
         run: corepack enable
 
-      # 4. Log in to GitHub Container Registry
+      # 4. Login to GitHub Container Registry
       - name: Log in to container registry
         uses: docker/login-action@v3
         with:
@@ -44,5 +44,3 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ghcr.io/distcodep7/distcode:latest
-
-      # 6. (Optional) Pull and refresh image within Strato automatically
