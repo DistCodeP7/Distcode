@@ -124,3 +124,23 @@ export async function loadSavedCode({ params }: { params: { id: number } }) {
 
   return { success: true, code: submission.templateCode };
 }
+
+export async function resetCode({ params }: { params: { id: number } }) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email)
+    return { error: "Unauthorized", status: 401 };
+
+  const userId = await getUserIdByEmail(session.user.email);
+  if (!userId)
+    return { error: "User not found.", status: 404 };
+
+  const submissionId = Number(params.id);
+  if (Number.isNaN(submissionId))
+    return { error: "Invalid submission id", status: 400 };
+
+  await db
+      .delete(attempts)
+      .where(and(eq(attempts.userId, userId), eq(attempts.submissionId, submissionId)));
+
+  return { success: true, message: "Code reset successfully." };
+}

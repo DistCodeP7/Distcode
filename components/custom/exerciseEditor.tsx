@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
 import {
@@ -13,7 +13,7 @@ import type { StreamingJobResult } from "@/app/api/stream/route";
 import { TerminalOutput } from "@/components/custom/TerminalOutput";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Code } from "lucide-react";
-import { saveCode, submitCode, loadSavedCode } from "@/app/exercises/[id]/actions";
+import { saveCode, submitCode, loadSavedCode, resetCode } from "@/app/exercises/[id]/actions";
 import { toast } from "sonner";
 
 type ExerciseEditorProps = {
@@ -34,6 +34,7 @@ solutionCode,
   const [activeFile, setActiveFile] = useState(0);
   const [fileContents, setFileContents] = useState<string[]>(templateCode);
   const [loading, setLoading] = useState(true);
+  const [resetting, setResetting] = useState(false);
 
   const files = fileContents.map((content, index) => ({
     name: index === 0 ? "main.go" : `file${index + 1}.go`,
@@ -100,7 +101,36 @@ solutionCode,
     }
   };
 
+  const onReset = async () => {
+    const confirmReset = window.confirm(
+        "Are you sure you want to reset your code? This will remove your saved progress and restore the original template."
+    );
+    if (!confirmReset) return;
+
+    setResetting(true);
+    try {
+      const result = await resetCode({ params: { id: exerciseId } });
+      if (result.success) {
+        setFileContents([...templateCode]);
+        toast.success("Code reset successfully!", {
+          description: "Template restored and saved code cleared.",
+        });
+      } else {
+        toast.error("Failed to reset code", {
+          description: result.error || "Something went wrong.",
+        });
+      }
+    } catch (err) {
+      toast.error("Error resetting code", {
+        description: String(err),
+      });
+    } finally {
+      setResetting(false);
+    }
+  };
+
   function setEditorContent(value: React.SetStateAction<string>): void {
+    if (resetting) return; // disable editing while resetting
     setFileContents((prev) => {
       const newContents = [...prev];
       newContents[activeFile] =
@@ -108,6 +138,7 @@ solutionCode,
       return newContents;
     });
   }
+
 
   if (loading) {
     return (
@@ -210,12 +241,27 @@ solutionCode,
                   onFileChange={setActiveFile}
                   onSubmit={onSubmit}
                   onSave={onSave}
+                  onReset={onReset}
+                  disabled={resetting || loading}
               />
+
               <Editor
                   editorContent={fileContents[activeFile]}
                   setEditorContent={setEditorContent}
                   language={files[activeFile].fileType}
+                  options={{
+                    readOnly: resetting,
+                    minimap: { enabled: false },
+                  }}
               />
+              {resetting && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm z-10">
+                    <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
+                      <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                      <span>Resetting to starter code...</span>
+                    </div>
+                  </div>
+              )}
             </ResizablePanel>
 
             <ResizableHandle withHandle />
