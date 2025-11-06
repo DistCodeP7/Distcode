@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 
-export const AuthAvatar = ({ userInitials }: { userInitials: string }) => {
+export const AuthAvatar = ({ userAvatar }: { userAvatar: string }) => {
   const profileShortcut = useShortcut({
     callback: () => alert("Opening profile..."),
     shortCutOS: {
@@ -37,11 +37,11 @@ export const AuthAvatar = ({ userInitials }: { userInitials: string }) => {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Avatar className="cursor-pointer text-xl hover:opacity-80 transition-opacity rounded-full">
-          {userInitials.length > 1 ? (
-            <AvatarImage src={userInitials} className="w-8 rounded-full" />
+          {userAvatar.length > 1 ? (
+            <AvatarImage src={userAvatar} className="w-8 rounded-full" />
           ) : (
             <AvatarFallback className="rounded-full">
-              {userInitials}
+              {userAvatar}
             </AvatarFallback>
           )}
         </Avatar>
