@@ -23,9 +23,9 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
-# Copy Drizzle config so we can migrate prior to building
-COPY --from=build /app/.drizzle ./.drizzle
-COPY --from=build /app/drizzle.config.ts ./drizzle.config.ts
+# Copy Drizzle schema and config from the build stage so drizzle-kit can run in the final image
+COPY --from=builder /app/drizzle ./.drizzle
+COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
 
 EXPOSE 3000
 CMD ["pnpm", "start"]
