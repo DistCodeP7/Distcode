@@ -64,7 +64,6 @@ export const authOptions = {
             await createUserWithOAuth({
               email: user.email,
               name: user.name,
-              image: user.image,
               password: null,
               userid: userid,
               provider: account.provider,
