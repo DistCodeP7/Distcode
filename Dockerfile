@@ -17,16 +17,18 @@ RUN pnpm build
 # 3. Production image
 FROM node:22-alpine AS runner
 WORKDIR /app
-RUN npm install -g pnpm ts-node typescript
+RUN npm install -g pnpm ts-node typescript drizzle-kit
 
-COPY package.json pnpm-lock.yaml* ./
-COPY node_modules ./node_modules
-COPY public ./public
-COPY .next ./.next
+# Copy app files
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
 
-# Copy Drizzle schema and config
-COPY drizzle ./drizzle
-COPY drizzle.config.ts ./drizzle.config.ts
+# Copy drizzle + config + schema files
+COPY --from=builder /app/drizzle ./drizzle
+COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
+COPY --from=builder /app/src ./src
 
 EXPOSE 3000
 CMD ["pnpm", "start"]
