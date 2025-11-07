@@ -28,7 +28,6 @@ COPY --from=builder /app/package.json ./package.json
 # Copy drizzle + config + schema files
 COPY --from=builder /app/drizzle ./drizzle
 COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
-COPY --from=builder /app/src ./src
 
 EXPOSE 3000
 CMD ["pnpm", "start"]
