@@ -44,7 +44,7 @@ export const useProblemEditor = (
     title?: string;
     description?: string;
     difficulty?: string;
-    submissionId?: number;
+    problemId?: number;
   }
 ) => {
   const [state, setState] = useState<ProblemEditorState>({
@@ -157,7 +157,7 @@ export const useProblemEditor = (
         }
 
         const payload = {
-          id: initial?.submissionId,
+          id: initial?.problemId,
           title: state.title,
           description: state.description,
           difficulty: parseInt(state.difficulty, 10),
@@ -187,7 +187,7 @@ export const useProblemEditor = (
       state.difficulty,
       state.filesContent,
       files,
-      initial?.submissionId,
+      initial?.problemId,
     ]
   );
 

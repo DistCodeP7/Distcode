@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getUserIdByEmail } from "@/lib/user";
-import { getSubmissionsByUserId } from "@/lib/submission";
+import { getProblemsByUserId } from "@/lib/problems";
 import { Button } from "@/components/ui/button";
 import NeonLines from "@/components/custom/NeonLine";
 import { deleteProblemFromList } from "@/app/authorized/[id]/listActions";
@@ -31,7 +31,7 @@ export default async function ProblemListPage() {
     );
   }
 
-  const submissions = await getSubmissionsByUserId(userId);
+  const submissions = await getProblemsByUserId(userId);
 
   return (
     <div className="relative w-full min-h-screen py-10">

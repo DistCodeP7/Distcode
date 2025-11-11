@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getUserIdByEmail } from "@/lib/user";
 import { db } from "@/lib/db";
-import { submissions } from "@/drizzle/schema";
+import { problems } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
 
 export type ApiResult =
@@ -37,7 +37,7 @@ export async function saveProblem(data: SaveProblemParams) {
   let existingProblem = null;
 
   if (id) {
-    existingProblem = await db.query.submissions.findFirst({
+    existingProblem = await db.query.problems.findFirst({
       where: (s, { eq: _eq }) => _eq(s.id, id),
     });
     if (!existingProblem) {
@@ -94,12 +94,12 @@ export async function saveProblem(data: SaveProblemParams) {
   try {
     if (id) {
       await db
-        .update(submissions)
+        .update(problems)
         .set({ ...problemData, isPublished })
-        .where(eq(submissions.id, id));
+        .where(eq(problems.id, id));
     } else {
       await db
-        .insert(submissions)
+        .insert(problems)
         .values({ ...problemData, userId, isPublished, rating: 0 });
     }
 
@@ -134,7 +134,7 @@ export async function deleteProblem(id: number): Promise<ApiResult> {
     return { success: false, error: "Problem ID is required", status: 400 };
   }
 
-  const existingProblem = await db.query.submissions.findFirst({
+  const existingProblem = await db.query.problems.findFirst({
     where: (s, { eq: _eq }) => _eq(s.id, id),
   });
   if (!existingProblem) {
@@ -145,7 +145,7 @@ export async function deleteProblem(id: number): Promise<ApiResult> {
   }
 
   try {
-    await db.delete(submissions).where(eq(submissions.id, id));
+    await db.delete(problems).where(eq(problems.id, id));
     return {
       success: true,
       message: "Problem deleted successfully.",

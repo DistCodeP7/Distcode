@@ -11,7 +11,7 @@ export async function getExercise({ params }: { params: { id: number } }) {
 
   if (Number.isNaN(id)) return { error: "Invalid exercise id", status: 400 };
 
-  const exercise = await db.query.submissions.findFirst({
+  const exercise = await db.query.problems.findFirst({
     where: (sub, { eq }) => eq(sub.id, id),
   });
 
