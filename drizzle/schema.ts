@@ -29,8 +29,8 @@ export const NewUserSchema = createInsertSchema(users).omit({ id: true });
 
 export type TUser = zod.infer<typeof UsersSchema>;
 
-export const submissions = pgTable(
-  "submissions",
+export const problems = pgTable(
+  "problems",
   {
     id: serial("id").primaryKey(),
     userId: integer("user_id")
@@ -50,9 +50,9 @@ export const submissions = pgTable(
   (column) => [check("difficulty_check", sql`${column.difficulty} in (1, 2, 3)`)]
 );
 
-export const SubmissionsSchema = createSelectSchema(submissions);
-export const NewSubmissionSchema = createInsertSchema(submissions).omit({
+export const ProblemsSchema = createSelectSchema(problems);
+export const NewProblemSchema = createInsertSchema(problems).omit({
   id: true,
 });
 
-export type TSubmission = zod.infer<typeof SubmissionsSchema>;
+export type TProblem = zod.infer<typeof ProblemsSchema>;

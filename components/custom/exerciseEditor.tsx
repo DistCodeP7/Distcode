@@ -68,9 +68,9 @@ export default function ExerciseEditor({
     clearMessages();
     connect();
 
-    const submissionContent = fileContents;
+    const problemContent = fileContents;
 
-    await submitCode(submissionContent, {
+    await submitCode(problemContent, {
       params: { id: exerciseId },
     });
   };

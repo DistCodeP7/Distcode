@@ -2,7 +2,7 @@
 
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { MQJobsSender } from "@/lib/mq";
-import { getUserIdByEmail } from "@/lib/user";
+import { getUserById } from "@/lib/user";
 import { getServerSession } from "next-auth";
 import { db } from "@/lib/db";
 
@@ -11,20 +11,19 @@ export async function getExercise({ params }: { params: { id: number } }) {
 
   if (Number.isNaN(id)) return { error: "Invalid exercise id", status: 400 };
 
-  const exercise = await db.query.submissions.findFirst({
+  const exercise = await db.query.problems.findFirst({
     where: (sub, { eq }) => eq(sub.id, id),
   });
 
   if (!exercise) return { error: "Exercise not found", status: 404 };
 
-  // If unpublished, restrict access to owner
   if (!exercise.isPublished) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email)
       return { error: "Exercise not found", status: 404 };
 
-    const userId = await getUserIdByEmail(session.user.email);
-    if (!userId || exercise.userId !== userId)
+    const user = await getUserById(session.user.id);
+    if (!user || exercise.userId !== user.id)
       return { error: "Exercise not found", status: 404 };
   }
 
@@ -38,7 +37,7 @@ export async function submitCode(
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return { error: "Unauthorized", status: 401 };
 
-  const userId = await getUserIdByEmail(session.user.email);
+  const userId = await getUserById(session.user.id);
   if (!userId) return { error: "User not found.", status: 404 };
 
   const problemId = Number(params.id);

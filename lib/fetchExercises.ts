@@ -1,4 +1,4 @@
-import { submissions } from "@/drizzle/schema";
+import { problems } from "@/drizzle/schema";
 import { db } from "@/lib/db";
 import { eq } from "drizzle-orm";
 
@@ -15,14 +15,14 @@ const difficultyMap = { 1: "Easy", 2: "Medium", 3: "Hard" } as const;
 export async function fetchExercises(): Promise<ExerciseRow[]> {
   const dbExercises = await db
     .select({
-      id: submissions.id,
-      rating: submissions.rating,
-      name: submissions.title,
-      description: submissions.description,
-      difficulty: submissions.difficulty,
+      id: problems.id,
+      rating: problems.rating,
+      name: problems.title,
+      description: problems.description,
+      difficulty: problems.difficulty,
     })
-    .from(submissions)
-    .where(eq(submissions.isPublished, true));
+    .from(problems)
+    .where(eq(problems.isPublished, true));
 
   if (!dbExercises) return [];
 
