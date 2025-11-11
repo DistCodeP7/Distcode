@@ -9,7 +9,6 @@ export default withAuth(function middleware() {}, {
   callbacks: {
     authorized: async () => {
       const session = await getServerSession(authOptions);
-
       if (!session || !session.user.id) {
         return false;
       }

@@ -19,7 +19,6 @@ export async function getUserIdByEmail(email: string) {
 
 export async function getUserById(id: string) {
   const results = await db.select().from(users).where(eq(users.userid, id));
-
   return results[0] ?? null;
 }
 
