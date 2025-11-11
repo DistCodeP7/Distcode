@@ -2,9 +2,11 @@ import Link from "next/link";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getUserIdByEmail } from "@/lib/user";
-import { getSubmissionsByUserId } from "@/lib/submission";
+import { getProblemsByUserId } from "@/lib/problems";
 import { Button } from "@/components/ui/button";
 import NeonLines from "@/components/custom/NeonLine";
+import { deleteProblemFromList } from "@/app/authorized/[id]/listActions";
+import { DeleteButton } from "@/app/authorized/deleteButton";
 
 export default async function ProblemListPage() {
   const session = await getServerSession(authOptions);
@@ -29,7 +31,7 @@ export default async function ProblemListPage() {
     );
   }
 
-  const submissions = await getSubmissionsByUserId(userId);
+  const submissions = await getProblemsByUserId(userId);
 
   return (
     <div className="relative w-full min-h-screen py-10">
@@ -78,11 +80,16 @@ export default async function ProblemListPage() {
                     </h2>
                   </div>
                   <span
-                    className={`px-2 py-1 rounded text-xs font-semibold flex-shrink-0 ${s.isPublished ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"}`}
+                    className={`px-2 py-1 rounded text-xs font-semibold flex-shrink-0 ${
+                      s.isPublished
+                        ? "bg-green-100 text-green-700"
+                        : "bg-yellow-100 text-yellow-700"
+                    }`}
                   >
                     {s.isPublished ? "Published" : "Draft"}
                   </span>
                 </div>
+
                 <div
                   className="text-sm text-muted-foreground max-w-full overflow-hidden text-ellipsis whitespace-nowrap"
                   title={s.description}
@@ -93,6 +100,7 @@ export default async function ProblemListPage() {
                     </span>
                   )}
                 </div>
+
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <span>Difficulty:</span>
@@ -119,6 +127,7 @@ export default async function ProblemListPage() {
                     </span>
                   </div>
                 </div>
+
                 <div className="flex gap-2 mt-2">
                   <Link href={`/authorized/${s.id}`}>
                     <Button size="sm">Edit</Button>
@@ -128,6 +137,11 @@ export default async function ProblemListPage() {
                       Open
                     </Button>
                   </Link>
+
+                  {/* Delete */}
+                  <form action={deleteProblemFromList.bind(null, s.id)}>
+                    <DeleteButton />
+                  </form>
                 </div>
               </div>
             ))}

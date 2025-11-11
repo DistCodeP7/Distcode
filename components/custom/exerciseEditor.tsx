@@ -3,13 +3,22 @@
 import React, { useState, useTransition } from "react";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 import { useSSE } from "@/hooks/useSSE";
 import type { StreamingJobResult } from "@/app/api/stream/route";
 import { TerminalOutput } from "@/components/custom/TerminalOutput";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Code, ThumbsUp, ThumbsDown } from "lucide-react";
-import { saveCode, submitCode, resetCode, rateExercise } from "@/app/exercises/[id]/actions";
+import {
+  saveCode,
+  submitCode,
+  resetCode,
+  rateExercise,
+} from "@/app/exercises/[id]/actions";
 import { toast } from "sonner";
 
 type ExerciseEditorProps = {
@@ -31,11 +40,15 @@ export default function ExerciseEditor({
   savedCode,
   userRating: initialUserRating = null,
   canRate: initialCanRate = false,
-  }: ExerciseEditorProps) {
+}: ExerciseEditorProps) {
   const [activeFile, setActiveFile] = useState(0);
-  const [fileContents, setFileContents] = useState<string[]>(savedCode ?? templateCode);
+  const [fileContents, setFileContents] = useState<string[]>(
+    savedCode ?? templateCode
+  );
   const [resetting, setResetting] = useState(false);
-  const [userRating, setUserRating] = useState<"up" | "down" | null>(initialUserRating);
+  const [userRating, setUserRating] = useState<"up" | "down" | null>(
+    initialUserRating
+  );
   const [canRate, setCanRate] = useState(initialCanRate);
   const [ratingLoading, startRatingTransition] = useTransition();
 
@@ -46,7 +59,7 @@ export default function ExerciseEditor({
   }));
 
   const [leftPanelView, setLeftPanelView] = useState<"problem" | "solution">(
-      "problem"
+    "problem"
   );
   const [activeSolutionFile, setActiveSolutionFile] = useState(0);
 
@@ -56,11 +69,11 @@ export default function ExerciseEditor({
   }));
 
   const { messages, connect, clearMessages } =
-      useSSE<StreamingJobResult>("/api/stream");
+    useSSE<StreamingJobResult>("/api/stream");
 
   const handleSolutionClick = () => {
     const shouldViewSolution = window.confirm(
-        "Are you sure you want to view the solution? This will show you the complete answer to the problem."
+      "Are you sure you want to view the solution? This will show you the complete answer to the problem."
     );
     if (shouldViewSolution) setLeftPanelView("solution");
   };
@@ -68,15 +81,17 @@ export default function ExerciseEditor({
   const onSubmit = async () => {
     clearMessages();
     connect();
-    const submissionContent = fileContents;
-    await submitCode(submissionContent, { params: { id: exerciseId } });
+    const problemContent = fileContents;
+    await submitCode(problemContent, { params: { id: exerciseId } });
   };
 
   const onSave = async () => {
     clearMessages();
 
     const savedContent = fileContents[activeFile];
-    const result = await saveCode([savedContent], { params: { id: exerciseId } });
+    const result = await saveCode([savedContent], {
+      params: { id: exerciseId },
+    });
 
     if (result.error) {
       toast.error(`Error saving code: ${result.error}`);
@@ -88,7 +103,7 @@ export default function ExerciseEditor({
 
   const onReset = async () => {
     const confirmReset = window.confirm(
-        "Are you sure you want to reset your code? This will remove your saved progress and restore the original template."
+      "Are you sure you want to reset your code? This will remove your saved progress and restore the original template."
     );
     if (!confirmReset) return;
 
@@ -122,7 +137,10 @@ export default function ExerciseEditor({
 
     startRatingTransition(async () => {
       try {
-        const result = await rateExercise({ params: { id: exerciseId } }, liked);
+        const result = await rateExercise(
+          { params: { id: exerciseId } },
+          liked
+        );
         if (result.success) {
           setUserRating(liked ? "up" : "down");
           toast.success(`You rated this exercise ${liked ? "👍" : "👎"}`);
@@ -140,159 +158,161 @@ export default function ExerciseEditor({
     setFileContents((prev) => {
       const newContents = [...prev];
       newContents[activeFile] =
-          typeof value === "function" ? value(prev[activeFile]) : value;
+        typeof value === "function" ? value(prev[activeFile]) : value;
       return newContents;
     });
   }
 
   return (
-      <ResizablePanelGroup
-          direction="horizontal"
-          className="flex-1 border md:min-w-[450px]"
-      >
-        {/* Left panel: Problem Markdown or Solution View */}
-        <ResizablePanel minSize={20} className="overflow-y-auto">
-          <div className="flex flex-col h-full">
-            {/* Toggle buttons for left panel */}
-            <div className="flex border-b bg-background">
+    <ResizablePanelGroup
+      direction="horizontal"
+      className="flex-1 border md:min-w-[450px]"
+    >
+      {/* Left panel: Problem Markdown or Solution View */}
+      <ResizablePanel minSize={20} className="overflow-y-auto">
+        <div className="flex flex-col h-full">
+          {/* Toggle buttons for left panel */}
+          <div className="flex border-b bg-background">
+            <Button
+              variant={leftPanelView === "problem" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setLeftPanelView("problem")}
+              className="rounded-none border-r"
+            >
+              <BookOpen className="w-4 h-4 mr-2" />
+              Problem
+            </Button>
+            {solutionFiles.length > 0 && (
               <Button
-                  variant={leftPanelView === "problem" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setLeftPanelView("problem")}
-                  className="rounded-none border-r"
+                variant={leftPanelView === "solution" ? "default" : "ghost"}
+                size="sm"
+                onClick={handleSolutionClick}
+                className="rounded-none"
               >
-                <BookOpen className="w-4 h-4 mr-2" />
-                Problem
+                <Code className="w-4 h-4 mr-2" />
+                Solution
               </Button>
-              {solutionFiles.length > 0 && (
-                  <Button
-                      variant={leftPanelView === "solution" ? "default" : "ghost"}
-                      size="sm"
-                      onClick={handleSolutionClick}
-                      className="rounded-none"
-                  >
-                    <Code className="w-4 h-4 mr-2" />
-                    Solution
-                  </Button>
-              )}
-            </div>
-
-            {/* Content area */}
-            <div className="flex-1 overflow-y-auto">
-              {leftPanelView === "problem" ? (
-                  <MarkdownPreview content={problemMarkdown} />
-              ) : (
-                  <div className="h-full flex flex-col">
-                    {solutionFiles.length > 1 && (
-                        <div className="flex border-b bg-muted">
-                          {solutionFiles.map((file, index) => (
-                              <Button
-                                  key={file.name}
-                                  variant={
-                                    activeSolutionFile === index ? "default" : "ghost"
-                                  }
-                                  size="sm"
-                                  onClick={() => setActiveSolutionFile(index)}
-                                  className="rounded-none border-r"
-                              >
-                                {file.name}
-                              </Button>
-                          ))}
-                        </div>
-                    )}
-                    <div className="flex-1">
-                      <Editor
-                          editorContent={solutionFiles[activeSolutionFile]?.content || ""}
-                          setEditorContent={() => {}}
-                          language="go"
-                          options={{
-                            readOnly: true,
-                            renderLineHighlight: "none",
-                            selectionHighlight: false,
-                            occurrencesHighlight: "off",
-                            cursorBlinking: "solid",
-                            cursorStyle: "line-thin",
-                          }}
-                      />
-                    </div>
-                  </div>
-              )}
-            </div>
+            )}
           </div>
-        </ResizablePanel>
 
-        <ResizableHandle withHandle />
+          {/* Content area */}
+          <div className="flex-1 overflow-y-auto">
+            {leftPanelView === "problem" ? (
+              <MarkdownPreview content={problemMarkdown} />
+            ) : (
+              <div className="h-full flex flex-col">
+                {solutionFiles.length > 1 && (
+                  <div className="flex border-b bg-muted">
+                    {solutionFiles.map((file, index) => (
+                      <Button
+                        key={file.name}
+                        variant={
+                          activeSolutionFile === index ? "default" : "ghost"
+                        }
+                        size="sm"
+                        onClick={() => setActiveSolutionFile(index)}
+                        className="rounded-none border-r"
+                      >
+                        {file.name}
+                      </Button>
+                    ))}
+                  </div>
+                )}
+                <div className="flex-1">
+                  <Editor
+                    editorContent={
+                      solutionFiles[activeSolutionFile]?.content || ""
+                    }
+                    setEditorContent={() => {}}
+                    language="go"
+                    options={{
+                      readOnly: true,
+                      renderLineHighlight: "none",
+                      selectionHighlight: false,
+                      occurrencesHighlight: "off",
+                      cursorBlinking: "solid",
+                      cursorStyle: "line-thin",
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </ResizablePanel>
 
-        {/* Right panel: Editor + Terminal Output */}
-        <ResizablePanel minSize={20}>
-          <ResizablePanelGroup direction="vertical">
-            <ResizablePanel defaultSize={50}>
-              <EditorHeader
-                  files={files.map((file, x) => ({
-                    ...file,
-                    content: fileContents[x],
-                  }))}
-                  activeFile={activeFile}
-                  onFileChange={setActiveFile}
-                  onSubmit={onSubmit}
-                  onSave={onSave}
-                  onReset={onReset}
-                  disabled={resetting}
-              />
+      <ResizableHandle withHandle />
 
-              <div className="flex items-center justify-end gap-3 p-2 border-t bg-muted/40">
+      {/* Right panel: Editor + Terminal Output */}
+      <ResizablePanel minSize={20}>
+        <ResizablePanelGroup direction="vertical">
+          <ResizablePanel defaultSize={50}>
+            <EditorHeader
+              files={files.map((file, x) => ({
+                ...file,
+                content: fileContents[x],
+              }))}
+              activeFile={activeFile}
+              onFileChange={setActiveFile}
+              onSubmit={onSubmit}
+              onSave={onSave}
+              onReset={onReset}
+              disabled={resetting}
+            />
+
+            <div className="flex items-center justify-end gap-3 p-2 border-t bg-muted/40">
               <span className="text-sm text-muted-foreground">
                 Rate this exercise:
               </span>
 
-                <Button
-                    variant={userRating === "up" ? "default" : "outline"}
-                    size="icon"
-                    disabled={ratingLoading || !canRate}
-                    onClick={() => handleRating(true)}
-                    className="w-8 h-8"
-                >
-                  <ThumbsUp className="w-4 h-4" />
-                </Button>
+              <Button
+                variant={userRating === "up" ? "default" : "outline"}
+                size="icon"
+                disabled={ratingLoading || !canRate}
+                onClick={() => handleRating(true)}
+                className="w-8 h-8"
+              >
+                <ThumbsUp className="w-4 h-4" />
+              </Button>
 
-                <Button
-                    variant={userRating === "down" ? "default" : "outline"}
-                    size="icon"
-                    disabled={ratingLoading || !canRate}
-                    onClick={() => handleRating(false)}
-                    className="w-8 h-8"
-                >
-                  <ThumbsDown className="w-4 h-4" />
-                </Button>
+              <Button
+                variant={userRating === "down" ? "default" : "outline"}
+                size="icon"
+                disabled={ratingLoading || !canRate}
+                onClick={() => handleRating(false)}
+                className="w-8 h-8"
+              >
+                <ThumbsDown className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <Editor
+              editorContent={fileContents[activeFile]}
+              setEditorContent={setEditorContent}
+              language={files[activeFile].fileType}
+              options={{
+                readOnly: resetting,
+                minimap: { enabled: false },
+              }}
+            />
+
+            {resetting && (
+              <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm z-10">
+                <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
+                  <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  <span>Resetting to starter code...</span>
+                </div>
               </div>
+            )}
+          </ResizablePanel>
 
-              <Editor
-                  editorContent={fileContents[activeFile]}
-                  setEditorContent={setEditorContent}
-                  language={files[activeFile].fileType}
-                  options={{
-                    readOnly: resetting,
-                    minimap: { enabled: false },
-                  }}
-              />
+          <ResizableHandle withHandle />
 
-              {resetting && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm z-10">
-                    <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
-                      <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                      <span>Resetting to starter code...</span>
-                    </div>
-                  </div>
-              )}
-            </ResizablePanel>
-
-            <ResizableHandle withHandle />
-
-            <ResizablePanel defaultSize={50}>
-              <TerminalOutput messages={messages} />
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        </ResizablePanel>
-      </ResizablePanelGroup>
+          <ResizablePanel defaultSize={50}>
+            <TerminalOutput messages={messages} />
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </ResizablePanel>
+    </ResizablePanelGroup>
   );
 }

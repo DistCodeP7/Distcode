@@ -58,9 +58,9 @@ export const authOptions = {
         try {
           const existingUser = await getUserByEmail(user.email);
           const bcrypt = require("bcrypt");
-          const userid = bcrypt.hashSync(user.name + user.id, 10);
-          user.userid = userid;
           if (!existingUser) {
+            const userid = bcrypt.hashSync(user.name + user.id, 10);
+            user.userid = userid;
             await createUserWithOAuth({
               email: user.email,
               name: user.name,
@@ -69,6 +69,8 @@ export const authOptions = {
               provider: account.provider,
               providerId: user.id,
             });
+          } else {
+            user.userid = existingUser.userid;
           }
         } catch (_error) {
           return false;
@@ -81,7 +83,7 @@ export const authOptions = {
     async jwt({ token, user }: { token: JWT; user?: User }) {
       if (user?.token) {
         token.token = user.token;
-        token.id = user.id;
+        token.id = user.userid;
       }
       return token;
     },

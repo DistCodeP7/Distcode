@@ -2,18 +2,18 @@
 
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { MQJobsSender } from "@/lib/mq";
-import { getUserIdByEmail } from "@/lib/user";
+import { getUserById, getUserIdByEmail } from "@/lib/user";
 import { getServerSession } from "next-auth";
 import { db } from "@/lib/db";
-import {attempts, submissions, ratings} from "@/drizzle/schema";
-import {and, desc, eq} from "drizzle-orm";
+import { attempts, problems, ratings } from "@/drizzle/schema";
+import { and, desc, eq } from "drizzle-orm";
 
 export async function getExercise({ params }: { params: { id: number } }) {
   const id = Number(params.id);
 
   if (Number.isNaN(id)) return { error: "Invalid exercise id", status: 400 };
 
-  const exercise = await db.query.submissions.findFirst({
+  const exercise = await db.query.problems.findFirst({
     where: (sub, { eq }) => eq(sub.id, id),
   });
 
@@ -24,8 +24,8 @@ export async function getExercise({ params }: { params: { id: number } }) {
     if (!session?.user?.email)
       return { error: "Exercise not found", status: 404 };
 
-    const userId = await getUserIdByEmail(session.user.email);
-    if (!userId || exercise.userId !== userId)
+    const user = await getUserById(session.user.id);
+    if (!user || exercise.userId !== user.id)
       return { error: "Exercise not found", status: 404 };
   }
 
@@ -39,8 +39,8 @@ export async function submitCode(
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return { error: "Unauthorized", status: 401 };
 
-  const userId = await getUserIdByEmail(session.user.email);
-  if (!userId) return { error: "User not found.", status: 404 };
+  const user = await getUserById(session.user.id);
+  if (!user) return { error: "User not found.", status: 404 };
 
   const problemId = Number(params.id);
   if (Number.isNaN(problemId))
@@ -48,7 +48,7 @@ export async function submitCode(
 
   MQJobsSender.sendMessage({
     ProblemId: problemId,
-    UserId: userId,
+    UserId: user.id,
     Code: content,
     Timeoutlimit: 60,
   });
@@ -57,32 +57,32 @@ export async function submitCode(
 }
 
 export async function saveCode(
-    content: string[],
-    { params }: { params: { id: number } }
+  content: string[],
+  { params }: { params: { id: number } }
 ) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) return { error: "Unauthorized", status: 401 };
+  if (!session?.user?.id) return { error: "Unauthorized", status: 401 };
 
-  const userId = await getUserIdByEmail(session.user.email);
-  if (!userId) return { error: "User not found.", status: 404 };
+  const user = await getUserById(session.user.id);
+  if (!user) return { error: "User not found.", status: 404 };
 
-  const submissionId = Number(params.id);
-  if (Number.isNaN(submissionId))
-    return { error: "Invalid submission id", status: 400 };
+  const problemsId = Number(params.id);
+  if (Number.isNaN(problemsId))
+    return { error: "Invalid problems id", status: 400 };
 
-  const [submission] = await db
-      .select()
-      .from(submissions)
-      .where(eq(submissions.id, submissionId))
-      .limit(1);
+  const [foundProblem] = await db
+    .select()
+    .from(problems)
+    .where(eq(problems.id, problemsId))
+    .limit(1);
 
-  if (!submission) {
-    return { error: "Submission not found.", status: 404 };
+  if (!foundProblem) {
+    return { error: "Problem not found.", status: 404 };
   }
 
   await db.insert(attempts).values({
-    userId,
-    submissionId,
+    userId: user.id,
+    problemId: problemsId,
     codeSubmitted: content,
   });
 
@@ -96,32 +96,32 @@ export async function loadSavedCode({ params }: { params: { id: number } }) {
   const userId = await getUserIdByEmail(session.user.email);
   if (!userId) return { error: "User not found.", status: 404 };
 
-  const submissionId = Number(params.id);
-  if (Number.isNaN(submissionId))
-    return { error: "Invalid submission id", status: 400 };
+  const problemId = Number(params.id);
+  if (Number.isNaN(problemId))
+    return { error: "Invalid problem id", status: 400 };
 
   const [latestAttempt] = await db
-      .select()
-      .from(attempts)
-      .where(and(eq(attempts.userId, userId), eq(attempts.submissionId, submissionId)))
-      .orderBy(desc(attempts.id))
-      .limit(1);
+    .select()
+    .from(attempts)
+    .where(and(eq(attempts.userId, userId), eq(attempts.problemId, problemId)))
+    .orderBy(desc(attempts.id))
+    .limit(1);
 
   if (latestAttempt) {
     return { success: true, code: latestAttempt.codeSubmitted };
   }
 
-  const [submission] = await db
-      .select()
-      .from(submissions)
-      .where(eq(submissions.id, submissionId))
-      .limit(1);
+  const [problem] = await db
+    .select()
+    .from(problems)
+    .where(eq(problems.id, problemId))
+    .limit(1);
 
-  if (!submission) {
+  if (!problem) {
     return { error: "Submission not found.", status: 404 };
   }
 
-  return { success: true, code: submission.templateCode };
+  return { success: true, code: problem.templateCode };
 }
 
 export async function loadUserRating({ params }: { params: { id: number } }) {
@@ -131,47 +131,44 @@ export async function loadUserRating({ params }: { params: { id: number } }) {
 
   const exerciseId = Number(params.id);
 
-  const [submission] = await db
-      .select()
-      .from(submissions)
-      .where(and(eq(submissions.userId, userId), eq(submissions.id, exerciseId)))
-      .limit(1);
+  const [problem] = await db
+    .select()
+    .from(problems)
+    .where(and(eq(problems.userId, userId), eq(problems.id, exerciseId)))
+    .limit(1);
 
-  if (!submission) return null;
+  if (!problem) return null;
 
   const [rating] = await db
-      .select()
-      .from(ratings)
-      .where(eq(ratings.submissionId, submission.id))
-      .limit(1);
+    .select()
+    .from(ratings)
+    .where(eq(ratings.problemId, problem.id))
+    .limit(1);
 
   return rating ? (rating.liked ? "up" : "down") : null;
 }
 
-
 export async function resetCode({ params }: { params: { id: number } }) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email)
-    return { error: "Unauthorized", status: 401 };
+  if (!session?.user?.email) return { error: "Unauthorized", status: 401 };
 
   const userId = await getUserIdByEmail(session.user.email);
-  if (!userId)
-    return { error: "User not found.", status: 404 };
+  if (!userId) return { error: "User not found.", status: 404 };
 
-  const submissionId = Number(params.id);
-  if (Number.isNaN(submissionId))
-    return { error: "Invalid submission id", status: 400 };
+  const problemId = Number(params.id);
+  if (Number.isNaN(problemId))
+    return { error: "Invalid problem id", status: 400 };
 
   await db
-      .delete(attempts)
-      .where(and(eq(attempts.userId, userId), eq(attempts.submissionId, submissionId)));
+    .delete(attempts)
+    .where(and(eq(attempts.userId, userId), eq(attempts.problemId, problemId)));
 
   return { success: true, message: "Code reset successfully." };
 }
 
 export async function rateExercise(
-    { params }: { params: { id: number } },
-    liked: boolean
+  { params }: { params: { id: number } },
+  liked: boolean
 ) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return { error: "Unauthorized", status: 401 };
@@ -184,31 +181,34 @@ export async function rateExercise(
     return { error: "Invalid exercise id", status: 400 };
 
   // Has user submitted for this exercise?
-  const [submission] = await db
-      .select()
-      .from(submissions)
-      .where(and(eq(submissions.id, exerciseId)))
-      .limit(1);
+  const [problem] = await db
+    .select()
+    .from(problems)
+    .where(and(eq(problems.id, exerciseId)))
+    .limit(1);
 
-  if (!submission) {
-    return { error: "You must submit at least once before rating.", status: 403 };
+  if (!problem) {
+    return {
+      error: "You must submit at least once before rating.",
+      status: 403,
+    };
   }
 
   const [alreadyRated] = await db
-      .select()
-      .from(ratings)
-      .where(and(eq(ratings.userId, userId), eq(ratings.submissionId, submission.id)))
-      .limit(1);
+    .select()
+    .from(ratings)
+    .where(and(eq(ratings.userId, userId), eq(ratings.problemId, problem.id)))
+    .limit(1);
 
   if (alreadyRated) {
     await db
-        .update(ratings)
-        .set({ liked })
-        .where(eq(ratings.id, alreadyRated.id));
+      .update(ratings)
+      .set({ liked })
+      .where(eq(ratings.id, alreadyRated.id));
   } else {
     await db.insert(ratings).values({
       userId,
-      submissionId: submission.id,
+      problemId: problem.id,
       liked,
     });
   }
@@ -223,18 +223,18 @@ export async function hasUserSubmitted({ params }: { params: { id: number } }) {
   const userId = await getUserIdByEmail(session.user.email);
   if (!userId) return false;
 
-  const submission = await db
-      .select()
-      .from(submissions)
-      .where(eq(submissions.id, params.id))
-      .limit(1);
+  const problem = await db
+    .select()
+    .from(problems)
+    .where(eq(problems.id, params.id))
+    .limit(1);
 
-  if (!submission.length) return false;
+  if (!problem.length) return false;
 
   const attemptsForUser = await db
-      .select()
-      .from(attempts)
-      .where(and(eq(attempts.userId, userId), eq(attempts.submissionId, params.id)))
-      .limit(1);
+    .select()
+    .from(attempts)
+    .where(and(eq(attempts.userId, userId), eq(attempts.problemId, params.id)))
+    .limit(1);
   return attemptsForUser.length > 0;
 }

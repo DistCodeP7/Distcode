@@ -1,5 +1,5 @@
 {
-  "id": "824bcffb-2891-45cc-ba5d-44bae457bd12",
+  "id": "bdc5d22d-baf3-49b8-add9-f686b550de02",
   "prevId": "7eb70fe9-2340-4867-a2ad-943a9304e150",
   "version": "7",
   "dialect": "postgresql",
@@ -20,8 +20,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "submission_id": {
-          "name": "submission_id",
+        "problem_id": {
+          "name": "problem_id",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
@@ -48,12 +48,12 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "attempts_submission_id_submissions_id_fk": {
-          "name": "attempts_submission_id_submissions_id_fk",
+        "attempts_problem_id_problems_id_fk": {
+          "name": "attempts_problem_id_problems_id_fk",
           "tableFrom": "attempts",
-          "tableTo": "submissions",
+          "tableTo": "problems",
           "columnsFrom": [
-            "submission_id"
+            "problem_id"
           ],
           "columnsTo": [
             "id"
@@ -68,8 +68,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.submissions": {
-      "name": "submissions",
+    "public.problems": {
+      "name": "problems",
       "schema": "",
       "columns": {
         "id": {
@@ -149,9 +149,9 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "submissions_user_id_users_id_fk": {
-          "name": "submissions_user_id_users_id_fk",
-          "tableFrom": "submissions",
+        "problems_user_id_users_id_fk": {
+          "name": "problems_user_id_users_id_fk",
+          "tableFrom": "problems",
           "tableTo": "users",
           "columnsFrom": [
             "user_id"
@@ -169,9 +169,73 @@
       "checkConstraints": {
         "difficulty_check": {
           "name": "difficulty_check",
-          "value": "\"submissions\".\"difficulty\" in (1, 2, 3)"
+          "value": "\"problems\".\"difficulty\" in (1, 2, 3)"
         }
       },
+      "isRLSEnabled": false
+    },
+    "public.ratings": {
+      "name": "ratings",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "problem_id": {
+          "name": "problem_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "liked": {
+          "name": "liked",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "ratings_user_id_users_id_fk": {
+          "name": "ratings_user_id_users_id_fk",
+          "tableFrom": "ratings",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "ratings_problem_id_problems_id_fk": {
+          "name": "ratings_problem_id_problems_id_fk",
+          "tableFrom": "ratings",
+          "tableTo": "problems",
+          "columnsFrom": [
+            "problem_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "public.users": {

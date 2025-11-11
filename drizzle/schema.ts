@@ -31,8 +31,8 @@ export const NewUserSchema = createInsertSchema(users).omit({ id: true });
 
 export type TUser = zod.infer<typeof UsersSchema>;
 
-export const submissions = pgTable(
-  "submissions",
+export const problems = pgTable(
+  "problems",
   {
     id: serial("id").primaryKey(),
     userId: integer("user_id")
@@ -52,21 +52,21 @@ export const submissions = pgTable(
   (column) => [check("difficulty_check", sql`${column.difficulty} in (1, 2, 3)`)]
 );
 
-export const SubmissionsSchema = createSelectSchema(submissions);
-export const NewSubmissionSchema = createInsertSchema(submissions).omit({
+export const ProblemsSchema = createSelectSchema(problems);
+export const NewProblemSchema = createInsertSchema(problems).omit({
   id: true,
 });
 
-export type TSubmission = zod.infer<typeof SubmissionsSchema>;
+export type TProblem = zod.infer<typeof ProblemsSchema>;
 
 export const attempts = pgTable("attempts", {
     id: serial("id").primaryKey(),
     userId: integer("user_id")
         .notNull()
         .references(() => users.id, { onDelete: "cascade" }),
-    submissionId: integer("submission_id")
+    problemId: integer("problem_id")
         .notNull()
-        .references(() => submissions.id, { onDelete: "cascade" }),
+        .references(() => problems.id, { onDelete: "cascade" }),
     codeSubmitted: json("code_submitted").$type<string[]>().notNull(),
 });
 
@@ -80,9 +80,9 @@ export const ratings = pgTable("ratings", {
     userId: integer("user_id")
         .notNull()
         .references(() => users.id, { onDelete: "cascade" }),
-    submissionId: integer("submission_id")
+    problemId: integer("problem_id")
         .notNull()
-        .references(() => submissions.id, { onDelete: "cascade" }),
+        .references(() => problems.id, { onDelete: "cascade" }),
     liked: boolean("liked").notNull(),
 });
 

@@ -36,14 +36,14 @@ export default function ProblemEditorClient({
   initialTitle,
   initialDescription,
   initialDifficulty,
-  submissionId,
+  problemId,
 }: {
   files: FileDef[];
   initialFilesContent?: Record<string, string>;
   initialTitle?: string;
   initialDescription?: string;
   initialDifficulty?: string;
-  submissionId?: number;
+  problemId?: number;
 }) {
   const [currentFiles, setCurrentFiles] = useState<FileDef[]>([...files]);
   const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
@@ -66,7 +66,7 @@ export default function ProblemEditorClient({
     title: initialTitle,
     description: initialDescription,
     difficulty: initialDifficulty,
-    submissionId,
+    problemId,
   });
 
   const pairCount = currentFiles.filter((f) =>

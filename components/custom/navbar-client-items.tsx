@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, AvatarFallback } from "@radix-ui/react-avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { signOut } from "next-auth/react";
 import useShortcut from "@/hooks/useShortcut";
 import {
@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 
-export const AuthAvatar = ({ userInitials }: { userInitials: string }) => {
+export const AuthAvatar = ({ userAvatar }: { userAvatar: string }) => {
   const profileShortcut = useShortcut({
     callback: () => alert("Opening profile..."),
     shortCutOS: {
@@ -36,8 +36,14 @@ export const AuthAvatar = ({ userInitials }: { userInitials: string }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Avatar className="cursor-pointer text-xl hover:opacity-80 transition-opacity">
-          <AvatarFallback>{userInitials}</AvatarFallback>
+        <Avatar className="cursor-pointer text-xl hover:opacity-80 transition-opacity rounded-full">
+          {userAvatar.length > 1 ? (
+            <AvatarImage src={userAvatar} className="w-8 rounded-full" />
+          ) : (
+            <AvatarFallback className="rounded-full">
+              {userAvatar}
+            </AvatarFallback>
+          )}
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end">

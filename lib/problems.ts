@@ -1,8 +1,8 @@
 import { eq } from "drizzle-orm";
-import { submissions } from "@/drizzle/schema";
+import { problems } from "@/drizzle/schema";
 import { db } from "./db";
 
-export async function submitSubmission(
+export async function submitProblem(
   userId: number,
   title: string,
   description: string,
@@ -15,7 +15,7 @@ export async function submitSubmission(
   isPublished = true
 ) {
   const result = await db
-    .insert(submissions)
+    .insert(problems)
     .values({
       userId,
       title,
@@ -33,9 +33,9 @@ export async function submitSubmission(
   return result[0];
 }
 
-export async function getSubmissionsByUserId(userId: number) {
+export async function getProblemsByUserId(userId: number) {
   return await db
     .select()
-    .from(submissions)
-    .where(eq(submissions.userId, userId));
+    .from(problems)
+    .where(eq(problems.userId, userId));
 }
