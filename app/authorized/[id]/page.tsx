@@ -22,7 +22,7 @@ export default async function EditProblemPage({
 
   if (Number.isNaN(id)) return notFound();
 
-  const exercise = await db.query.submissions.findFirst({
+  const exercise = await db.query.problems.findFirst({
     where: (s, { eq }) => eq(s.id, Number(id)),
   });
   if (!exercise || exercise.userId !== userId) return notFound();
@@ -62,7 +62,7 @@ export default async function EditProblemPage({
     <ProblemEditorClient
       files={files}
       initialFilesContent={initialFilesContent}
-      submissionId={exercise.id}
+      problemId={exercise.id}
       initialTitle={exercise.title}
       initialDescription={exercise.description}
       initialDifficulty={String(exercise.difficulty)}
