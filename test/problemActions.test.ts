@@ -23,13 +23,13 @@ vi.mock("@/app/api/auth/[...nextauth]/route", () => ({
 }));
 
 vi.mock("@/lib/user", () => ({
-  getUserIdByEmail: vi.fn(),
+  getUserById: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
   db: {
     query: {
-      submissions: {
+      problems: {
         findFirst: hoisted.findFirst,
       },
     },
@@ -42,7 +42,7 @@ vi.mock("drizzle-orm", () => ({
 }));
 
 vi.mock("@/drizzle/schema", () => ({
-  submissions: {},
+  problems: {},
 }));
 
 describe("deleteProblem", () => {
@@ -53,7 +53,7 @@ describe("deleteProblem", () => {
     | { success: false; error: string; status: number }
   >;
   let getServerSession: any;
-  let getUserIdByEmail: any;
+  let getUserById: any;
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -62,7 +62,7 @@ describe("deleteProblem", () => {
     ({ deleteProblem } = await import("@/app/authorized/[id]/problemActions"));
 
     ({ getServerSession } = await import("next-auth/next"));
-    ({ getUserIdByEmail } = await import("@/lib/user"));
+    ({ getUserById } = await import("@/lib/user"));
   });
 
   it("returns 401 when unauthenticated", async () => {
@@ -78,7 +78,7 @@ describe("deleteProblem", () => {
 
   it("returns 404 when user not found", async () => {
     getServerSession.mockResolvedValue({ user: { email: "a@b.com" } });
-    getUserIdByEmail.mockResolvedValue(null);
+    getUserById.mockResolvedValue(null);
 
     const res = await deleteProblem(1);
     expect(res).toEqual({
@@ -90,7 +90,7 @@ describe("deleteProblem", () => {
 
   it("returns 400 for invalid id", async () => {
     getServerSession.mockResolvedValue({ user: { email: "a@b.com" } });
-    getUserIdByEmail.mockResolvedValue(123);
+    getUserById.mockResolvedValue(123);
 
     const res = await deleteProblem(NaN);
     expect(res).toEqual({
@@ -102,7 +102,7 @@ describe("deleteProblem", () => {
 
   it("returns 404 if problem does not exist", async () => {
     getServerSession.mockResolvedValue({ user: { email: "a@b.com" } });
-    getUserIdByEmail.mockResolvedValue(123);
+    getUserById.mockResolvedValue(123);
     hoisted.findFirst.mockResolvedValue(null);
 
     const res = await deleteProblem(42);
@@ -115,7 +115,7 @@ describe("deleteProblem", () => {
 
   it("returns 403 if user does not own the problem", async () => {
     getServerSession.mockResolvedValue({ user: { email: "a@b.com" } });
-    getUserIdByEmail.mockResolvedValue(123);
+    getUserById.mockResolvedValue(123);
     hoisted.findFirst.mockResolvedValue({ id: 42, userId: 999 });
 
     const res = await deleteProblem(42);
@@ -128,7 +128,7 @@ describe("deleteProblem", () => {
 
   it("deletes and returns success", async () => {
     getServerSession.mockResolvedValue({ user: { email: "a@b.com" } });
-    getUserIdByEmail.mockResolvedValue(123);
+    getUserById.mockResolvedValue(123);
     hoisted.findFirst.mockResolvedValue({ id: 42, userId: 123 });
 
     const res = await deleteProblem(42);
@@ -144,7 +144,7 @@ describe("deleteProblem", () => {
 
   it("handles db errors", async () => {
     getServerSession.mockResolvedValue({ user: { email: "a@b.com" } });
-    getUserIdByEmail.mockResolvedValue(123);
+    getUserById.mockResolvedValue(123);
     hoisted.findFirst.mockResolvedValue({ id: 42, userId: 123 });
 
     // Make db.delete throw
