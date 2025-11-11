@@ -1,44 +1,47 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState, useTransition } from "react";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@/components/ui/resizable";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { useSSE } from "@/hooks/useSSE";
 import type { StreamingJobResult } from "@/app/api/stream/route";
 import { TerminalOutput } from "@/components/custom/TerminalOutput";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Code } from "lucide-react";
-import { saveCode, submitCode, loadSavedCode, resetCode } from "@/app/exercises/[id]/actions";
+import { BookOpen, Code, ThumbsUp, ThumbsDown } from "lucide-react";
+import { saveCode, submitCode, resetCode, rateExercise } from "@/app/exercises/[id]/actions";
 import { toast } from "sonner";
 
 type ExerciseEditorProps = {
   exerciseId: number;
-  userId?: number;
   problemMarkdown: string;
   templateCode: string[];
   solutionCode?: string[];
   testCasesCode?: string;
+  savedCode?: string[] | null;
+  userRating?: "up" | "down" | null;
+  canRate?: boolean;
 };
 
 export default function ExerciseEditor({
-exerciseId,
-problemMarkdown,
-templateCode,
-solutionCode,
-}: ExerciseEditorProps) {
+  exerciseId,
+  problemMarkdown,
+  templateCode,
+  solutionCode,
+  savedCode,
+  userRating: initialUserRating = null,
+  canRate: initialCanRate = false,
+  }: ExerciseEditorProps) {
   const [activeFile, setActiveFile] = useState(0);
-  const [fileContents, setFileContents] = useState<string[]>(templateCode);
-  const [loading, setLoading] = useState(true);
+  const [fileContents, setFileContents] = useState<string[]>(savedCode ?? templateCode);
   const [resetting, setResetting] = useState(false);
+  const [userRating, setUserRating] = useState<"up" | "down" | null>(initialUserRating);
+  const [canRate, setCanRate] = useState(initialCanRate);
+  const [ratingLoading, startRatingTransition] = useTransition();
 
   const files = fileContents.map((content, index) => ({
     name: index === 0 ? "main.go" : `file${index + 1}.go`,
-    content: content,
+    content,
     fileType: "go" as const,
   }));
 
@@ -54,25 +57,6 @@ solutionCode,
 
   const { messages, connect, clearMessages } =
       useSSE<StreamingJobResult>("/api/stream");
-
-  useEffect(() => {
-    const fetchSavedCode = async () => {
-      try {
-        const result = await loadSavedCode({ params: { id: exerciseId } });
-        if (result.success && result.code) {
-          setFileContents(result.code);
-        } else {
-          console.log("No saved code found, using template.");
-        }
-      } catch (err) {
-        console.error("Error loading saved code:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSavedCode();
-  }, [exerciseId]);
 
   const handleSolutionClick = () => {
     const shouldViewSolution = window.confirm(
@@ -95,9 +79,10 @@ solutionCode,
     const result = await saveCode([savedContent], { params: { id: exerciseId } });
 
     if (result.error) {
-        toast.error(`Error saving code: ${result.error}`);
+      toast.error(`Error saving code: ${result.error}`);
     } else {
-        toast.success("Code saved successfully!");
+      toast.success("Code saved successfully!");
+      setCanRate(true); // once saved, enable rating if not already
     }
   };
 
@@ -129,6 +114,27 @@ solutionCode,
     }
   };
 
+  const handleRating = (liked: boolean) => {
+    if (!canRate) {
+      toast.error("You must submit at least once before rating this exercise.");
+      return;
+    }
+
+    startRatingTransition(async () => {
+      try {
+        const result = await rateExercise({ params: { id: exerciseId } }, liked);
+        if (result.success) {
+          setUserRating(liked ? "up" : "down");
+          toast.success(`You rated this exercise ${liked ? "👍" : "👎"}`);
+        } else {
+          toast.error(result.error || "Failed to rate exercise");
+        }
+      } catch (err) {
+        toast.error("Error submitting rating");
+      }
+    });
+  };
+
   function setEditorContent(value: React.SetStateAction<string>): void {
     if (resetting) return; // disable editing while resetting
     setFileContents((prev) => {
@@ -137,15 +143,6 @@ solutionCode,
           typeof value === "function" ? value(prev[activeFile]) : value;
       return newContents;
     });
-  }
-
-
-  if (loading) {
-    return (
-        <div className="flex items-center justify-center h-full text-muted-foreground">
-          Loading editor...
-        </div>
-    );
   }
 
   return (
@@ -205,9 +202,7 @@ solutionCode,
                     )}
                     <div className="flex-1">
                       <Editor
-                          editorContent={
-                              solutionFiles[activeSolutionFile]?.content || ""
-                          }
+                          editorContent={solutionFiles[activeSolutionFile]?.content || ""}
                           setEditorContent={() => {}}
                           language="go"
                           options={{
@@ -242,8 +237,34 @@ solutionCode,
                   onSubmit={onSubmit}
                   onSave={onSave}
                   onReset={onReset}
-                  disabled={resetting || loading}
+                  disabled={resetting}
               />
+
+              <div className="flex items-center justify-end gap-3 p-2 border-t bg-muted/40">
+              <span className="text-sm text-muted-foreground">
+                Rate this exercise:
+              </span>
+
+                <Button
+                    variant={userRating === "up" ? "default" : "outline"}
+                    size="icon"
+                    disabled={ratingLoading || !canRate}
+                    onClick={() => handleRating(true)}
+                    className="w-8 h-8"
+                >
+                  <ThumbsUp className="w-4 h-4" />
+                </Button>
+
+                <Button
+                    variant={userRating === "down" ? "default" : "outline"}
+                    size="icon"
+                    disabled={ratingLoading || !canRate}
+                    onClick={() => handleRating(false)}
+                    className="w-8 h-8"
+                >
+                  <ThumbsDown className="w-4 h-4" />
+                </Button>
+              </div>
 
               <Editor
                   editorContent={fileContents[activeFile]}
@@ -254,6 +275,7 @@ solutionCode,
                     minimap: { enabled: false },
                   }}
               />
+
               {resetting && (
                   <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm z-10">
                     <div className="flex items-center gap-2 text-muted-foreground animate-pulse">

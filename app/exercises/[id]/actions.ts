@@ -5,7 +5,7 @@ import { MQJobsSender } from "@/lib/mq";
 import { getUserIdByEmail } from "@/lib/user";
 import { getServerSession } from "next-auth";
 import { db } from "@/lib/db";
-import {attempts, submissions} from "@/drizzle/schema";
+import {attempts, submissions, ratings} from "@/drizzle/schema";
 import {and, desc, eq} from "drizzle-orm";
 
 export async function getExercise({ params }: { params: { id: number } }) {
@@ -19,7 +19,6 @@ export async function getExercise({ params }: { params: { id: number } }) {
 
   if (!exercise) return { error: "Exercise not found", status: 404 };
 
-  // If unpublished, restrict access to owner
   if (!exercise.isPublished) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email)
@@ -125,6 +124,31 @@ export async function loadSavedCode({ params }: { params: { id: number } }) {
   return { success: true, code: submission.templateCode };
 }
 
+export async function loadUserRating({ params }: { params: { id: number } }) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) return null;
+  const userId = await getUserIdByEmail(session.user.email);
+
+  const exerciseId = Number(params.id);
+
+  const [submission] = await db
+      .select()
+      .from(submissions)
+      .where(and(eq(submissions.userId, userId), eq(submissions.id, exerciseId)))
+      .limit(1);
+
+  if (!submission) return null;
+
+  const [rating] = await db
+      .select()
+      .from(ratings)
+      .where(eq(ratings.submissionId, submission.id))
+      .limit(1);
+
+  return rating ? (rating.liked ? "up" : "down") : null;
+}
+
+
 export async function resetCode({ params }: { params: { id: number } }) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email)
@@ -143,4 +167,74 @@ export async function resetCode({ params }: { params: { id: number } }) {
       .where(and(eq(attempts.userId, userId), eq(attempts.submissionId, submissionId)));
 
   return { success: true, message: "Code reset successfully." };
+}
+
+export async function rateExercise(
+    { params }: { params: { id: number } },
+    liked: boolean
+) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) return { error: "Unauthorized", status: 401 };
+
+  const userId = await getUserIdByEmail(session.user.email);
+  if (!userId) return { error: "User not found.", status: 404 };
+
+  const exerciseId = Number(params.id);
+  if (Number.isNaN(exerciseId))
+    return { error: "Invalid exercise id", status: 400 };
+
+  // Has user submitted for this exercise?
+  const [submission] = await db
+      .select()
+      .from(submissions)
+      .where(and(eq(submissions.id, exerciseId)))
+      .limit(1);
+
+  if (!submission) {
+    return { error: "You must submit at least once before rating.", status: 403 };
+  }
+
+  const [existing] = await db
+      .select()
+      .from(ratings)
+      .where(and(eq(ratings.userId, userId), eq(ratings.submissionId, submission.id)))
+      .limit(1);
+
+  if (existing) {
+    await db
+        .update(ratings)
+        .set({ liked })
+        .where(eq(ratings.id, existing.id));
+  } else {
+    await db.insert(ratings).values({
+      userId,
+      submissionId: submission.id,
+      liked,
+    });
+  }
+
+  return { success: true };
+}
+
+export async function hasUserSubmitted({ params }: { params: { id: number } }) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) return false;
+
+  const userId = await getUserIdByEmail(session.user.email);
+  if (!userId) return false;
+
+  const submission = await db
+      .select()
+      .from(submissions)
+      .where(eq(submissions.id, params.id))
+      .limit(1);
+
+  if (!submission.length) return false;
+
+  const attemptsForUser = await db
+      .select()
+      .from(attempts)
+      .where(and(eq(attempts.userId, userId), eq(attempts.submissionId, params.id)))
+      .limit(1);
+  return attemptsForUser.length > 0;
 }

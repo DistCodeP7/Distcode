@@ -74,3 +74,20 @@ export const AttemptsSchema = createSelectSchema(attempts);
 export const NewAttemptSchema = createInsertSchema(attempts).omit({ id: true });
 
 export type TAttempt = zod.infer<typeof AttemptsSchema>;
+
+export const ratings = pgTable("ratings", {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id")
+        .notNull()
+        .references(() => users.id, { onDelete: "cascade" }),
+    submissionId: integer("submission_id")
+        .notNull()
+        .references(() => submissions.id, { onDelete: "cascade" }),
+    liked: boolean("liked").notNull(),
+});
+
+export const RatingsSchema = createSelectSchema(ratings);
+export const NewRatingSchema = createInsertSchema(ratings).omit({ id: true });
+
+export type TRating = zod.infer<typeof RatingsSchema>;
+
