@@ -2,7 +2,7 @@
 
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { getUserIdByEmail } from "@/lib/user";
+import { getUserById, getUserIdByEmail } from "@/lib/user";
 import { db } from "@/lib/db";
 import { problems } from "@/drizzle/schema";
 import { eq } from "drizzle-orm";
@@ -121,11 +121,11 @@ export async function saveProblem(data: SaveProblemParams) {
 
 export async function deleteProblem(id: number): Promise<ApiResult> {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
+  if (!session?.user?.id) {
     return { success: false, error: "Not authenticated", status: 401 };
   }
 
-  const userId = await getUserIdByEmail(session.user.email);
+  const userId = await getUserById(session.user.id);
   if (!userId) {
     return { success: false, error: "User not found", status: 404 };
   }
@@ -140,7 +140,7 @@ export async function deleteProblem(id: number): Promise<ApiResult> {
   if (!existingProblem) {
     return { success: false, error: "Problem not found", status: 404 };
   }
-  if (existingProblem.userId !== userId) {
+  if (existingProblem.userId !== userId.id) {
     return { success: false, error: "Forbidden", status: 403 };
   }
 
