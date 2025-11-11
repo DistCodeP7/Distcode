@@ -194,17 +194,17 @@ export async function rateExercise(
     return { error: "You must submit at least once before rating.", status: 403 };
   }
 
-  const [existing] = await db
+  const [alreadyRated] = await db
       .select()
       .from(ratings)
       .where(and(eq(ratings.userId, userId), eq(ratings.submissionId, submission.id)))
       .limit(1);
 
-  if (existing) {
+  if (alreadyRated) {
     await db
         .update(ratings)
         .set({ liked })
-        .where(eq(ratings.id, existing.id));
+        .where(eq(ratings.id, alreadyRated.id));
   } else {
     await db.insert(ratings).values({
       userId,
