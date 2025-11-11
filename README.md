@@ -2,25 +2,21 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the postgres db:
+1. Start PostgreSQL database from the docker-compose repo:
 
 ```bash
-docker-compose up --build
+git clone https://github.com/DistCodeP7/docker-compose.git docker-compose
+cd docker-compose
+docker-compose up -d
 ```
 
-Then, run the development server:
+2. Run the development server:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
 pnpm dev
-# or
-bun dev
 ```
 
-Lastly run:
+3. Push database schemas to docker:
 
 ```bash
 npx drizzle-kit push
