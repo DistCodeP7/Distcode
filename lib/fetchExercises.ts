@@ -4,7 +4,7 @@ import { eq, sql } from "drizzle-orm";
 
 export type ExerciseRow = {
     id: number;
-    rating: number | null;
+    rating: number;
     name: string;
     description: string;
     difficulty: "Easy" | "Medium" | "Hard";
@@ -19,7 +19,6 @@ export async function fetchExercises(): Promise<ExerciseRow[]> {
             name: problems.title,
             description: problems.description,
             difficulty: problems.difficulty,
-            isPublished: problems.isPublished,
             rating: sql<number>`
           COALESCE(
             SUM(
@@ -34,13 +33,13 @@ export async function fetchExercises(): Promise<ExerciseRow[]> {
         `.as("rating"),
         })
         .from(problems)
-        .leftJoin(ratings, eq(problems.id, ratings.problemId))
+        .leftJoin(ratings, eq(ratings.problemId, problems.id))
         .where(eq(problems.isPublished, true))
         .groupBy(problems.id);
 
     return dbExercises.map((ex) => ({
         id: ex.id,
-        rating: ex.rating === 0 ? null : ex.rating,
+        rating: ex.rating,
         name: ex.name,
         description: ex.description,
         difficulty: difficultyMap[ex.difficulty as 1 | 2 | 3],
