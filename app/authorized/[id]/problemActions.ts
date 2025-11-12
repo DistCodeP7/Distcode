@@ -100,7 +100,7 @@ export async function saveProblem(data: SaveProblemParams) {
     } else {
       await db
         .insert(problems)
-        .values({ ...problemData, userId, isPublished, rating: 0 });
+        .values({ ...problemData, userId, isPublished});
     }
 
     return {

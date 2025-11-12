@@ -21,7 +21,6 @@ export async function submitProblem(
       title,
       description,
       difficulty,
-      rating,
       problemMarkdown,
       templateCode,
       solutionCode,
