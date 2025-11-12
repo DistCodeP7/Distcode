@@ -4,7 +4,7 @@ import { eq, sql } from "drizzle-orm";
 
 export type ExerciseRow = {
     id: number;
-    rating: number | "Unrated";
+    rating: number;
     name: string;
     description: string;
     difficulty: "Easy" | "Medium" | "Hard";
@@ -19,7 +19,7 @@ export async function fetchExercises(): Promise<ExerciseRow[]> {
             name: problems.title,
             description: problems.description,
             difficulty: problems.difficulty,
-            netRating: sql<number>`COALESCE(SUM(CASE WHEN ${ratings.liked} = true THEN 1 ELSE -1 END), 0)`,
+            rating: sql<number>`COALESCE(SUM(CASE WHEN ${ratings.liked} = true THEN 1 ELSE -1 END), 0)`,
         })
         .from(problems)
         .leftJoin(ratings, eq(ratings.problemId, problems.id))
@@ -28,7 +28,7 @@ export async function fetchExercises(): Promise<ExerciseRow[]> {
 
     return dbExercises.map((ex) => ({
         id: ex.id,
-        rating: ex.netRating === 0 ? "Unrated" : ex.netRating,
+        rating: ex.rating,
         name: ex.name,
         description: ex.description,
         difficulty: difficultyMap[ex.difficulty as 1 | 2 | 3],

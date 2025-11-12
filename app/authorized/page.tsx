@@ -123,7 +123,7 @@ export default async function ProblemListPage() {
                   <div className="flex items-center gap-2">
                     <span>Rating:</span>
                     <span className="font-semibold text-foreground">
-                      {s.rating ?? 0}
+                      {s.rating === null ? "Unrated" : s.rating}
                     </span>
                   </div>
                 </div>
