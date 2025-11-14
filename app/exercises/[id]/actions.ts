@@ -37,19 +37,22 @@ export async function submitCode(
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return { error: "Unauthorized", status: 401 };
 
-  const userId = await getUserById(session.user.id);
+  const user = await getUserById(session.user.id);
+  const userId = user.id;
   if (!userId) return { error: "User not found.", status: 404 };
 
   const problemId = Number(params.id);
   if (Number.isNaN(problemId))
     return { error: "Invalid exercise id", status: 400 };
 
-  MQJobsSender.sendMessage({
+  const payload = {
     ProblemId: problemId,
     UserId: userId,
     Code: content,
     Timeoutlimit: 60,
-  });
+  };
+
+  MQJobsSender.sendMessage(payload);
 
   return { success: true, message: "Code submitted successfully" };
 }
