@@ -76,7 +76,9 @@ type EditorHeaderProps = {
   activeFile: number;
   onFileChange: (index: number) => void;
   onSubmit: () => void;
-  onSave?: () => void;
+  onSave: () => void;
+  onReset: () => void;
+  disabled?: boolean;
 };
 
 export function EditorHeader({
@@ -85,13 +87,14 @@ export function EditorHeader({
   onFileChange,
   onSubmit,
   onSave,
+  onReset,
+  disabled = false,
 }: EditorHeaderProps) {
   const visibleFiles = files;
 
   return (
     <div className="border-b bg-background flex flex-col">
       <div className="flex items-center justify-between px-2 py-1">
-        {/* Left side: file tabs */}
         <div className="flex items-center gap-1 overflow-x-auto flex-1 pr-20">
           {visibleFiles.map((file, idx) => {
             const trueIndex = idx;
@@ -99,6 +102,7 @@ export function EditorHeader({
               <Button
                 key={file.name}
                 onClick={() => onFileChange(trueIndex)}
+                disabled={disabled}
                 className={cn(
                   "flex items-center gap-1 px-2 py-1 flex-shrink-0 transition-colors truncate",
                   trueIndex === activeFile
@@ -113,25 +117,39 @@ export function EditorHeader({
           })}
         </div>
 
-        {/* Right side: Save / Submit */}
+        {/* Right side: Save / Submit / Reset */}
         <div className="flex items-center gap-2 flex-shrink-0 ml-2 relative z-10">
           <Button
             type="button"
             variant="secondary"
             className="flex items-center gap-1 px-2 py-1 text-base"
             onClick={onSave}
+            disabled={disabled}
           >
             <Save className="w-4 h-4" />
             Save
           </Button>
+
           <Button
             onClick={onSubmit}
             type="button"
             variant="outline"
             className="flex items-center gap-1 px-2 py-1 text-base"
+            disabled={disabled}
           >
             <Send className="w-4 h-4" />
             Submit
+          </Button>
+
+          <Button
+            onClick={onReset}
+            type="button"
+            variant="outline"
+            className="flex items-center gap-1 px-2 py-1 text-base"
+            disabled={disabled}
+          >
+            <Send className="w-4 h-4" />
+            Reset To Starter Code
           </Button>
         </div>
       </div>

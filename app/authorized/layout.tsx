@@ -1,7 +1,7 @@
-import { Navbar } from "@/components/custom/navbar";
-import SessionProviderClient from "@/components/custom/session-provider-client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { Navbar } from "@/components/custom/navbar";
+import SessionProviderClient from "@/components/custom/session-provider-client";
 
 export default async function Layout({
   children,

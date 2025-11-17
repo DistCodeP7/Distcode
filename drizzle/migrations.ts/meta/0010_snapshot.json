@@ -1,73 +1,9 @@
 {
-  "id": "bdc5d22d-baf3-49b8-add9-f686b550de02",
-  "prevId": "7eb70fe9-2340-4867-a2ad-943a9304e150",
+  "id": "061cc2e2-e091-4000-ab9f-dc00d513ddf9",
+  "prevId": "bdc5d22d-baf3-49b8-add9-f686b550de02",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.attempts": {
-      "name": "attempts",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "problem_id": {
-          "name": "problem_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "code_submitted": {
-          "name": "code_submitted",
-          "type": "json",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "attempts_user_id_users_id_fk": {
-          "name": "attempts_user_id_users_id_fk",
-          "tableFrom": "attempts",
-          "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "attempts_problem_id_problems_id_fk": {
-          "name": "attempts_problem_id_problems_id_fk",
-          "tableFrom": "attempts",
-          "tableTo": "problems",
-          "columnsFrom": [
-            "problem_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
     "public.problems": {
       "name": "problems",
       "schema": "",
@@ -80,7 +16,7 @@
         },
         "user_id": {
           "name": "user_id",
-          "type": "integer",
+          "type": "varchar",
           "primaryKey": false,
           "notNull": true
         },
@@ -98,12 +34,6 @@
         },
         "difficulty": {
           "name": "difficulty",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "rating": {
-          "name": "rating",
           "type": "integer",
           "primaryKey": false,
           "notNull": true
@@ -149,15 +79,15 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "problems_user_id_users_id_fk": {
-          "name": "problems_user_id_users_id_fk",
+        "problems_user_id_users_userid_fk": {
+          "name": "problems_user_id_users_userid_fk",
           "tableFrom": "problems",
           "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
           "columnsTo": [
-            "id"
+            "userid"
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
@@ -186,7 +116,7 @@
         },
         "user_id": {
           "name": "user_id",
-          "type": "integer",
+          "type": "varchar",
           "primaryKey": false,
           "notNull": true
         },
@@ -205,15 +135,15 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "ratings_user_id_users_id_fk": {
-          "name": "ratings_user_id_users_id_fk",
+        "ratings_user_id_users_userid_fk": {
+          "name": "ratings_user_id_users_userid_fk",
           "tableFrom": "ratings",
           "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
           "columnsTo": [
-            "id"
+            "userid"
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"
@@ -221,6 +151,70 @@
         "ratings_problem_id_problems_id_fk": {
           "name": "ratings_problem_id_problems_id_fk",
           "tableFrom": "ratings",
+          "tableTo": "problems",
+          "columnsFrom": [
+            "problem_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.userCode": {
+      "name": "userCode",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "problem_id": {
+          "name": "problem_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "code_submitted": {
+          "name": "code_submitted",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "userCode_user_id_users_userid_fk": {
+          "name": "userCode_user_id_users_userid_fk",
+          "tableFrom": "userCode",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "userid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "userCode_problem_id_problems_id_fk": {
+          "name": "userCode_problem_id_problems_id_fk",
+          "tableFrom": "userCode",
           "tableTo": "problems",
           "columnsFrom": [
             "problem_id"

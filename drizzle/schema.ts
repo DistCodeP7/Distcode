@@ -9,6 +9,7 @@ import {
   json,
   boolean,
 } from "drizzle-orm/pg-core";
+
 import { sql } from "drizzle-orm/sql/sql";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import * as zod from "zod";
@@ -33,13 +34,12 @@ export const problems = pgTable(
   "problems",
   {
     id: serial("id").primaryKey(),
-    userId: integer("user_id")
+    userId: varchar("user_id")
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => users.userid, { onDelete: "cascade" }),
     title: varchar("title", { length: 256 }).notNull(),
     description: text("description").notNull(),
     difficulty: integer("difficulty").notNull(),
-    rating: integer("rating").notNull(),
     problemMarkdown: text("problem_markdown").notNull(),
     templateCode: json("template_code").$type<string[]>().notNull(),
     solutionCode: json("solution_code").$type<string[]>().notNull(),
@@ -56,3 +56,36 @@ export const NewProblemSchema = createInsertSchema(problems).omit({
 });
 
 export type TProblem = zod.infer<typeof ProblemsSchema>;
+
+export const userCode = pgTable("userCode", {
+    id: serial("id").primaryKey(),
+    userId: varchar("user_id")
+        .notNull()
+        .references(() => users.userid, { onDelete: "cascade" }),
+    problemId: integer("problem_id")
+        .notNull()
+        .references(() => problems.id, { onDelete: "cascade" }),
+    codeSubmitted: json("code_submitted").$type<string[]>().notNull(),
+});
+
+export const UserCodeSchema = createSelectSchema(userCode);
+export const NewUserCodeSchema = createInsertSchema(userCode).omit({ id: true });
+
+export type TUserCode = zod.infer<typeof UserCodeSchema>;
+
+export const ratings = pgTable("ratings", {
+    id: serial("id").primaryKey(),
+    userId: varchar("user_id")
+        .notNull()
+        .references(() => users.userid, { onDelete: "cascade" }),
+    problemId: integer("problem_id")
+        .notNull()
+        .references(() => problems.id, { onDelete: "cascade" }),
+    liked: boolean("liked").notNull(),
+});
+
+export const RatingsSchema = createSelectSchema(ratings);
+export const NewRatingSchema = createInsertSchema(ratings).omit({ id: true });
+
+export type TRating = zod.infer<typeof RatingsSchema>;
+

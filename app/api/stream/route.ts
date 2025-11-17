@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { RabbitMQReceiver } from "@/app/mq/RabbitMQReceiver";
-import { getUserIdByEmail } from "@/lib/user";
 import { authOptions } from "../auth/[...nextauth]/route";
 
 type Client = {
@@ -17,7 +16,7 @@ export type StreamingJobResultEvent = {
 export type StreamingJobResult = {
   JobId: number;
   Events: StreamingJobResultEvent[];
-  UserId: number;
+  UserId: string;
   SequenceIndex: number;
 };
 
@@ -46,10 +45,10 @@ class JobResultQueueListener {
 }
 
 class ClientManager {
-  private clients: Map<number, Set<Client>> = new Map();
+  private clients: Map<string, Set<Client>> = new Map();
   private heartBeatId: NodeJS.Timeout | undefined = undefined;
 
-  addClient(userId: number, client: Client) {
+  addClient(userId: string, client: Client) {
     if (!this.clients.has(userId)) {
       this.clients.set(userId, new Set());
     }
@@ -60,7 +59,7 @@ class ClientManager {
     }
   }
 
-  removeClient(userId: number, client: Client) {
+  removeClient(userId: string, client: Client) {
     const set = this.clients.get(userId);
     if (!set) return;
     set.delete(client);
@@ -91,7 +90,6 @@ class ClientManager {
     console.log("Dispatching job result to clients:", msg);
     const userId = msg.UserId;
     if (!userId) return;
-
     const userClients = this.clients.get(userId);
     if (!userClients) return;
 
@@ -112,13 +110,8 @@ const jobResultListener = new JobResultQueueListener();
 
 export async function GET() {
   const session = await getServerSession(authOptions);
-  if (!session) {
+  if (!session?.user.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const userId = await getUserIdByEmail(session.user.email);
-  if (!userId) {
-    return NextResponse.json({ error: "User not found." }, { status: 404 });
   }
 
   jobResultListener.start(
@@ -132,16 +125,16 @@ export async function GET() {
     start: (controller) => {
       const client: Client = { controller, encoder };
       clientRef = client;
-      clientManager.addClient(userId, client);
+      clientManager.addClient(session.user.id, client);
       clientManager.dispatchJobResultToClients({
         JobId: 0,
         SequenceIndex: 0,
         Events: [{ Kind: "stdout", Message: "Connected to stream." }],
-        UserId: userId,
+        UserId: session.user.id,
       });
     },
     cancel: () => {
-      clientManager.removeClient(userId, clientRef);
+      clientManager.removeClient(session.user.id, clientRef);
       if (!clientManager.hasClients()) jobResultListener.stop();
     },
   });

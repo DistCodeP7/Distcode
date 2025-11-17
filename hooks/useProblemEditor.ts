@@ -1,4 +1,4 @@
-import { type SetStateAction, useCallback, useState, useEffect } from "react";
+import { type SetStateAction, useCallback, useState } from "react";
 import { saveProblem } from "@/app/authorized/[id]/problemActions";
 
 type ProblemFile = {
@@ -7,19 +7,14 @@ type ProblemFile = {
 };
 
 const getInitialContent = (file: ProblemFile): string => {
-  if (file.fileType === "markdown") {
+  if (file.fileType === "markdown")
     return "# Problem\n\nDescribe the problem here.";
-  }
   if (file.fileType === "go") {
-    if (file.name.startsWith("template")) {
+    if (file.name.startsWith("template"))
       return "// Write your template code here\n";
-    }
-    if (file.name.startsWith("solution")) {
+    if (file.name.startsWith("solution"))
       return "// Write your solution code here\n";
-    }
-    if (file.name === "testCases.go") {
-      return "// Write your test cases here\n";
-    }
+    if (file.name === "testCases.go") return "// Write your test cases here\n";
   }
   return "";
 };
@@ -47,29 +42,32 @@ export const useProblemEditor = (
     problemId?: number;
   }
 ) => {
-  const [state, setState] = useState<ProblemEditorState>({
-    filesContent: files.reduce(
+  const [state, setState] = useState<ProblemEditorState>(() => {
+    const filesContent = files.reduce(
       (acc, file) => {
         acc[file.name] =
           initial?.filesContent?.[file.name] ?? getInitialContent(file);
         return acc;
       },
       {} as Record<string, string>
-    ),
-    activeFile: 0,
-    title: initial?.title ?? "",
-    description: initial?.description ?? "",
-    difficulty: initial?.difficulty ?? "1",
-    isSubmitting: false,
+    );
+
+    return {
+      filesContent,
+      activeFile: 0,
+      title: initial?.title ?? "",
+      description: initial?.description ?? "",
+      difficulty: initial?.difficulty ?? "1",
+      isSubmitting: false,
+    };
   });
 
-  useEffect(() => {
+  const syncFilesContent = useCallback(() => {
     setState((prev) => {
       const newFilesContent = files.reduce(
         (acc, file) => {
-          // Keep existing content for files that still exist, otherwise add initial content
           acc[file.name] =
-            prev.filesContent[file.name] || getInitialContent(file);
+            prev.filesContent[file.name] ?? getInitialContent(file);
           return acc;
         },
         {} as Record<string, string>
@@ -120,9 +118,9 @@ export const useProblemEditor = (
         const missingFields: string[] = [];
         if (!state.title.trim()) missingFields.push("Title");
         if (!state.description.trim()) missingFields.push("Description");
-        if (!state.difficulty || !["1", "2", "3"].includes(state.difficulty))
+        if (!["1", "2", "3"].includes(state.difficulty))
           missingFields.push("Difficulty");
-        if (!state.filesContent["problem.md"].trim())
+        if (!state.filesContent["problem.md"]?.trim())
           missingFields.push("Problem markdown");
 
         const templateFiles = files.filter((f) =>
@@ -138,17 +136,11 @@ export const useProblemEditor = (
           (f) => state.filesContent[f.name] || ""
         );
 
-        if (
-          templateFiles.length === 0 ||
-          templateCode.some((code) => !code.trim())
-        )
+        if (!templateFiles.length || templateCode.some((c) => !c.trim()))
           missingFields.push("Template code");
-        if (
-          solutionFiles.length === 0 ||
-          solutionCode.some((code) => !code.trim())
-        )
+        if (!solutionFiles.length || solutionCode.some((c) => !c.trim()))
           missingFields.push("Solution code");
-        if (!state.filesContent["testCases.go"].trim())
+        if (!state.filesContent["testCases.go"]?.trim())
           missingFields.push("Test cases code");
 
         if (missingFields.length > 0) {
@@ -169,26 +161,18 @@ export const useProblemEditor = (
         };
 
         const result: ActionResult = await saveProblem(payload);
-
-        if (result.success) {
-          alert(result.message || "Success!");
-        } else {
-          alert(result.error || "An error occurred.");
-        }
+        alert(
+          result.success
+            ? result.message || "Success!"
+            : result.error || "Error."
+        );
       } catch (err) {
-        alert(`An unexpected server error occurred.${err}`);
+        alert(`An unexpected error occurred: ${err}`);
       } finally {
         setState((prev) => ({ ...prev, isSubmitting: false }));
       }
     },
-    [
-      state.title,
-      state.description,
-      state.difficulty,
-      state.filesContent,
-      files,
-      initial?.problemId,
-    ]
+    [state, files, initial?.problemId]
   );
 
   const handleSubmit = useCallback(
@@ -209,5 +193,6 @@ export const useProblemEditor = (
     handleEditorContentChange,
     handleSubmit,
     handleSave,
+    syncFilesContent,
   };
 };

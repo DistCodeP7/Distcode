@@ -1,27 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { BookOpen, Code, ThumbsDown, ThumbsUp } from "lucide-react";
+import type React from "react";
+import { useState, useTransition } from "react";
+import { toast } from "sonner";
+import type { StreamingJobResult } from "@/app/api/stream/route";
+import {
+  rateExercise,
+  resetCode,
+  saveCode,
+  submitCode,
+} from "@/app/exercises/[id]/actions";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
+import { TerminalOutput } from "@/components/custom/TerminalOutput";
+import { Button } from "@/components/ui/button";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { useSSE } from "@/hooks/useSSE";
-import type { StreamingJobResult } from "@/app/api/stream/route";
-import { TerminalOutput } from "@/components/custom/TerminalOutput";
-import { Button } from "@/components/ui/button";
-import { BookOpen, Code } from "lucide-react";
-import { submitCode } from "@/app/exercises/[id]/actions";
 
 type ExerciseEditorProps = {
   exerciseId: number;
-  userId?: number;
   problemMarkdown: string;
   templateCode: string[];
   solutionCode?: string[];
   testCasesCode?: string;
+  savedCode?: string[] | null;
+  userRating?: "up" | "down" | null;
+  canRate?: boolean;
 };
 
 export default function ExerciseEditor({
@@ -29,17 +38,26 @@ export default function ExerciseEditor({
   problemMarkdown,
   templateCode,
   solutionCode,
+  savedCode,
+  userRating: initialUserRating = null,
+  canRate: initialCanRate = false,
 }: ExerciseEditorProps) {
-  const files = templateCode.map((content, index) => ({
+  const [activeFile, setActiveFile] = useState(0);
+  const [fileContents, setFileContents] = useState<string[]>(
+    savedCode ?? templateCode
+  );
+  const [resetting, setResetting] = useState(false);
+  const [userRating, setUserRating] = useState<"up" | "down" | null>(
+    initialUserRating
+  );
+  const [canRate, setCanRate] = useState(initialCanRate);
+  const [ratingLoading, startRatingTransition] = useTransition();
+
+  const files = fileContents.map((content, index) => ({
     name: index === 0 ? "main.go" : `file${index + 1}.go`,
-    content: content,
+    content,
     fileType: "go" as const,
   }));
-
-  const [activeFile, setActiveFile] = useState(0);
-  const [fileContents, setFileContents] = useState(
-    files.map((file) => file.content)
-  );
 
   const [leftPanelView, setLeftPanelView] = useState<"problem" | "solution">(
     "problem"
@@ -48,7 +66,7 @@ export default function ExerciseEditor({
 
   const solutionFiles = (solutionCode || []).map((content, index) => ({
     name: index === 0 ? "main.go" : `file${index + 1}.go`,
-    content: content,
+    content,
   }));
 
   const { messages, connect, clearMessages } =
@@ -58,24 +76,86 @@ export default function ExerciseEditor({
     const shouldViewSolution = window.confirm(
       "Are you sure you want to view the solution? This will show you the complete answer to the problem."
     );
-
-    if (shouldViewSolution) {
-      setLeftPanelView("solution");
-    }
+    if (shouldViewSolution) setLeftPanelView("solution");
   };
 
   const onSubmit = async () => {
     clearMessages();
     connect();
-
     const problemContent = fileContents;
+    await submitCode(problemContent, { params: { id: exerciseId } });
+  };
 
-    await submitCode(problemContent, {
+  const onSave = async () => {
+    clearMessages();
+
+    const savedContent = fileContents[activeFile];
+    const result = await saveCode([savedContent], {
       params: { id: exerciseId },
+    });
+
+    if (result.error) {
+      toast.error(`Error saving code: ${result.error}`);
+    } else {
+      toast.success("Code saved successfully!");
+      setCanRate(true); // once saved, enable rating if not already
+    }
+  };
+
+  const onReset = async () => {
+    const confirmReset = window.confirm(
+      "Are you sure you want to reset your code? This will remove your saved progress and restore the original template."
+    );
+    if (!confirmReset) return;
+
+    setResetting(true);
+    try {
+      const result = await resetCode({ params: { id: exerciseId } });
+      if (result.success) {
+        setFileContents([...templateCode]);
+        toast.success("Code reset successfully!", {
+          description: "Template restored and saved code cleared.",
+        });
+      } else {
+        toast.error("Failed to reset code", {
+          description: result.error || "Something went wrong.",
+        });
+      }
+    } catch (err) {
+      toast.error("Error resetting code", {
+        description: String(err),
+      });
+    } finally {
+      setResetting(false);
+    }
+  };
+
+  const handleRating = (liked: boolean) => {
+    if (!canRate) {
+      toast.error("You must submit at least once before rating this exercise.");
+      return;
+    }
+
+    startRatingTransition(async () => {
+      try {
+        const result = await rateExercise(
+          { params: { id: exerciseId } },
+          liked
+        );
+        if (result.success) {
+          setUserRating(liked ? "up" : "down");
+          toast.success(`You rated this exercise ${liked ? "👍" : "👎"}`);
+        } else {
+          toast.error(result.error || "Failed to rate exercise");
+        }
+      } catch (_) {
+        toast.error("Error submitting rating");
+      }
     });
   };
 
   function setEditorContent(value: React.SetStateAction<string>): void {
+    if (resetting) return; // disable editing while resetting
     setFileContents((prev) => {
       const newContents = [...prev];
       newContents[activeFile] =
@@ -122,7 +202,6 @@ export default function ExerciseEditor({
               <MarkdownPreview content={problemMarkdown} />
             ) : (
               <div className="h-full flex flex-col">
-                {/* Solution file tabs if multiple files */}
                 {solutionFiles.length > 1 && (
                   <div className="flex border-b bg-muted">
                     {solutionFiles.map((file, index) => (
@@ -140,14 +219,12 @@ export default function ExerciseEditor({
                     ))}
                   </div>
                 )}
-
-                {/* Solution editor */}
                 <div className="flex-1">
                   <Editor
                     editorContent={
                       solutionFiles[activeSolutionFile]?.content || ""
                     }
-                    setEditorContent={() => {}} // Read-only, no-op function
+                    setEditorContent={() => {}}
                     language="go"
                     options={{
                       readOnly: true,
@@ -170,7 +247,6 @@ export default function ExerciseEditor({
       {/* Right panel: Editor + Terminal Output */}
       <ResizablePanel minSize={20}>
         <ResizablePanelGroup direction="vertical">
-          {/* Editor panel */}
           <ResizablePanel defaultSize={50}>
             <EditorHeader
               files={files.map((file, x) => ({
@@ -180,17 +256,59 @@ export default function ExerciseEditor({
               activeFile={activeFile}
               onFileChange={setActiveFile}
               onSubmit={onSubmit}
+              onSave={onSave}
+              onReset={onReset}
+              disabled={resetting}
             />
+
+            <div className="flex items-center justify-end gap-3 p-2 border-t bg-muted/40">
+              <span className="text-sm text-muted-foreground">
+                Rate this exercise:
+              </span>
+
+              <Button
+                variant={userRating === "up" ? "default" : "outline"}
+                size="icon"
+                disabled={ratingLoading || !canRate}
+                onClick={() => handleRating(true)}
+                className="w-8 h-8"
+              >
+                <ThumbsUp className="w-4 h-4" />
+              </Button>
+
+              <Button
+                variant={userRating === "down" ? "default" : "outline"}
+                size="icon"
+                disabled={ratingLoading || !canRate}
+                onClick={() => handleRating(false)}
+                className="w-8 h-8"
+              >
+                <ThumbsDown className="w-4 h-4" />
+              </Button>
+            </div>
+
             <Editor
               editorContent={fileContents[activeFile]}
               setEditorContent={setEditorContent}
               language={files[activeFile].fileType}
+              options={{
+                readOnly: resetting,
+                minimap: { enabled: false },
+              }}
             />
+
+            {resetting && (
+              <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm z-10">
+                <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
+                  <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  <span>Resetting to starter code...</span>
+                </div>
+              </div>
+            )}
           </ResizablePanel>
 
           <ResizableHandle withHandle />
 
-          {/* Terminal Output panel */}
           <ResizablePanel defaultSize={50}>
             <TerminalOutput messages={messages} />
           </ResizablePanel>

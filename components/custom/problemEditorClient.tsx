@@ -1,19 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Plus, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -175,6 +175,7 @@ export default function ProblemEditorClient({
             onFileChange={setActiveFile}
             onSubmit={handleSubmit}
             onSave={handleSave}
+            onReset={() => {}}
           />
 
           <div className="flex-shrink-0 flex items-center justify-between gap-2 p-2 border-b bg-muted/30 flex-wrap">

@@ -1,9 +1,9 @@
 "use client";
+import { Virtuoso } from "react-virtuoso";
 import type {
   StreamingJobResult,
   StreamingJobResultEvent,
 } from "@/app/api/stream/route";
-import { Virtuoso } from "react-virtuoso";
 
 type TerminalOutputProps = {
   messages: StreamingJobResult[];

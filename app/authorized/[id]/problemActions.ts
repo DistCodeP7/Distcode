@@ -1,11 +1,11 @@
 "use server";
 
+import { eq } from "drizzle-orm";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { getUserById, getUserIdByEmail } from "@/lib/user";
-import { db } from "@/lib/db";
 import { problems } from "@/drizzle/schema";
-import { eq } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { getUserById } from "@/lib/user";
 
 export type ApiResult =
   | { success: true; message: string; status: number }
@@ -25,12 +25,8 @@ export type SaveProblemParams = {
 
 export async function saveProblem(data: SaveProblemParams) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
+  if (!session?.user?.id) {
     return { success: false, error: "Not authenticated", status: 401 };
-  }
-  const userId = await getUserIdByEmail(session.user.email);
-  if (!userId) {
-    return { success: false, error: "User not found", status: 404 };
   }
 
   const { id, isPublished = false, ...problemData } = data;
@@ -43,7 +39,7 @@ export async function saveProblem(data: SaveProblemParams) {
     if (!existingProblem) {
       return { success: false, error: "Problem not found", status: 404 };
     }
-    if (existingProblem.userId !== userId) {
+    if (existingProblem.userId !== session.user.id) {
       return { success: false, error: "Forbidden", status: 403 };
     }
   }
@@ -100,7 +96,7 @@ export async function saveProblem(data: SaveProblemParams) {
     } else {
       await db
         .insert(problems)
-        .values({ ...problemData, userId, isPublished, rating: 0 });
+        .values({ ...problemData, userId: session.user.id, isPublished });
     }
 
     return {
@@ -140,7 +136,7 @@ export async function deleteProblem(id: number): Promise<ApiResult> {
   if (!existingProblem) {
     return { success: false, error: "Problem not found", status: 404 };
   }
-  if (existingProblem.userId !== userId.id) {
+  if (existingProblem.userId !== session.user.id) {
     return { success: false, error: "Forbidden", status: 403 };
   }
 

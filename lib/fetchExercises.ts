@@ -1,6 +1,6 @@
-import { problems } from "@/drizzle/schema";
-import { db } from "@/lib/db";
 import { eq } from "drizzle-orm";
+import { problems, ratings } from "@/drizzle/schema";
+import { db } from "@/lib/db";
 
 export type ExerciseRow = {
   id: number;
@@ -16,21 +16,29 @@ export async function fetchExercises(): Promise<ExerciseRow[]> {
   const dbExercises = await db
     .select({
       id: problems.id,
-      rating: problems.rating,
       name: problems.title,
       description: problems.description,
       difficulty: problems.difficulty,
     })
     .from(problems)
-    .where(eq(problems.isPublished, true));
+    .leftJoin(ratings, eq(ratings.problemId, problems.id))
+    .where(eq(problems.isPublished, true))
+    .groupBy(problems.id);
 
-  if (!dbExercises) return [];
+  const exerciseRows = dbExercises.map(async (ex) => {
+    const sum = await db
+      .select({ liked: ratings.liked })
+      .from(ratings)
+      .where(eq(ratings.problemId, ex.id));
+    const rating = sum.reduce((acc, curr) => acc + (curr.liked ? 1 : -1), 0);
+    return {
+      id: ex.id,
+      rating,
+      name: ex.name,
+      description: ex.description,
+      difficulty: difficultyMap[ex.difficulty as 1 | 2 | 3],
+    };
+  });
 
-  return dbExercises.map((ex) => ({
-    id: ex.id,
-    rating: ex.rating,
-    name: ex.name,
-    description: ex.description,
-    difficulty: difficultyMap[ex.difficulty as 1 | 2 | 3],
-  }));
+  return await Promise.all(exerciseRows);
 }
