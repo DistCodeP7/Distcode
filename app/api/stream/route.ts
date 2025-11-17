@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { RabbitMQReceiver } from "@/app/mq/RabbitMQReceiver";
-import { getUserIdByEmail } from "@/lib/user";
 import { authOptions } from "../auth/[...nextauth]/route";
+import { getUserById } from "@/lib/user";
 
 type Client = {
   controller: ReadableStreamDefaultController<Uint8Array>;
@@ -116,9 +116,9 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const userId = await getUserIdByEmail(session.user.email);
-  if (!userId) {
-    return NextResponse.json({ error: "User not found." }, { status: 404 });
+  const user = await getUserById(session.user.id);
+  if (!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
   jobResultListener.start(
@@ -132,16 +132,16 @@ export async function GET() {
     start: (controller) => {
       const client: Client = { controller, encoder };
       clientRef = client;
-      clientManager.addClient(userId, client);
+      clientManager.addClient(user.id, client);
       clientManager.dispatchJobResultToClients({
         JobId: 0,
         SequenceIndex: 0,
         Events: [{ Kind: "stdout", Message: "Connected to stream." }],
-        UserId: userId,
+        UserId: user.id,
       });
     },
     cancel: () => {
-      clientManager.removeClient(userId, clientRef);
+      clientManager.removeClient(user.id, clientRef);
       if (!clientManager.hasClients()) jobResultListener.stop();
     },
   });
