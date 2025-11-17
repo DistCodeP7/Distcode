@@ -18,6 +18,7 @@ import {
   submitCode,
   resetCode,
   rateExercise,
+  saveToLocalStorage,
 } from "@/app/exercises/[id]/actions";
 import { toast } from "sonner";
 
@@ -153,6 +154,16 @@ export default function ExerciseEditor({
     });
   };
 
+  const codeToLocalStorage = async () => {
+    const content = fileContents;
+    while (true) {
+      //Save to local storage every 30 seconds
+      await new Promise((resolve) => setTimeout(resolve, 30000));
+      if (resetting) continue; // don't save while resetting
+      await saveToLocalStorage(content, { params: { id: exerciseId } });
+    }
+  };
+
   function setEditorContent(value: React.SetStateAction<string>): void {
     if (resetting) return; // disable editing while resetting
     setFileContents((prev) => {
@@ -244,6 +255,7 @@ export default function ExerciseEditor({
       <ResizableHandle withHandle />
 
       {/* Right panel: Editor + Terminal Output */}
+      {codeToLocalStorage()}
       <ResizablePanel minSize={20}>
         <ResizablePanelGroup direction="vertical">
           <ResizablePanel defaultSize={50}>

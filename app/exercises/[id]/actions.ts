@@ -56,6 +56,26 @@ export async function submitCode(
   return { success: true, message: "Code submitted successfully" };
 }
 
+export async function saveToLocalStorage(
+  content: string[],
+  { params }: { params: { id: number } }
+) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { error: "Unauthorized", status: 401 };
+
+  const user = await getUserById(session.user.id);
+  if (!user) return { error: "User not found.", status: 404 };
+
+  const problemId = Number(params.id);
+
+  if (Number.isNaN(problemId))
+    return { error: "Invalid exercise id", status: 400 };
+
+  localStorage.setItem(`exercise_${problemId}_code`, JSON.stringify(content));
+
+  return { success: true, message: "Code saved to local storage." };
+}
+
 export async function saveCode(
   content: string[],
   { params }: { params: { id: number } }
