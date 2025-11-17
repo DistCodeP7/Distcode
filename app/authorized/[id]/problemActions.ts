@@ -1,11 +1,11 @@
 "use server";
 
+import { eq } from "drizzle-orm";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { getUserById, getUserIdByEmail } from "@/lib/user";
-import { db } from "@/lib/db";
 import { problems } from "@/drizzle/schema";
-import { eq } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { getUserById, getUserIdByEmail } from "@/lib/user";
 
 export type ApiResult =
   | { success: true; message: string; status: number }
@@ -98,9 +98,7 @@ export async function saveProblem(data: SaveProblemParams) {
         .set({ ...problemData, isPublished })
         .where(eq(problems.id, id));
     } else {
-      await db
-        .insert(problems)
-        .values({ ...problemData, userId, isPublished});
+      await db.insert(problems).values({ ...problemData, userId, isPublished });
     }
 
     return {

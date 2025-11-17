@@ -8,7 +8,6 @@ import {
   check,
   json,
   boolean,
-  jsonb,
 } from "drizzle-orm/pg-core";
 
 import { sql } from "drizzle-orm/sql/sql";
@@ -35,9 +34,9 @@ export const problems = pgTable(
   "problems",
   {
     id: serial("id").primaryKey(),
-    userId: integer("user_id")
+    userId: varchar("user_id")
       .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
+      .references(() => users.userid, { onDelete: "cascade" }),
     title: varchar("title", { length: 256 }).notNull(),
     description: text("description").notNull(),
     difficulty: integer("difficulty").notNull(),
@@ -58,27 +57,27 @@ export const NewProblemSchema = createInsertSchema(problems).omit({
 
 export type TProblem = zod.infer<typeof ProblemsSchema>;
 
-export const attempts = pgTable("attempts", {
+export const userCode = pgTable("userCode", {
     id: serial("id").primaryKey(),
-    userId: integer("user_id")
+    userId: varchar("user_id")
         .notNull()
-        .references(() => users.id, { onDelete: "cascade" }),
+        .references(() => users.userid, { onDelete: "cascade" }),
     problemId: integer("problem_id")
         .notNull()
         .references(() => problems.id, { onDelete: "cascade" }),
     codeSubmitted: json("code_submitted").$type<string[]>().notNull(),
 });
 
-export const AttemptsSchema = createSelectSchema(attempts);
-export const NewAttemptSchema = createInsertSchema(attempts).omit({ id: true });
+export const UserCodeSchema = createSelectSchema(userCode);
+export const NewUserCodeSchema = createInsertSchema(userCode).omit({ id: true });
 
-export type TAttempt = zod.infer<typeof AttemptsSchema>;
+export type TUserCode = zod.infer<typeof UserCodeSchema>;
 
 export const ratings = pgTable("ratings", {
     id: serial("id").primaryKey(),
-    userId: integer("user_id")
+    userId: varchar("user_id")
         .notNull()
-        .references(() => users.id, { onDelete: "cascade" }),
+        .references(() => users.userid, { onDelete: "cascade" }),
     problemId: integer("problem_id")
         .notNull()
         .references(() => problems.id, { onDelete: "cascade" }),
