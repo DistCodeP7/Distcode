@@ -47,7 +47,7 @@ export async function submitCode(
 
   const payload = {
     ProblemId: problemId,
-    UserId: user.id,
+    UserId: user.userid,
     Code: content,
     Timeoutlimit: 60,
   };
