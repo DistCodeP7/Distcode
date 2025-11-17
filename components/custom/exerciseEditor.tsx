@@ -1,25 +1,26 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import { BookOpen, Code, ThumbsDown, ThumbsUp } from "lucide-react";
+import type React from "react";
+import { useState, useTransition } from "react";
+import { toast } from "sonner";
+import type { StreamingJobResult } from "@/app/api/stream/route";
+import {
+  rateExercise,
+  resetCode,
+  saveCode,
+  submitCode,
+} from "@/app/exercises/[id]/actions";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
+import { TerminalOutput } from "@/components/custom/TerminalOutput";
+import { Button } from "@/components/ui/button";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { useSSE } from "@/hooks/useSSE";
-import type { StreamingJobResult } from "@/app/api/stream/route";
-import { TerminalOutput } from "@/components/custom/TerminalOutput";
-import { Button } from "@/components/ui/button";
-import { BookOpen, Code, ThumbsUp, ThumbsDown } from "lucide-react";
-import {
-  saveCode,
-  submitCode,
-  resetCode,
-  rateExercise,
-} from "@/app/exercises/[id]/actions";
-import { toast } from "sonner";
 
 type ExerciseEditorProps = {
   exerciseId: number;
@@ -147,7 +148,7 @@ export default function ExerciseEditor({
         } else {
           toast.error(result.error || "Failed to rate exercise");
         }
-      } catch (err) {
+      } catch (_) {
         toast.error("Error submitting rating");
       }
     });
