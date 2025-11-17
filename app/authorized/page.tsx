@@ -6,11 +6,10 @@ import { DeleteButton } from "@/app/authorized/deleteButton";
 import NeonLines from "@/components/custom/NeonLine";
 import { Button } from "@/components/ui/button";
 import { getProblemsByUserId } from "@/lib/problems";
-import { getUserIdByEmail } from "@/lib/user";
 
 export default async function ProblemListPage() {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
+  if (!session?.user?.id) {
     return (
       <div className="container mx-auto py-10">
         <h1 className="text-2xl font-bold">Your Problems</h1>
@@ -21,17 +20,7 @@ export default async function ProblemListPage() {
     );
   }
 
-  const userId = await getUserIdByEmail(session.user.email);
-  if (!userId) {
-    return (
-      <div className="container mx-auto py-10">
-        <h1 className="text-2xl font-bold">Your Problems</h1>
-        <p className="mt-4 text-muted-foreground">User not found.</p>
-      </div>
-    );
-  }
-
-  const submissions = await getProblemsByUserId(userId);
+  const submissions = await getProblemsByUserId(session.user.id);
 
   return (
     <div className="relative w-full min-h-screen py-10">

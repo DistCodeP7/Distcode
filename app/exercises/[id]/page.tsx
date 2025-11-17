@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import ExerciseEditor from "@/components/custom/exerciseEditor";
-import { getUserIdByEmail } from "@/lib/user";
 import {
   getExercise,
   hasUserSubmitted,
@@ -27,19 +26,16 @@ export default async function ExercisePage({
   let userRating: "up" | "down" | null = null;
   let canRate = false;
 
-  if (session?.user?.email) {
-    const userId = await getUserIdByEmail(session.user.email);
-    if (userId) {
-      const saved = await loadSavedCode({ params: { id: exerciseParams.id } });
-      if (saved?.success) savedCode = saved.code;
+  if (session?.user?.id) {
+    const saved = await loadSavedCode({ params: { id: exerciseParams.id } });
+    if (saved?.success) savedCode = saved.code;
 
-      canRate = await hasUserSubmitted({ params: { id: exerciseParams.id } });
+    canRate = await hasUserSubmitted({ params: { id: exerciseParams.id } });
 
-      const rating = await loadUserRating({
-        params: { id: exerciseParams.id },
-      });
-      if (rating === "up" || rating === "down") userRating = rating;
-    }
+    const rating = await loadUserRating({
+      params: { id: exerciseParams.id },
+    });
+    if (rating === "up" || rating === "down") userRating = rating;
   }
 
   return (

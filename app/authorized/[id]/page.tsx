@@ -5,7 +5,6 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import ProblemEditorClient from "@/components/custom/problemEditorClient";
 import { db } from "@/lib/db";
-import { getUserIdByEmail } from "@/lib/user";
 
 export default async function EditProblemPage({
   params,
@@ -15,17 +14,14 @@ export default async function EditProblemPage({
   const { id } = await params;
 
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) return notFound();
-
-  const userId = await getUserIdByEmail(session.user.email);
-  if (!userId) return notFound();
+  if (!session?.user?.id) return notFound();
 
   if (Number.isNaN(id)) return notFound();
 
   const exercise = await db.query.problems.findFirst({
     where: (s, { eq }) => eq(s.id, Number(id)),
   });
-  if (!exercise || exercise.userId !== userId) return notFound();
+  if (!exercise || exercise.userId !== session.user.id) return notFound();
 
   const makeFiles = (prefix: string, codes: string[]) =>
     codes.map((_, i) => ({
