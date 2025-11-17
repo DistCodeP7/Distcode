@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { problems, ratings } from "@/drizzle/schema";
 import { db } from "./db";
 
@@ -50,22 +50,27 @@ export async function getProblemsByUserId(
       description: problems.description,
       difficulty: problems.difficulty,
       isPublished: problems.isPublished,
-      rating:
-        sql<number>`COALESCE(SUM(CASE WHEN ${ratings.liked} THEN 1 ELSE -1 END), 0)`.as(
-          "rating"
-        ),
     })
     .from(problems)
     .leftJoin(ratings, eq(problems.id, ratings.problemId))
     .where(eq(problems.userId, userId))
     .groupBy(problems.id);
 
-  return result.map((row) => ({
-    id: row.id,
-    title: row.title,
-    description: row.description,
-    difficulty: row.difficulty,
-    isPublished: row.isPublished,
-    rating: row.rating === 0 ? null : row.rating,
-  }));
+  const problemRows = result.map(async (ex) => {
+    const sum = await db
+      .select({ liked: ratings.liked })
+      .from(ratings)
+      .where(eq(ratings.problemId, ex.id));
+    const rating = sum.reduce((acc, curr) => acc + (curr.liked ? 1 : -1), 0);
+    return {
+      isPublished: ex.isPublished,
+      id: ex.id,
+      title: ex.title,
+      description: ex.description,
+      rating,
+      difficulty: ex.difficulty,
+    };
+  });
+
+  return await Promise.all(problemRows);
 }
