@@ -42,16 +42,19 @@ export async function submitCode(
   const user = await getUserById(session.user.id);
   if (!user) return { error: "User not found.", status: 404 };
 
+
   const problemId = Number(params.id);
   if (Number.isNaN(problemId))
     return { error: "Invalid exercise id", status: 400 };
 
-  MQJobsSender.sendMessage({
+  const payload = {
     ProblemId: problemId,
     UserId: user.id,
     Code: content,
     Timeoutlimit: 60,
-  });
+  };
+
+  MQJobsSender.sendMessage(payload);
 
   return { success: true, message: "Code submitted successfully" };
 }
