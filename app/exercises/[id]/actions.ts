@@ -236,7 +236,7 @@ export async function hasUserSubmitted({ params }: { params: { id: number } }) {
 
   if (!problem.length) return false;
 
-  const attemptsForUser = await db
+  const UserCode = await db
     .select()
     .from(userCode)
     .where(
@@ -246,5 +246,5 @@ export async function hasUserSubmitted({ params }: { params: { id: number } }) {
       )
     )
     .limit(1);
-  return attemptsForUser.length > 0;
+  return UserCode.length > 0;
 }

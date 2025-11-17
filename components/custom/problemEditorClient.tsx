@@ -175,9 +175,7 @@ export default function ProblemEditorClient({
             onFileChange={setActiveFile}
             onSubmit={handleSubmit}
             onSave={handleSave}
-            onReset={(): void => {
-              throw new Error("Function not implemented.");
-            }}
+            onReset={() => {}}
           />
 
           <div className="flex-shrink-0 flex items-center justify-between gap-2 p-2 border-b bg-muted/30 flex-wrap">
