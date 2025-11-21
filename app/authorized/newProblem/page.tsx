@@ -7,13 +7,13 @@ export default function NewProblemPage() {
 
   const files: nodeSpec = {
     name: "New Problem",
-    files: new Map<string, string>([
-      ["/problem.md", ""],
-      ["/template/main.go", ""],
-      ["/solution/main.go", ""],
-      ["/test/main.go", ""],
-      ["/proto/protocol.go", ""],
-    ]),
+    files: {
+      "/problem.md": "",
+      "/template/main.go": "",
+      "/solution/main.go": "",
+      "/test/main.go": "",
+      "/proto/protocol.go": "",
+    },
     envs: [],
   };
 

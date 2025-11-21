@@ -23,7 +23,7 @@ export type EnvironmentVariable = {
   value: string;
 }
 
-export type Filemap = Map<Path, code>;
+export type Filemap = Record<Path, code>;
 
 export type nodeSpec = {
   name: string;

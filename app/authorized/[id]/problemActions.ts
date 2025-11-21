@@ -31,32 +31,44 @@ export async function saveProblem(data: SaveProblemParams) {
         })
       : undefined;
 
-  const files = problemData.codeFolder.files;
-  if (files.size === 0) {
+  const filesObj = problemData.codeFolder.files;
+
+  if (Object.keys(filesObj).length === 0) {
     return {
       success: false,
       error: "Code folder cannot be empty",
       status: 400,
     };
   }
-  if (!files.has("/solution/main.go")) {
+  if (!("/solution/main.go" in filesObj)) {
     return { success: false, error: "Solution file is required", status: 400 };
   }
-  if (!files.has("/test/main.go")) {
+  if (!("/test/main.go" in filesObj)) {
     return { success: false, error: "Tests file is required", status: 400 };
   }
-  if (!files.has("/template/main.go")) {
+  if (!("/template/main.go" in filesObj)) {
     return { success: false, error: "Template file is required", status: 400 };
   }
-
-  if (!files.has("/proto/protocol.go")) {
+  if (!("/proto/protocol.go" in filesObj)) {
     return { success: false, error: "Protocol file is required", status: 400 };
   }
+  console.log(problemData.codeFolder);
 
   if (existingProblem) {
     await db
       .update(problems)
-      .set({ ...problemData, isPublished })
+      .set({
+        difficulty: problemData.difficulty,
+        description: problemData.description,
+        title: problemData.title,
+        problemMarkdown: problemData.problemMarkdown,
+        codeFolder: {
+          name: problemData.codeFolder.name,
+          files: filesObj,
+          envs: [],
+        },
+        isPublished,
+      })
       .where(eq(problems.id, existingProblem.id));
     return { success: true, message: "Problem updated", status: 200 };
   } else {
@@ -64,12 +76,24 @@ export async function saveProblem(data: SaveProblemParams) {
     if (!user) {
       return { success: false, error: "User not found", status: 404 };
     }
+    const result = await db
+      .insert(problems)
+      .values({
+        difficulty: problemData.difficulty,
+        description: problemData.description,
+        title: problemData.title,
+        problemMarkdown: problemData.problemMarkdown,
+        codeFolder: {
+          name: problemData.codeFolder.name,
+          files: filesObj,
+          envs: [],
+        },
+        isPublished,
+        userId: user.userid,
+      })
+      .returning();
 
-    await db.insert(problems).values({
-      ...problemData,
-      isPublished,
-      userId: user.userid,
-    });
+    console.log("Inserted problem:", result);
     return { success: true, message: "Problem created", status: 201 };
   }
 }

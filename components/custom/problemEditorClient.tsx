@@ -46,54 +46,16 @@ export default function ProblemEditorClient({
   initialDifficulty?: string;
   problemId?: number;
 }) {
-  // Normalize incoming `files` prop. It may be:
-  // - a Filemap (Map<string,string>)
-  // - a plain object { filename: content }
-  // - a nodeSpec-like object { name, files, envs }
-  const normalizeToMap = (inp: typeof files): Filemap => {
-    if (inp instanceof Map) return new Map(inp);
-    if (inp && typeof inp === "object") {
-      const asObj = inp as Record<string, unknown>;
-      const maybeFiles = asObj.files;
-      if (maybeFiles instanceof Map)
-        return new Map(maybeFiles as Map<string, string>);
-      if (maybeFiles && typeof maybeFiles === "object")
-        return new Map(Object.entries(maybeFiles as Record<string, string>));
-      return new Map(Object.entries(asObj as Record<string, string>));
-    }
-    return new Map();
-  };
-
-  // Ensure we have a Map instance and keep insertion order
-  const [currentFiles, setCurrentFiles] = useState<Filemap>(
-    normalizeToMap(files)
+  const [currentFiles, setCurrentFiles] = useState<string[]>(
+    files ? Object.keys(files) : ["/problem.md"]
   );
   const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
 
-  // Build ordered file arrays derived from the Map for the hook and header
-  const fileList = Array.from(currentFiles.keys()).map((k) =>
-    k.startsWith("/") ? k : `/${k}`
-  );
-
-  const filesForHook = fileList.map(
-    (name) =>
-      ({
-        name,
-        fileType: (name.endsWith(".md") ? "markdown" : "go") as
-          | "markdown"
-          | "go",
-      }) as const
-  );
-
-  const filesForHeader = fileList.map(
-    (name) =>
-      ({
-        name: name.replace(/^\//, ""),
-        fileType: (name.endsWith(".md") ? "markdown" : "go") as
-          | "markdown"
-          | "go",
-      }) as const
-  );
+  const filesForHook: { name: string; fileType: "markdown" | "go" }[] =
+    currentFiles.map((name: string) => ({
+      name: String(name),
+      fileType: name.endsWith(".md") ? "markdown" : "go",
+    }));
 
   const pairCount = filesForHook.filter((f) =>
     f.name.startsWith("/template")
@@ -132,37 +94,42 @@ export default function ProblemEditorClient({
         "// Write your solution code here\n",
       ],
     ];
-
     setCurrentFiles((prev) => {
-      const entries = Array.from(prev.entries());
-      const index = entries.findIndex(([name]) => name.startsWith("/test"));
-      if (index === -1) {
-        return new Map([...entries, ...newEntries]);
-      }
-      const newEntriesArr = [
+      const entries = [...prev];
+      const index = entries.findIndex(
+        (name) => name.startsWith("/test") || name.endsWith("testCases.go")
+      );
+      const insertNames = newEntries.map(([p]) => p);
+      if (index === -1) return [...entries, ...insertNames];
+      return [
         ...entries.slice(0, index),
-        ...newEntries,
+        ...insertNames,
         ...entries.slice(index),
       ];
-      return new Map(newEntriesArr);
     });
   };
 
   const removeFilesPair = () => {
     if (pairCount <= 1) return;
     setCurrentFiles((prev) => {
-      const entries = Array.from(prev.entries());
-      const reversed = [...entries].reverse();
-      const lastTemplate = reversed.find(([name]) =>
-        name.includes("template")
-      )?.[0];
-      const lastSolution = reversed.find(([name]) =>
-        name.includes("solution")
-      )?.[0];
-      const filtered = entries.filter(
-        ([name]) => name !== lastTemplate && name !== lastSolution
-      );
-      return new Map(filtered);
+      const entries = [...prev];
+      // find last template/solution entries
+      const lastTemplateIndex = [...entries]
+        .reverse()
+        .findIndex((name) => name.includes("template"));
+      const lastSolutionIndex = [...entries]
+        .reverse()
+        .findIndex((name) => name.includes("solution"));
+      const toRemove: Set<string> = new Set();
+      if (lastTemplateIndex !== -1) {
+        const idx = entries.length - 1 - lastTemplateIndex;
+        toRemove.add(entries[idx]);
+      }
+      if (lastSolutionIndex !== -1) {
+        const idx = entries.length - 1 - lastSolutionIndex;
+        toRemove.add(entries[idx]);
+      }
+      return entries.filter((name) => !toRemove.has(name));
     });
   };
 
@@ -224,7 +191,11 @@ export default function ProblemEditorClient({
         className="flex-1 border h-full w-full min-w-0"
       >
         <ResizablePanel minSize={20} className="flex-1 min-w-0 overflow-auto">
-          <MarkdownPreview content={filesContent.get("/problem.md") || ""} />
+          <MarkdownPreview
+            content={
+              (filesContent as Record<string, string>)["/problem.md"] || ""
+            }
+          />
         </ResizablePanel>
 
         <ResizableHandle withHandle />
@@ -234,7 +205,10 @@ export default function ProblemEditorClient({
           className="flex-1 flex flex-col min-w-0 overflow-hidden"
         >
           <EditorHeader
-            files={filesForHeader}
+            files={filesForHook.map((f) => ({
+              ...f,
+              name: f.name.replace(/^\//, ""),
+            }))}
             activeFile={activeFile}
             onFileChange={setActiveFile}
             onSubmit={handleSubmit}
@@ -312,7 +286,9 @@ export default function ProblemEditorClient({
           <div className="flex-1 overflow-auto min-w-0">
             <Editor
               editorContent={
-                filesContent.get(filesForHook[activeFile]?.name || "") || ""
+                (filesContent as Record<string, string>)[
+                  filesForHook[activeFile]?.name || ""
+                ] || ""
               }
               setEditorContent={handleEditorContentChange}
               language={

@@ -2,15 +2,10 @@
 
 import { BookOpen, Code, ThumbsDown, ThumbsUp } from "lucide-react";
 import type React from "react";
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { toast } from "sonner";
 import type { StreamingJobResult } from "@/app/api/stream/route";
-import {
-  rateExercise,
-  resetCode,
-  saveCode,
-  submitCode,
-} from "@/app/exercises/[id]/actions";
+import { rateExercise, submitCode } from "@/app/exercises/[id]/actions";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
 import { TerminalOutput } from "@/components/custom/TerminalOutput";
@@ -22,7 +17,6 @@ import {
 } from "@/components/ui/resizable";
 import { useSSE } from "@/hooks/useSSE";
 import type { nodeSpec } from "@/drizzle/schema";
-import { fi } from "zod/v4/locales";
 
 type ExerciseEditorProps = {
   exerciseId: number;
@@ -33,6 +27,7 @@ type ExerciseEditorProps = {
 };
 
 type FileDatas = {
+  path: string;
   name: string;
   content: string;
   fileType: "go" | "markdown";
@@ -47,30 +42,43 @@ export default function ExerciseEditor({
 }: ExerciseEditorProps) {
   const [activeFile, setActiveFile] = useState(0);
 
-  const files: FileDatas[] = Array.from(codeFolder.files.entries()).map(
-    ([path, content]) => ({
-      name: path.split("/").pop() || path,
-      content,
-      fileType: path.endsWith(".go") ? "go" : "markdown",
-    })
-  );
+  const rawEntries: [string, string][] =
+    codeFolder.files instanceof Map
+      ? Array.from((codeFolder.files as Map<string, string>).entries())
+      : Object.entries((codeFolder.files as Record<string, string>) || {});
+
+  const files: FileDatas[] = rawEntries.map(([path, content]) => ({
+    path,
+    name: path.split("/").pop() || path,
+    content,
+    fileType: path.endsWith(".go") ? "go" : "markdown",
+  }));
   const [fileContents, setFileContents] = useState<string[]>(
     files.map((file) => file.content)
   );
 
+  // Keep fileContents and activeFile in sync when the available files change
+  useEffect(() => {
+    setFileContents(files.map((file) => file.content));
+    // clamp activeFile to valid range using updater to avoid linting on activeFile
+    setActiveFile((prev) => {
+      if (files.length === 0) return 0;
+      if (prev >= files.length) return Math.max(0, files.length - 1);
+      return prev;
+    });
+  }, [files]);
+
   const solutionFiles = files.filter((file) =>
-    file.name.startsWith("/solution")
+    file.path.startsWith("/solution")
   );
 
-  const templateCode = files.filter((file) =>
-    file.name.startsWith("/template")
-  );
+  // const templateCode = files.filter((file) => file.path.startsWith("/template"));
 
-  const [resetting, setResetting] = useState(false);
+  const [resetting] = useState(false);
   const [userRating, setUserRating] = useState<"up" | "down" | null>(
     initialUserRating
   );
-  const [canRate, setCanRate] = useState(initialCanRate);
+  const [canRate] = useState(initialCanRate);
   const [ratingLoading, startRatingTransition] = useTransition();
 
   const [leftPanelView, setLeftPanelView] = useState<"problem" | "solution">(
@@ -93,8 +101,8 @@ export default function ExerciseEditor({
     connect();
     const problemContent: nodeSpec = {
       name: codeFolder.name,
-      files: new Map(
-        files.map((file, index) => [file.name, fileContents[index]])
+      files: Object.fromEntries(
+        files.map((file, index) => [file.path, fileContents[index]])
       ),
       envs: codeFolder.envs,
     };
@@ -266,7 +274,8 @@ export default function ExerciseEditor({
           <ResizablePanel defaultSize={50}>
             <EditorHeader
               files={files.map((file) => ({
-                ...file,
+                name: file.name,
+                fileType: file.fileType,
               }))}
               activeFile={activeFile}
               onFileChange={setActiveFile}
@@ -303,9 +312,11 @@ export default function ExerciseEditor({
             </div>
 
             <Editor
-              editorContent={fileContents[activeFile]}
+              editorContent={fileContents[activeFile] ?? ""}
               setEditorContent={setEditorContent}
-              language={files[activeFile].fileType}
+              language={
+                files[activeFile]?.fileType === "go" ? "go" : "markdown"
+              }
               options={{
                 readOnly: resetting,
                 minimap: { enabled: false },

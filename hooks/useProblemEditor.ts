@@ -44,21 +44,15 @@ export const useProblemEditor = (
   }
 ) => {
   const [state, setState] = useState<ProblemEditorState>(() => {
-    // Initialize Filemap (Map) for files
-    const filesMap: Filemap = new Map<string, string>();
+    // Initialize Filemap (now a plain object) for files
+    const filesMap: Filemap = {} as Record<string, string>;
     for (const file of files) {
       let content: string | undefined;
-      const ic = initial?.filesContent as unknown;
-      if (typeof ic === "object" && ic !== null) {
-        // if initial.filesContent is a Map (Filemap)
-        const maybeMap = ic as Filemap | Record<string, string> | undefined;
-        if (maybeMap instanceof Map) {
-          content = maybeMap.get(file.name);
-        } else if (typeof maybeMap === "object" && maybeMap !== null) {
-          content = (maybeMap as Record<string, string>)[file.name];
-        }
+      const ic = initial?.filesContent as Filemap | undefined;
+      if (ic && typeof ic === "object") {
+        content = (ic as Record<string, string>)[file.name];
       }
-      filesMap.set(file.name, content ?? getInitialContent(file));
+      filesMap[file.name] = content ?? getInitialContent(file);
     }
 
     return {
@@ -73,12 +67,15 @@ export const useProblemEditor = (
 
   const syncFilesContent = useCallback(() => {
     setState((prev) => {
-      const newFiles = new Map(prev.filesContent);
+      const newFiles: Record<string, string> = {
+        ...(prev.filesContent as Record<string, string>),
+      };
       for (const file of files) {
-        if (!newFiles.has(file.name))
-          newFiles.set(file.name, getInitialContent(file));
+        if (!(file.name in newFiles)) {
+          newFiles[file.name] = getInitialContent(file);
+        }
       }
-      return { ...prev, filesContent: newFiles };
+      return { ...prev, filesContent: newFiles as Filemap };
     });
   }, [files]);
 
@@ -87,12 +84,15 @@ export const useProblemEditor = (
       setState((prev) => {
         const activeFileName = files[prev.activeFile]?.name;
         if (!activeFileName) return prev;
-        const prevContent = prev.filesContent.get(activeFileName) ?? "";
+        const prevContent =
+          (prev.filesContent as Record<string, string>)[activeFileName] ?? "";
         const newContent =
           typeof value === "function" ? value(prevContent) : value;
-        const newFiles = new Map(prev.filesContent);
-        newFiles.set(activeFileName, newContent);
-        return { ...prev, filesContent: newFiles };
+        const newFiles: Record<string, string> = {
+          ...(prev.filesContent as Record<string, string>),
+        };
+        newFiles[activeFileName] = newContent;
+        return { ...prev, filesContent: newFiles as Filemap };
       });
     },
     [files]
@@ -125,7 +125,8 @@ export const useProblemEditor = (
         if (!["1", "2", "3"].includes(state.difficulty))
           missingFields.push("Difficulty");
 
-        const getContent = (name: string) => state.filesContent.get(name) ?? "";
+        const getContent = (name: string) =>
+          (state.filesContent as Record<string, string>)[name] ?? "";
         if (!getContent("/problem.md").trim())
           missingFields.push("Problem markdown");
 
@@ -158,11 +159,11 @@ export const useProblemEditor = (
             return;
           }
 
-        // Build nodeSpec payload for codeFolder using Map from state
-        const filesMap = state.filesContent;
+        // Build nodeSpec payload for codeFolder using plain object Filemap
+        const filesMap = state.filesContent as Record<string, string>;
         const codeFolder: nodeSpec = {
           name: "problem",
-          files: new Map(filesMap),
+          files: { ...filesMap } as Filemap,
           envs: [],
         };
 
@@ -171,7 +172,8 @@ export const useProblemEditor = (
           title: state.title,
           description: state.description,
           difficulty: parseInt(state.difficulty, 10),
-          problemMarkdown: state.filesContent.get("/problem.md") ?? "",
+          problemMarkdown:
+            (state.filesContent as Record<string, string>)["/problem.md"] ?? "",
           isPublished,
           codeFolder,
         };
