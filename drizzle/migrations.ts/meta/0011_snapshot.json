@@ -1,5 +1,5 @@
 {
-  "id": "d456e561-2d79-480b-8331-61afabff865a",
+  "id": "52501592-80cf-4e45-8130-dd1537e74822",
   "prevId": "061cc2e2-e091-4000-ab9f-dc00d513ddf9",
   "version": "7",
   "dialect": "postgresql",
@@ -46,12 +46,6 @@
         },
         "codefolder": {
           "name": "codefolder",
-          "type": "json",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "folder_structure": {
-          "name": "folder_structure",
           "type": "json",
           "primaryKey": false,
           "notNull": true

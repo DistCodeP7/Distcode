@@ -27,7 +27,7 @@ export type Filemap = Map<Path, code>;
 
 export type nodeSpec = {
   name: string;
-  files: code;
+  files: Filemap;
   envs: EnvironmentVariable[];
 }
 
@@ -58,8 +58,7 @@ export const problems = pgTable(
     description: text("description").notNull(),
     difficulty: integer("difficulty").notNull(),
     problemMarkdown: text("problem_markdown").notNull(),
-    codeEntry: json("codefolder").$type<nodeSpec>().notNull(),
-    folderStructure: json("folder_structure").$type<Filemap>().notNull(),
+    codeFolder: json("codefolder").$type<nodeSpec>().notNull(),
     isPublished: boolean("is_published").default(true).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },

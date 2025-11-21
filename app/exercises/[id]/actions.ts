@@ -4,6 +4,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { problems, ratings, userCode } from "@/drizzle/schema";
+import type { nodeSpec as NodeSpecType } from "@/drizzle/schema";
 import { db } from "@/lib/db";
 import { MQJobsSender } from "@/lib/mq";
 import { getUserById } from "@/lib/user";
@@ -45,11 +46,20 @@ export async function submitCode(
   if (Number.isNaN(problemId))
     return { error: "Invalid exercise id", status: 400 };
 
+  const folder_structure = await db
+    .select({ folderStructure: problems.folderStructure })
+    .from(problems)
+    .where(eq(problems.id, problemId))
+    .limit(1);
+  const codespec: NodeSpecType = {
+    name: "penis",
+    files: folder_structure,
+    envs: [],
+  };
+
   const payload = {
-    ProblemId: problemId,
-    UserId: user.userid,
-    Code: content,
-    Timeoutlimit: 60,
+    problemId,
+    codespec,
   };
 
   MQJobsSender.sendMessage(payload);
