@@ -2,7 +2,7 @@
 
 import { BookOpen, Code, ThumbsDown, ThumbsUp } from "lucide-react";
 import type React from "react";
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import type { StreamingJobResult } from "@/app/api/stream/route";
 import { rateExercise, submitCode } from "@/app/exercises/[id]/actions";
@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/resizable";
 import { useSSE } from "@/hooks/useSSE";
 import type { nodeSpec } from "@/drizzle/schema";
+import { code } from "motion/react-client";
 
 type ExerciseEditorProps = {
   exerciseId: number;
@@ -42,18 +43,18 @@ export default function ExerciseEditor({
 }: ExerciseEditorProps) {
   const [activeFile, setActiveFile] = useState(0);
 
-  const rawEntries: [string, string][] =
-    codeFolder.files instanceof Map
-      ? Array.from((codeFolder.files as Map<string, string>).entries())
-      : Object.entries((codeFolder.files as Record<string, string>) || {});
+  const files: FileDatas[] = useMemo(
+    () =>
+      Object.entries(codeFolder.files).map(([path, content]) => ({
+        path,
+        name: path,
+        content,
+        fileType: path.endsWith(".go") ? "go" : "markdown",
+      })),
+    [codeFolder.files]
+  );
 
-  const files: FileDatas[] = rawEntries.map(([path, content]) => ({
-    path,
-    name: path.split("/").pop() || path,
-    content,
-    fileType: path.endsWith(".go") ? "go" : "markdown",
-  }));
-  const [fileContents, setFileContents] = useState<string[]>(
+  const [fileContents, setFileContents] = useState<string[]>(() =>
     files.map((file) => file.content)
   );
 

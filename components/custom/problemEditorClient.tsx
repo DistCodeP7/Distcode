@@ -207,7 +207,6 @@ export default function ProblemEditorClient({
           <EditorHeader
             files={filesForHook.map((f) => ({
               ...f,
-              name: f.name.replace(/^\//, ""),
             }))}
             activeFile={activeFile}
             onFileChange={setActiveFile}
