@@ -4,7 +4,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { problems, ratings, userCode } from "@/drizzle/schema";
-import type { nodeSpec as NodeSpecType } from "@/drizzle/schema";
+import type { nodeSpec } from "@/drizzle/schema";
 import { db } from "@/lib/db";
 import { MQJobsSender } from "@/lib/mq";
 import { getUserById } from "@/lib/user";
@@ -33,7 +33,7 @@ export async function getExercise({ params }: { params: { id: number } }) {
 }
 
 export async function submitCode(
-  content: string[],
+  content: nodeSpec,
   { params }: { params: { id: number } }
 ) {
   const session = await getServerSession(authOptions);
@@ -46,15 +46,9 @@ export async function submitCode(
   if (Number.isNaN(ProblemId))
     return { error: "Invalid exercise id", status: 400 };
 
-  const Nodes = await db
-    .select({ folderStructure: problems.codeFolder })
-    .from(problems)
-    .where(eq(problems.id, ProblemId))
-    .limit(1);
-
   const payload = {
     ProblemId,
-    Nodes,
+    Nodes: content,
     UserId: user.userid,
     Timeout: 60,
   };
@@ -65,7 +59,7 @@ export async function submitCode(
 }
 
 export async function saveCode(
-  content: string[],
+  content: nodeSpec,
   { params }: { params: { id: number } }
 ) {
   const session = await getServerSession(authOptions);
@@ -131,7 +125,7 @@ export async function loadSavedCode({ params }: { params: { id: number } }) {
     return { error: "Submission not found.", status: 404 };
   }
 
-  return { success: true, code: problem.templateCode };
+  return { success: true, code: problem.codeFolder };
 }
 
 export async function loadUserRating({ params }: { params: { id: number } }) {
