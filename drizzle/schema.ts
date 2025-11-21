@@ -18,16 +18,16 @@ import * as zod from "zod";
 type Path = string;
 type code = string;
 
-type EnvironmentVariable = {
+export type EnvironmentVariable = {
   key: string;
   value: string;
 }
 
-type Filemap = Map<Path, code>;
+export type Filemap = Map<Path, code>;
 
-type nodeSpec = {
-  type: string;
-  files: Filemap;
+export type nodeSpec = {
+  name: string;
+  files: code;
   envs: EnvironmentVariable[];
 }
 
@@ -58,7 +58,8 @@ export const problems = pgTable(
     description: text("description").notNull(),
     difficulty: integer("difficulty").notNull(),
     problemMarkdown: text("problem_markdown").notNull(),
-    codefolder: json("codefolder").$type<nodeSpec>().notNull(),
+    codeEntry: json("codefolder").$type<nodeSpec>().notNull(),
+    folderStructure: json("folder_structure").$type<Filemap>().notNull(),
     isPublished: boolean("is_published").default(true).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
