@@ -5,7 +5,6 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import ProblemEditorClient from "@/components/custom/problemEditorClient";
 import { db } from "@/lib/db";
-import { nodeSpec } from "@/drizzle/schema";
 
 export default async function EditProblemPage({
   params,

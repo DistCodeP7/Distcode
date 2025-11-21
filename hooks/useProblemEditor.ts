@@ -162,7 +162,6 @@ export const useProblemEditor = (
         // Build nodeSpec payload for codeFolder using plain object Filemap
         const filesMap = state.filesContent as Record<string, string>;
         const codeFolder: nodeSpec = {
-          name: "problem",
           files: { ...filesMap } as Filemap,
           envs: [],
         };

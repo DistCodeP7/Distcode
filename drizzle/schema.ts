@@ -26,7 +26,6 @@ export type EnvironmentVariable = {
 export type Filemap = Record<Path, code>;
 
 export type nodeSpec = {
-  name: string;
   files: Filemap;
   envs: EnvironmentVariable[];
 }

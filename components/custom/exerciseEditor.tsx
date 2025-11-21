@@ -101,7 +101,6 @@ export default function ExerciseEditor({
     clearMessages();
     connect();
     const problemContent: nodeSpec = {
-      name: codeFolder.name,
       files: Object.fromEntries(
         files.map((file, index) => [file.path, fileContents[index]])
       ),
