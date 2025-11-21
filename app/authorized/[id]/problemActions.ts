@@ -42,7 +42,7 @@ export async function saveProblem(data: SaveProblemParams) {
   if (!files.has("/solution/main.go")) {
     return { success: false, error: "Solution file is required", status: 400 };
   }
-  if (!files.has("/tests/tests.go")) {
+  if (!files.has("/test/main.go")) {
     return { success: false, error: "Tests file is required", status: 400 };
   }
   if (!files.has("/template/main.go")) {

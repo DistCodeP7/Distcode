@@ -1,5 +1,6 @@
 import { type SetStateAction, useCallback, useState } from "react";
 import { saveProblem } from "@/app/authorized/[id]/problemActions";
+import type { Filemap, nodeSpec } from "@/drizzle/schema";
 
 type ProblemFile = {
   name: string;
@@ -10,11 +11,11 @@ const getInitialContent = (file: ProblemFile): string => {
   if (file.fileType === "markdown")
     return "# Problem\n\nDescribe the problem here.";
   if (file.fileType === "go") {
-    if (file.name.startsWith("template"))
+    if (file.name.startsWith("/template"))
       return "// Write your template code here\n";
-    if (file.name.startsWith("solution"))
+    if (file.name.startsWith("/solution"))
       return "// Write your solution code here\n";
-    if (file.name === "testCases.go") return "// Write your test cases here\n";
+    if (file.name.startsWith("/test")) return "// Write your test cases here\n";
   }
   return "";
 };
@@ -24,7 +25,7 @@ type ActionResult =
   | { success: false; error?: string; status?: number };
 
 type ProblemEditorState = {
-  filesContent: Record<string, string>;
+  filesContent: Filemap;
   activeFile: number;
   title: string;
   description: string;
@@ -35,7 +36,7 @@ type ProblemEditorState = {
 export const useProblemEditor = (
   files: readonly ProblemFile[],
   initial?: {
-    filesContent?: Record<string, string>;
+    filesContent?: Filemap;
     title?: string;
     description?: string;
     difficulty?: string;
@@ -43,17 +44,25 @@ export const useProblemEditor = (
   }
 ) => {
   const [state, setState] = useState<ProblemEditorState>(() => {
-    const filesContent = files.reduce(
-      (acc, file) => {
-        acc[file.name] =
-          initial?.filesContent?.[file.name] ?? getInitialContent(file);
-        return acc;
-      },
-      {} as Record<string, string>
-    );
+    // Initialize Filemap (Map) for files
+    const filesMap: Filemap = new Map<string, string>();
+    for (const file of files) {
+      let content: string | undefined;
+      const ic = initial?.filesContent as unknown;
+      if (typeof ic === "object" && ic !== null) {
+        // if initial.filesContent is a Map (Filemap)
+        const maybeMap = ic as Filemap | Record<string, string> | undefined;
+        if (maybeMap instanceof Map) {
+          content = maybeMap.get(file.name);
+        } else if (typeof maybeMap === "object" && maybeMap !== null) {
+          content = (maybeMap as Record<string, string>)[file.name];
+        }
+      }
+      filesMap.set(file.name, content ?? getInitialContent(file));
+    }
 
     return {
-      filesContent,
+      filesContent: filesMap,
       activeFile: 0,
       title: initial?.title ?? "",
       description: initial?.description ?? "",
@@ -64,15 +73,12 @@ export const useProblemEditor = (
 
   const syncFilesContent = useCallback(() => {
     setState((prev) => {
-      const newFilesContent = files.reduce(
-        (acc, file) => {
-          acc[file.name] =
-            prev.filesContent[file.name] ?? getInitialContent(file);
-          return acc;
-        },
-        {} as Record<string, string>
-      );
-      return { ...prev, filesContent: newFilesContent };
+      const newFiles = new Map(prev.filesContent);
+      for (const file of files) {
+        if (!newFiles.has(file.name))
+          newFiles.set(file.name, getInitialContent(file));
+      }
+      return { ...prev, filesContent: newFiles };
     });
   }, [files]);
 
@@ -81,14 +87,12 @@ export const useProblemEditor = (
       setState((prev) => {
         const activeFileName = files[prev.activeFile]?.name;
         if (!activeFileName) return prev;
+        const prevContent = prev.filesContent.get(activeFileName) ?? "";
         const newContent =
-          typeof value === "function"
-            ? value(prev.filesContent[activeFileName])
-            : value;
-        return {
-          ...prev,
-          filesContent: { ...prev.filesContent, [activeFileName]: newContent },
-        };
+          typeof value === "function" ? value(prevContent) : value;
+        const newFiles = new Map(prev.filesContent);
+        newFiles.set(activeFileName, newContent);
+        return { ...prev, filesContent: newFiles };
       });
     },
     [files]
@@ -120,44 +124,56 @@ export const useProblemEditor = (
         if (!state.description.trim()) missingFields.push("Description");
         if (!["1", "2", "3"].includes(state.difficulty))
           missingFields.push("Difficulty");
-        if (!state.filesContent["problem.md"]?.trim())
+
+        const getContent = (name: string) => state.filesContent.get(name) ?? "";
+        if (!getContent("/problem.md").trim())
           missingFields.push("Problem markdown");
 
         const templateFiles = files.filter((f) =>
-          f.name.startsWith("template")
+          f.name.startsWith("/template")
         );
         const solutionFiles = files.filter((f) =>
-          f.name.startsWith("solution")
+          f.name.startsWith("/solution")
         );
-        const templateCode = templateFiles.map(
-          (f) => state.filesContent[f.name] || ""
-        );
-        const solutionCode = solutionFiles.map(
-          (f) => state.filesContent[f.name] || ""
-        );
+        const protocolFiles = files.filter((f) => f.name.startsWith("/proto"));
+
+        const testFiles = files.filter((f) => f.name.startsWith("/tests"));
+
+        const templateCode = templateFiles.map((f) => getContent(f.name));
+        const solutionCode = solutionFiles.map((f) => getContent(f.name));
+        const protocolCode = protocolFiles.map((f) => getContent(f.name));
 
         if (!templateFiles.length || templateCode.some((c) => !c.trim()))
           missingFields.push("Template code");
         if (!solutionFiles.length || solutionCode.some((c) => !c.trim()))
           missingFields.push("Solution code");
-        if (!state.filesContent["testCases.go"]?.trim())
-          missingFields.push("Test cases code");
+        if (!protocolFiles.length || protocolCode.some((c) => !c.trim()))
+          missingFields.push("Protocol code");
+        if (
+          !testFiles.length ||
+          testFiles.some((f) => !getContent(f.name).trim())
+        )
+          if (missingFields.length > 0) {
+            alert(`Missing or empty fields: ${missingFields.join(", ")}`);
+            return;
+          }
 
-        if (missingFields.length > 0) {
-          alert(`Missing or empty fields: ${missingFields.join(", ")}`);
-          return;
-        }
+        // Build nodeSpec payload for codeFolder using Map from state
+        const filesMap = state.filesContent;
+        const codeFolder: nodeSpec = {
+          name: "problem",
+          files: new Map(filesMap),
+          envs: [],
+        };
 
         const payload = {
           id: initial?.problemId,
           title: state.title,
           description: state.description,
           difficulty: parseInt(state.difficulty, 10),
-          problemMarkdown: state.filesContent["problem.md"],
-          templateCode,
-          solutionCode,
-          testCasesCode: state.filesContent["testCases.go"],
+          problemMarkdown: state.filesContent.get("/problem.md") ?? "",
           isPublished,
+          codeFolder,
         };
 
         const result: ActionResult = await saveProblem(payload);

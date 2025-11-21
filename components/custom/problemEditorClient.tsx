@@ -27,8 +27,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useProblemEditor } from "@/hooks/useProblemEditor";
+import type { Filemap } from "@/drizzle/schema";
 
-type FileDef = { name: string; fileType: "go" | "markdown" };
+// FileDef not required here; we derive file lists from the Filemap
 
 export default function ProblemEditorClient({
   files,
@@ -38,15 +39,65 @@ export default function ProblemEditorClient({
   initialDifficulty,
   problemId,
 }: {
-  files: FileDef[];
-  initialFilesContent?: Record<string, string>;
+  files: Filemap;
+  initialFilesContent?: Filemap;
   initialTitle?: string;
   initialDescription?: string;
   initialDifficulty?: string;
   problemId?: number;
 }) {
-  const [currentFiles, setCurrentFiles] = useState<FileDef[]>([...files]);
+  // Normalize incoming `files` prop. It may be:
+  // - a Filemap (Map<string,string>)
+  // - a plain object { filename: content }
+  // - a nodeSpec-like object { name, files, envs }
+  const normalizeToMap = (inp: typeof files): Filemap => {
+    if (inp instanceof Map) return new Map(inp);
+    if (inp && typeof inp === "object") {
+      const asObj = inp as Record<string, unknown>;
+      const maybeFiles = asObj.files;
+      if (maybeFiles instanceof Map)
+        return new Map(maybeFiles as Map<string, string>);
+      if (maybeFiles && typeof maybeFiles === "object")
+        return new Map(Object.entries(maybeFiles as Record<string, string>));
+      return new Map(Object.entries(asObj as Record<string, string>));
+    }
+    return new Map();
+  };
+
+  // Ensure we have a Map instance and keep insertion order
+  const [currentFiles, setCurrentFiles] = useState<Filemap>(
+    normalizeToMap(files)
+  );
   const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
+
+  // Build ordered file arrays derived from the Map for the hook and header
+  const fileList = Array.from(currentFiles.keys()).map((k) =>
+    k.startsWith("/") ? k : `/${k}`
+  );
+
+  const filesForHook = fileList.map(
+    (name) =>
+      ({
+        name,
+        fileType: (name.endsWith(".md") ? "markdown" : "go") as
+          | "markdown"
+          | "go",
+      }) as const
+  );
+
+  const filesForHeader = fileList.map(
+    (name) =>
+      ({
+        name: name.replace(/^\//, ""),
+        fileType: (name.endsWith(".md") ? "markdown" : "go") as
+          | "markdown"
+          | "go",
+      }) as const
+  );
+
+  const pairCount = filesForHook.filter((f) =>
+    f.name.startsWith("/template")
+  ).length;
 
   const {
     title,
@@ -61,7 +112,7 @@ export default function ProblemEditorClient({
     handleSubmit,
     handleSave,
     filesContent,
-  } = useProblemEditor(currentFiles, {
+  } = useProblemEditor(filesForHook, {
     filesContent: initialFilesContent,
     title: initialTitle,
     description: initialDescription,
@@ -69,43 +120,56 @@ export default function ProblemEditorClient({
     problemId,
   });
 
-  const pairCount = currentFiles.filter((f) =>
-    f.name.startsWith("template")
-  ).length;
-
   const addFilesPair = () => {
     const next = pairCount + 1;
-    const newFiles: FileDef[] = [
-      { name: `template${next === 1 ? "" : next}.go`, fileType: "go" },
-      { name: `solution${next === 1 ? "" : next}.go`, fileType: "go" },
+    const newEntries: [string, string][] = [
+      [
+        `/template/template${next === 1 ? "" : next}.go`,
+        "// Write your template code here\n",
+      ],
+      [
+        `/solution/solution${next === 1 ? "" : next}.go`,
+        "// Write your solution code here\n",
+      ],
     ];
 
     setCurrentFiles((prev) => {
-      const index = prev.findIndex((f) => f.name === "testCases.go");
-      if (index === -1) return [...prev, ...newFiles]; // Append if testCases.go not found
-      return [...prev.slice(0, index), ...newFiles, ...prev.slice(index)]; // Insert before testCases.go
+      const entries = Array.from(prev.entries());
+      const index = entries.findIndex(([name]) => name.startsWith("/test"));
+      if (index === -1) {
+        return new Map([...entries, ...newEntries]);
+      }
+      const newEntriesArr = [
+        ...entries.slice(0, index),
+        ...newEntries,
+        ...entries.slice(index),
+      ];
+      return new Map(newEntriesArr);
     });
   };
 
   const removeFilesPair = () => {
     if (pairCount <= 1) return;
     setCurrentFiles((prev) => {
-      const lastTemplate = [...prev]
-        .reverse()
-        .find((f) => f.name.startsWith("template"))?.name;
-      const lastSolution = [...prev]
-        .reverse()
-        .find((f) => f.name.startsWith("solution"))?.name;
-      return prev.filter(
-        (f) => f.name !== lastTemplate && f.name !== lastSolution
+      const entries = Array.from(prev.entries());
+      const reversed = [...entries].reverse();
+      const lastTemplate = reversed.find(([name]) =>
+        name.includes("template")
+      )?.[0];
+      const lastSolution = reversed.find(([name]) =>
+        name.includes("solution")
+      )?.[0];
+      const filtered = entries.filter(
+        ([name]) => name !== lastTemplate && name !== lastSolution
       );
+      return new Map(filtered);
     });
   };
 
   useEffect(() => {
-    if (activeFile >= currentFiles.length)
-      setActiveFile(Math.max(0, currentFiles.length - 1));
-  }, [currentFiles, activeFile, setActiveFile]);
+    if (activeFile >= filesForHook.length)
+      setActiveFile(Math.max(0, filesForHook.length - 1));
+  }, [filesForHook, activeFile, setActiveFile]);
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden">
@@ -160,7 +224,7 @@ export default function ProblemEditorClient({
         className="flex-1 border h-full w-full min-w-0"
       >
         <ResizablePanel minSize={20} className="flex-1 min-w-0 overflow-auto">
-          <MarkdownPreview content={filesContent["problem.md"] || ""} />
+          <MarkdownPreview content={filesContent.get("/problem.md") || ""} />
         </ResizablePanel>
 
         <ResizableHandle withHandle />
@@ -170,7 +234,7 @@ export default function ProblemEditorClient({
           className="flex-1 flex flex-col min-w-0 overflow-hidden"
         >
           <EditorHeader
-            files={currentFiles}
+            files={filesForHeader}
             activeFile={activeFile}
             onFileChange={setActiveFile}
             onSubmit={handleSubmit}
@@ -247,10 +311,12 @@ export default function ProblemEditorClient({
 
           <div className="flex-1 overflow-auto min-w-0">
             <Editor
-              editorContent={filesContent[currentFiles[activeFile]?.name] || ""}
+              editorContent={
+                filesContent.get(filesForHook[activeFile]?.name || "") || ""
+              }
               setEditorContent={handleEditorContentChange}
               language={
-                currentFiles[activeFile]?.fileType === "markdown"
+                filesForHook[activeFile]?.fileType === "markdown"
                   ? "markdown"
                   : "go"
               }
