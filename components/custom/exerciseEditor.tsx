@@ -21,31 +21,51 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { useSSE } from "@/hooks/useSSE";
+import type { nodeSpec } from "@/drizzle/schema";
+import { fi } from "zod/v4/locales";
 
 type ExerciseEditorProps = {
   exerciseId: number;
   problemMarkdown: string;
-  templateCode: string[];
-  solutionCode?: string[];
-  testCasesCode?: string;
-  savedCode?: string[] | null;
+  codeFolder: nodeSpec;
   userRating?: "up" | "down" | null;
   canRate?: boolean;
+};
+
+type FileDatas = {
+  name: string;
+  content: string;
+  fileType: "go" | "markdown";
 };
 
 export default function ExerciseEditor({
   exerciseId,
   problemMarkdown,
-  templateCode,
-  solutionCode,
-  savedCode,
+  codeFolder,
   userRating: initialUserRating = null,
   canRate: initialCanRate = false,
 }: ExerciseEditorProps) {
   const [activeFile, setActiveFile] = useState(0);
-  const [fileContents, setFileContents] = useState<string[]>(
-    savedCode ?? templateCode
+
+  const files: FileDatas[] = Array.from(codeFolder.files.entries()).map(
+    ([path, content]) => ({
+      name: path.split("/").pop() || path,
+      content,
+      fileType: path.endsWith(".go") ? "go" : "markdown",
+    })
   );
+  const [fileContents, setFileContents] = useState<string[]>(
+    files.map((file) => file.content)
+  );
+
+  const solutionFiles = files.filter((file) =>
+    file.name.startsWith("/solution")
+  );
+
+  const templateCode = files.filter((file) =>
+    file.name.startsWith("/template")
+  );
+
   const [resetting, setResetting] = useState(false);
   const [userRating, setUserRating] = useState<"up" | "down" | null>(
     initialUserRating
@@ -53,21 +73,10 @@ export default function ExerciseEditor({
   const [canRate, setCanRate] = useState(initialCanRate);
   const [ratingLoading, startRatingTransition] = useTransition();
 
-  const files = fileContents.map((content, index) => ({
-    name: index === 0 ? "main.go" : `file${index + 1}.go`,
-    content,
-    fileType: "go" as const,
-  }));
-
   const [leftPanelView, setLeftPanelView] = useState<"problem" | "solution">(
     "problem"
   );
   const [activeSolutionFile, setActiveSolutionFile] = useState(0);
-
-  const solutionFiles = (solutionCode || []).map((content, index) => ({
-    name: index === 0 ? "main.go" : `file${index + 1}.go`,
-    content,
-  }));
 
   const { messages, connect, clearMessages } =
     useSSE<StreamingJobResult>("/api/stream");
@@ -82,11 +91,17 @@ export default function ExerciseEditor({
   const onSubmit = async () => {
     clearMessages();
     connect();
-    const problemContent = fileContents;
+    const problemContent: nodeSpec = {
+      name: codeFolder.name,
+      files: new Map(
+        files.map((file, index) => [file.name, fileContents[index]])
+      ),
+      envs: codeFolder.envs,
+    };
     await submitCode(problemContent, { params: { id: exerciseId } });
   };
 
-  const onSave = async () => {
+  /* const onSave = async () => {
     clearMessages();
 
     const savedContent = fileContents[activeFile];
@@ -100,8 +115,8 @@ export default function ExerciseEditor({
       toast.success("Code saved successfully!");
       setCanRate(true); // once saved, enable rating if not already
     }
-  };
-
+  }; 
+ 
   const onReset = async () => {
     const confirmReset = window.confirm(
       "Are you sure you want to reset your code? This will remove your saved progress and restore the original template."
@@ -129,6 +144,7 @@ export default function ExerciseEditor({
       setResetting(false);
     }
   };
+  */
 
   const handleRating = (liked: boolean) => {
     if (!canRate) {
@@ -249,15 +265,14 @@ export default function ExerciseEditor({
         <ResizablePanelGroup direction="vertical">
           <ResizablePanel defaultSize={50}>
             <EditorHeader
-              files={files.map((file, x) => ({
+              files={files.map((file) => ({
                 ...file,
-                content: fileContents[x],
               }))}
               activeFile={activeFile}
               onFileChange={setActiveFile}
               onSubmit={onSubmit}
-              onSave={onSave}
-              onReset={onReset}
+              onSave={() => {}}
+              onReset={() => {}}
               disabled={resetting}
             />
 

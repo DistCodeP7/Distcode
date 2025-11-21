@@ -68,7 +68,7 @@ export default function CustomEditor({
 
 type Files = {
   name: string;
-  fileType: "go" | "erlang" | "akka" | "markdown";
+  fileType: "go" | "markdown";
 };
 
 type EditorHeaderProps = {
