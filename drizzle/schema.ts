@@ -80,7 +80,7 @@ export const userCode = pgTable("userCode", {
     problemId: integer("problem_id")
         .notNull()
         .references(() => problems.id, { onDelete: "cascade" }),
-    codeSubmitted: json("code_submitted").$type<string[]>().notNull(),
+    codeSubmitted: json("code_submitted").$type<nodeSpec>().notNull(),
 });
 
 export const UserCodeSchema = createSelectSchema(userCode);
