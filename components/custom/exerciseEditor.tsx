@@ -2,14 +2,14 @@
 
 import { BookOpen, Code, ThumbsDown, ThumbsUp } from "lucide-react";
 import type React from "react";
-import { useState, useTransition, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import type { StreamingJobResult } from "@/app/api/stream/route";
 import {
   rateExercise,
-  submitCode,
-  saveCode,
   resetCode,
+  saveCode,
+  submitCode,
 } from "@/app/exercises/[id]/actions";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
@@ -20,8 +20,8 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import { useSSE } from "@/hooks/useSSE";
 import type { nodeSpec } from "@/drizzle/schema";
+import { useSSE } from "@/hooks/useSSE";
 
 type ExerciseEditorProps = {
   exerciseId: number;

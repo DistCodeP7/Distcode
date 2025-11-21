@@ -52,7 +52,6 @@ export async function saveProblem(data: SaveProblemParams) {
   if (!("/proto/protocol.go" in filesObj)) {
     return { success: false, error: "Protocol file is required", status: 400 };
   }
-  console.log(problemData.codeFolder);
 
   if (existingProblem) {
     await db
@@ -63,7 +62,6 @@ export async function saveProblem(data: SaveProblemParams) {
         title: problemData.title,
         problemMarkdown: problemData.problemMarkdown,
         codeFolder: {
-          name: problemData.codeFolder.name,
           files: filesObj,
           envs: [],
         },
@@ -76,24 +74,19 @@ export async function saveProblem(data: SaveProblemParams) {
     if (!user) {
       return { success: false, error: "User not found", status: 404 };
     }
-    const result = await db
-      .insert(problems)
-      .values({
-        difficulty: problemData.difficulty,
-        description: problemData.description,
-        title: problemData.title,
-        problemMarkdown: problemData.problemMarkdown,
-        codeFolder: {
-          name: problemData.codeFolder.name,
-          files: filesObj,
-          envs: [],
-        },
-        isPublished,
-        userId: user.userid,
-      })
-      .returning();
+    await db.insert(problems).values({
+      difficulty: problemData.difficulty,
+      description: problemData.description,
+      title: problemData.title,
+      problemMarkdown: problemData.problemMarkdown,
+      codeFolder: {
+        files: filesObj,
+        envs: [],
+      },
+      isPublished,
+      userId: user.userid,
+    });
 
-    console.log("Inserted problem:", result);
     return { success: true, message: "Problem created", status: 201 };
   }
 }

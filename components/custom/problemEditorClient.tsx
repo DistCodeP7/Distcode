@@ -26,8 +26,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useProblemEditor } from "@/hooks/useProblemEditor";
 import type { Filemap } from "@/drizzle/schema";
+import { useProblemEditor } from "@/hooks/useProblemEditor";
 
 // FileDef not required here; we derive file lists from the Filemap
 
@@ -47,14 +47,14 @@ export default function ProblemEditorClient({
   problemId?: number;
 }) {
   const [currentFiles, setCurrentFiles] = useState<string[]>(
-    files ? Object.keys(files) : ["/problem.md"]
+    Object.keys(files)
   );
   const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
 
-  const filesForHook: { name: string; fileType: "markdown" | "go" }[] =
+  const filesForHook: { name: string; fileType: "go" | "markdown" }[] =
     currentFiles.map((name: string) => ({
       name: String(name),
-      fileType: name.endsWith(".md") ? "markdown" : "go",
+      fileType: name.endsWith(".go") ? "go" : "markdown",
     }));
 
   const pairCount = filesForHook.filter((f) =>
@@ -96,9 +96,7 @@ export default function ProblemEditorClient({
     ];
     setCurrentFiles((prev) => {
       const entries = [...prev];
-      const index = entries.findIndex(
-        (name) => name.startsWith("/test") || name.endsWith("testCases.go")
-      );
+      const index = entries.findIndex((name) => name.startsWith("/test"));
       const insertNames = newEntries.map(([p]) => p);
       if (index === -1) return [...entries, ...insertNames];
       return [
@@ -116,10 +114,10 @@ export default function ProblemEditorClient({
       // find last template/solution entries
       const lastTemplateIndex = [...entries]
         .reverse()
-        .findIndex((name) => name.includes("template"));
+        .findIndex((name) => name.includes("/template"));
       const lastSolutionIndex = [...entries]
         .reverse()
-        .findIndex((name) => name.includes("solution"));
+        .findIndex((name) => name.includes("/solution"));
       const toRemove: Set<string> = new Set();
       if (lastTemplateIndex !== -1) {
         const idx = entries.length - 1 - lastTemplateIndex;
@@ -291,9 +289,7 @@ export default function ProblemEditorClient({
               }
               setEditorContent={handleEditorContentChange}
               language={
-                filesForHook[activeFile]?.fileType === "markdown"
-                  ? "markdown"
-                  : "go"
+                filesForHook[activeFile]?.fileType === "go" ? "go" : "markdown"
               }
             />
           </div>
