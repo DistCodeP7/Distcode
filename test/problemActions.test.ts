@@ -46,12 +46,12 @@ vi.mock("@/drizzle/schema", () => ({
 }));
 
 describe("deleteProblem", () => {
-  let deleteProblem: (
-    id: number
-  ) => Promise<
-    | { success: true; message: string; status: number }
-    | { success: false; error: string; status: number }
-  >;
+  let deleteProblem: (id: number) => Promise<{
+    success: boolean;
+    message?: string;
+    error?: string;
+    status: number;
+  }>;
   //TODO: Fix any types
   let getServerSession: any;
   let getUserById: any;

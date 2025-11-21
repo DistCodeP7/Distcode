@@ -29,8 +29,6 @@ import {
 import type { Filemap } from "@/drizzle/schema";
 import { useProblemEditor } from "@/hooks/useProblemEditor";
 
-// FileDef not required here; we derive file lists from the Filemap
-
 export default function ProblemEditorClient({
   files,
   initialFilesContent,

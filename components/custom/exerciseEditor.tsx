@@ -2,7 +2,7 @@
 
 import { BookOpen, Code, ThumbsDown, ThumbsUp } from "lucide-react";
 import type React from "react";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import type { StreamingJobResult } from "@/app/api/stream/route";
 import {
@@ -61,17 +61,6 @@ export default function ExerciseEditor({
   const [fileContents, setFileContents] = useState<string[]>(() =>
     files.map((file) => file.content)
   );
-
-  // Keep fileContents and activeFile in sync when the available files change
-  useEffect(() => {
-    setFileContents(files.map((file) => file.content));
-    // clamp activeFile to valid range using updater to avoid linting on activeFile
-    setActiveFile((prev) => {
-      if (files.length === 0) return 0;
-      if (prev >= files.length) return Math.max(0, files.length - 1);
-      return prev;
-    });
-  }, [files]);
 
   const solutionFiles = files.filter((file) =>
     file.path.startsWith("/solution")
