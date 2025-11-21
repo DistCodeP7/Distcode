@@ -7,7 +7,7 @@ export const useSSE = <T>(url: string) => {
   const [messages, setMessages] = useState<T[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const lastMsgRef = useRef<T>(null);
+  const lastMsgRef = useRef<T | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
 
   const clearMessages = () => setMessages([]);
@@ -15,6 +15,7 @@ export const useSSE = <T>(url: string) => {
   const connect = () => {
     if (eventSourceRef.current) eventSourceRef.current.close();
     setIsLoading(true);
+
     const eventSource = new EventSource(url);
     eventSourceRef.current = eventSource;
 
@@ -25,9 +26,25 @@ export const useSSE = <T>(url: string) => {
     };
 
     eventSource.onmessage = (event: MessageEvent) => {
-      const data: T = JSON.parse(event.data);
-      setMessages((prev) => [...prev, data]);
-      lastMsgRef.current = data;
+      try {
+        const raw = JSON.parse(event.data);
+
+        // 🔹 If the payload has an Events field, normalise null -> []
+        let normalised: any = raw;
+        if ("Events" in raw) {
+          normalised = {
+            ...raw,
+            Events: Array.isArray(raw.Events) ? raw.Events : [],
+          };
+        }
+
+        const data = normalised as T;
+
+        setMessages((prev) => [...prev, data]);
+        lastMsgRef.current = data;
+      } catch (e) {
+        console.error("Failed to parse SSE message", e, event.data);
+      }
     };
 
     eventSource.onerror = () => {

@@ -33,7 +33,7 @@ export async function getExercise({ params }: { params: { id: number } }) {
 
 export async function submitCode(
   content: string[],
-  { params }: { params: { id: number } }
+  { params }: { params: { id: number } },
 ) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { error: "Unauthorized", status: 401 };
@@ -45,10 +45,23 @@ export async function submitCode(
   if (Number.isNaN(problemId))
     return { error: "Invalid exercise id", status: 400 };
 
+  // 🔹 NEW: load the problem so we can grab testCasesCode from the DB
+  const [problem] = await db
+    .select()
+    .from(problems)
+    .where(eq(problems.id, problemId))
+    .limit(1);
+
+  if (!problem) {
+    return { error: "Exercise not found", status: 404 };
+  }
+
+  // 🔹 NEW: include TestCasesCode in the payload for the worker
   const payload = {
     ProblemId: problemId,
     UserId: user.userid,
-    Code: content,
+    Code: content, // user code: string[]
+    TestCasesCode: problem.testCasesCode, // tests from DB: string
     Timeoutlimit: 60,
   };
 
@@ -59,7 +72,7 @@ export async function submitCode(
 
 export async function saveCode(
   content: string[],
-  { params }: { params: { id: number } }
+  { params }: { params: { id: number } },
 ) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { error: "Unauthorized", status: 401 };
@@ -104,8 +117,8 @@ export async function loadSavedCode({ params }: { params: { id: number } }) {
     .where(
       and(
         eq(userCode.userId, session.user.id),
-        eq(userCode.problemId, problemId)
-      )
+        eq(userCode.problemId, problemId),
+      ),
     )
     .orderBy(desc(userCode.id))
     .limit(1);
@@ -137,7 +150,7 @@ export async function loadUserRating({ params }: { params: { id: number } }) {
     .select()
     .from(problems)
     .where(
-      and(eq(problems.userId, session.user.id), eq(problems.id, exerciseId))
+      and(eq(problems.userId, session.user.id), eq(problems.id, exerciseId)),
     )
     .limit(1);
 
@@ -165,8 +178,8 @@ export async function resetCode({ params }: { params: { id: number } }) {
     .where(
       and(
         eq(userCode.userId, session.user.id),
-        eq(userCode.problemId, problemId)
-      )
+        eq(userCode.problemId, problemId),
+      ),
     );
 
   return { success: true, message: "Code reset successfully." };
@@ -174,9 +187,8 @@ export async function resetCode({ params }: { params: { id: number } }) {
 
 export async function rateExercise(
   { params }: { params: { id: number } },
-  liked: boolean
+  liked: boolean,
 ) {
-  //TODO: Change to look if exercise is completed instead of this
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { error: "Unauthorized", status: 401 };
 
@@ -203,8 +215,8 @@ export async function rateExercise(
     .where(
       and(
         eq(ratings.userId, session.user.id),
-        eq(ratings.problemId, problem.id)
-      )
+        eq(ratings.problemId, problem.id),
+      ),
     )
     .limit(1);
 
@@ -242,8 +254,8 @@ export async function hasUserSubmitted({ params }: { params: { id: number } }) {
     .where(
       and(
         eq(userCode.userId, session.user.id),
-        eq(userCode.problemId, params.id)
-      )
+        eq(userCode.problemId, params.id),
+      ),
     )
     .limit(1);
   return UserCode.length > 0;
