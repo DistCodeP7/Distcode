@@ -1,3 +1,4 @@
+// app/authorized/[id]/problemActions.ts
 "use server";
 
 import { eq } from "drizzle-orm";
@@ -90,10 +91,17 @@ export async function saveProblem(data: SaveProblemParams) {
     return { success: true, message: "Problem created", status: 201 };
   }
 }
+
 export async function deleteProblem(id: number) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return { success: false, error: "Not authenticated", status: 401 };
+  }
+
+  // --- ADDED: Input validation for id ---
+  if (isNaN(id) || id <= 0) {
+    // Assuming IDs are positive integers
+    return { success: false, error: "Problem ID is required", status: 400 };
   }
 
   const existingProblem = await db.query.problems.findFirst({
@@ -103,6 +111,25 @@ export async function deleteProblem(id: number) {
     return { success: false, error: "Problem not found", status: 404 };
   }
 
-  await db.delete(problems).where(eq(problems.id, id));
-  return { success: true, message: "Problem deleted", status: 200 };
+  // --- ADDED: Ownership check ---
+  if (existingProblem.userId !== session.user.id) {
+    return { success: false, error: "Forbidden", status: 403 };
+  }
+
+  // --- ADDED: Error handling for DB operation ---
+  try {
+    await db.delete(problems).where(eq(problems.id, id));
+    return {
+      success: true,
+      message: "Problem deleted successfully",
+      status: 200,
+    };
+  } catch (error: any) {
+    console.error("Database error during problem deletion:", error);
+    return {
+      success: false,
+      error: `Database error: ${error.message || "Unknown error"}`,
+      status: 500,
+    };
+  }
 }
