@@ -42,24 +42,21 @@ export async function submitCode(
   const user = await getUserById(session.user.id);
   if (!user) return { error: "User not found.", status: 404 };
 
-  const problemId = Number(params.id);
-  if (Number.isNaN(problemId))
+  const ProblemId = Number(params.id);
+  if (Number.isNaN(ProblemId))
     return { error: "Invalid exercise id", status: 400 };
 
-  const folder_structure = await db
-    .select({ folderStructure: problems.folderStructure })
+  const Nodes = await db
+    .select({ folderStructure: problems.codeFolder })
     .from(problems)
-    .where(eq(problems.id, problemId))
+    .where(eq(problems.id, ProblemId))
     .limit(1);
-  const codespec: NodeSpecType = {
-    name: "penis",
-    files: folder_structure,
-    envs: [],
-  };
 
   const payload = {
-    problemId,
-    codespec,
+    ProblemId,
+    Nodes,
+    UserId: user.userid,
+    Timeout: 60,
   };
 
   MQJobsSender.sendMessage(payload);
