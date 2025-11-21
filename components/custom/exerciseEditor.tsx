@@ -5,7 +5,12 @@ import type React from "react";
 import { useState, useTransition, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import type { StreamingJobResult } from "@/app/api/stream/route";
-import { rateExercise, submitCode } from "@/app/exercises/[id]/actions";
+import {
+  rateExercise,
+  submitCode,
+  saveCode,
+  resetCode,
+} from "@/app/exercises/[id]/actions";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
 import { TerminalOutput } from "@/components/custom/TerminalOutput";
@@ -17,7 +22,6 @@ import {
 } from "@/components/ui/resizable";
 import { useSSE } from "@/hooks/useSSE";
 import type { nodeSpec } from "@/drizzle/schema";
-import { code } from "motion/react-client";
 
 type ExerciseEditorProps = {
   exerciseId: number;
@@ -73,13 +77,15 @@ export default function ExerciseEditor({
     file.path.startsWith("/solution")
   );
 
-  // const templateCode = files.filter((file) => file.path.startsWith("/template"));
+  const templateCode = files.filter((file) =>
+    file.path.startsWith("/template")
+  );
 
-  const [resetting] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [userRating, setUserRating] = useState<"up" | "down" | null>(
     initialUserRating
   );
-  const [canRate] = useState(initialCanRate);
+  const [canRate, setCanRate] = useState(initialCanRate);
   const [ratingLoading, startRatingTransition] = useTransition();
 
   const [leftPanelView, setLeftPanelView] = useState<"problem" | "solution">(
@@ -106,14 +112,22 @@ export default function ExerciseEditor({
       ),
       envs: codeFolder.envs,
     };
-    await submitCode(problemContent, { params: { id: exerciseId } });
+    await submitCode(problemContent, {
+      params: { id: exerciseId },
+    });
   };
 
-  /* const onSave = async () => {
+  const onSave = async () => {
     clearMessages();
 
-    const savedContent = fileContents[activeFile];
-    const result = await saveCode([savedContent], {
+    const payload: nodeSpec = {
+      files: Object.fromEntries(
+        files.map((file, index) => [file.path, fileContents[index]])
+      ),
+      envs: codeFolder.envs,
+    };
+
+    const result = await saveCode(payload, {
       params: { id: exerciseId },
     });
 
@@ -123,8 +137,8 @@ export default function ExerciseEditor({
       toast.success("Code saved successfully!");
       setCanRate(true); // once saved, enable rating if not already
     }
-  }; 
- 
+  };
+
   const onReset = async () => {
     const confirmReset = window.confirm(
       "Are you sure you want to reset your code? This will remove your saved progress and restore the original template."
@@ -135,7 +149,7 @@ export default function ExerciseEditor({
     try {
       const result = await resetCode({ params: { id: exerciseId } });
       if (result.success) {
-        setFileContents([...templateCode]);
+        setFileContents(templateCode.map((f) => f.content));
         toast.success("Code reset successfully!", {
           description: "Template restored and saved code cleared.",
         });
@@ -152,7 +166,6 @@ export default function ExerciseEditor({
       setResetting(false);
     }
   };
-  */
 
   const handleRating = (liked: boolean) => {
     if (!canRate) {
@@ -280,8 +293,8 @@ export default function ExerciseEditor({
               activeFile={activeFile}
               onFileChange={setActiveFile}
               onSubmit={onSubmit}
-              onSave={() => {}}
-              onReset={() => {}}
+              onSave={onSave}
+              onReset={onReset}
               disabled={resetting}
             />
 
