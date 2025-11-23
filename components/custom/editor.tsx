@@ -1,12 +1,14 @@
 "use client";
 
 import Editor, { type EditorProps, type OnMount } from "@monaco-editor/react";
-import { Save, Send } from "lucide-react";
+import { Save, Send, X } from "lucide-react";
 import type React from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { labToHex } from "@/utils/labToHex";
 import { FileTypeIcon } from "./Icon";
+import { useRouter } from "next/navigation";
+
 
 type CustomEditorProps = EditorProps & {
   editorContent: string;
@@ -80,6 +82,9 @@ type EditorHeaderProps = {
   onReset: () => void;
   disabled?: boolean;
 };
+
+
+
 
 export function EditorHeader({
   files,
@@ -157,4 +162,47 @@ export function EditorHeader({
       </div>
     </div>
   );
+}
+
+type CreateExerciseHeaderProps = {
+    onSubmit: () => void;
+    disabled?: boolean;
+};
+
+
+export function CreateExerciseHeader({
+                                         onSubmit,
+                                         disabled = false,
+                                     }: CreateExerciseHeaderProps) {
+    const router = useRouter();
+
+    const handleCancel = () => {
+        // Adjust the path to your "create exercises" page
+        router.push("/authorized/createExercise");
+    };
+
+    return (
+        <div className="border-b bg-background flex items-center justify-end px-2 py-1 gap-2">
+            <Button
+                onClick={handleCancel}
+                type="button"
+                variant="outline"
+                className="flex items-center gap-1 px-2 py-1 text-base"
+            >
+                <X className="w-4 h-4" />
+                Cancel
+            </Button>
+
+            <Button
+                onClick={onSubmit}
+                type="button"
+                variant="outline"
+                className="flex items-center gap-1 px-2 py-1 text-base"
+                disabled={disabled}
+            >
+                <Send className="w-4 h-4" />
+                Submit
+            </Button>
+        </div>
+    );
 }
