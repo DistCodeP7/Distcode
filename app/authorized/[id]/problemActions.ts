@@ -98,7 +98,7 @@ export async function deleteProblem(id: number) {
     return { success: false, error: "Not authenticated", status: 401 };
   }
 
-  if (id <= 0) {
+  if (id <= 0 || Number.isNaN(id)) {
     return { success: false, error: "Problem ID is required", status: 400 };
   }
 
