@@ -98,9 +98,7 @@ export async function deleteProblem(id: number) {
     return { success: false, error: "Not authenticated", status: 401 };
   }
 
-  // --- ADDED: Input validation for id ---
-  if (isNaN(id) || id <= 0) {
-    // Assuming IDs are positive integers
+  if (id <= 0) {
     return { success: false, error: "Problem ID is required", status: 400 };
   }
 
@@ -110,13 +108,9 @@ export async function deleteProblem(id: number) {
   if (!existingProblem) {
     return { success: false, error: "Problem not found", status: 404 };
   }
-
-  // --- ADDED: Ownership check ---
   if (existingProblem.userId !== session.user.id) {
     return { success: false, error: "Forbidden", status: 403 };
   }
-
-  // --- ADDED: Error handling for DB operation ---
   try {
     await db.delete(problems).where(eq(problems.id, id));
     return {
@@ -124,11 +118,11 @@ export async function deleteProblem(id: number) {
       message: "Problem deleted successfully",
       status: 200,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Database error during problem deletion:", error);
     return {
       success: false,
-      error: `Database error: ${error.message || "Unknown error"}`,
+      error: `Database error: ${error || "Unknown error"}`,
       status: 500,
     };
   }

@@ -44,7 +44,6 @@ export const useProblemEditor = (
   }
 ) => {
   const [state, setState] = useState<ProblemEditorState>(() => {
-    // Initialize Filemap (now a plain object) for files
     const filesMap: Filemap = {} as Record<string, string>;
     for (const file of files) {
       let content: string | undefined;
@@ -159,7 +158,6 @@ export const useProblemEditor = (
             return;
           }
 
-        // Build nodeSpec payload for codeFolder using plain object Filemap
         const filesMap = state.filesContent as Record<string, string>;
         const codeFolder: nodeSpec = {
           files: { ...filesMap } as Filemap,
