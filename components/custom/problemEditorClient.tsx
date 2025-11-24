@@ -101,7 +101,7 @@ function TreeNode({ node, onFileClick, activeFilePath, level = 0 }: TreeProps) {
 
 /* --------------------------- TREE BUILDER --------------------------- */
 
-function buildTreeFromPaths(
+export function buildTreeFromPaths(
     paths: string[],
     contents: Record<string, string>
 ): Array<FileNode | FolderNode> {

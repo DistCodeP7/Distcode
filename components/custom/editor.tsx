@@ -1,7 +1,7 @@
 "use client";
 
 import Editor, { type EditorProps, type OnMount } from "@monaco-editor/react";
-import { Save, Send, X } from "lucide-react";
+import { Save, Send, X, RotateCcw } from "lucide-react";
 import type React from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -92,9 +92,6 @@ type Files = {
 };
 
 type EditorHeaderProps = {
-    files: Files[];
-    activeFile: number;
-    onFileChange: (index: number) => void;
     onSubmit: () => void;
     onSave: () => void;
     onReset: () => void;
@@ -102,78 +99,50 @@ type EditorHeaderProps = {
 };
 
 export function EditorHeader({
-                                 files,
-                                 activeFile,
-                                 onFileChange,
                                  onSubmit,
                                  onSave,
                                  onReset,
                                  disabled = false,
                              }: EditorHeaderProps) {
+
     return (
-        <div className="border-b bg-background flex flex-col">
-            <div className="flex items-center justify-between px-2 py-1">
-                <div className="flex items-center gap-1 overflow-x-auto flex-1 pr-20">
-                    {files.map((file, idx) => {
-                        const isActive = idx === activeFile;
-                        return (
-                            <Button
-                                key={file.name}
-                                onClick={() => onFileChange(idx)}
-                                disabled={disabled}
-                                className={cn(
-                                    "flex items-center gap-1 px-2 py-1 flex-shrink-0 transition-colors truncate",
-                                    isActive
-                                        ? "bg-secondary text-secondary-foreground"
-                                        : "hover:bg-muted"
-                                )}
-                            >
-                                <FileTypeIcon className="w-4 h-4" name={file.fileType} />
-                                <span title={file.name} className="truncate max-w-[12ch]">
-                                    {file.name}
-                                </span>
-                            </Button>
-                        );
-                    })}
-                </div>
+        <div className="border-b bg-background flex items-center justify-between px-2 py-1">
+            <div className="flex gap-2">
+                <Button
 
-                <div className="flex items-center gap-2 flex-shrink-0 ml-2 relative z-10">
-                    <Button
-                        type="button"
-                        variant="secondary"
-                        className="flex items-center gap-1 px-2 py-1 text-base"
-                        onClick={onSave}
-                        disabled={disabled}
-                    >
-                        <Save className="w-4 h-4" />
-                        Save
-                    </Button>
-
-                    <Button
-                        onClick={onSubmit}
-                        type="button"
-                        variant="outline"
-                        className="flex items-center gap-1 px-2 py-1 text-base"
-                        disabled={disabled}
-                    >
-                        <Send className="w-4 h-4" />
-                        Submit
-                    </Button>
-
-                    <Button
-                        onClick={onReset}
-                        type="button"
-                        variant="outline"
-                        className="flex items-center gap-1 px-2 py-1 text-base"
-                        disabled={disabled}
-                    >
-                        Reset To Starter Code
-                    </Button>
-                </div>
+                    type="button"
+                    variant="outline"
+                    className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
+                    disabled={disabled}
+                >
+                    <Send className="w-4 h-4" />
+                    Submit
+                </Button>
+                <Button
+                    onClick={onSave}
+                    type="button"
+                    variant="outline"
+                    className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
+                    disabled={disabled}
+                >
+                    <Save className="w-4 h-4" />
+                    Save
+                </Button>
+                <Button
+                    onClick={onReset}
+                    type="button"
+                    variant="outline"
+                    className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
+                    disabled={disabled}
+                >
+                    <RotateCcw className="w-4 h-4" />
+                    Reset Code
+                </Button>
             </div>
         </div>
     );
 }
+
 
 type CreateExerciseHeaderProps = {
     onSubmit: () => void;
