@@ -8,178 +8,185 @@ import { cn } from "@/lib/utils";
 import { labToHex } from "@/utils/labToHex";
 import { FileTypeIcon } from "./Icon";
 import { useRouter } from "next/navigation";
+import type { FileNode } from "./problemEditorClient";
 
-
-type CustomEditorProps = EditorProps & {
-  editorContent: string;
-  setEditorContent: React.Dispatch<React.SetStateAction<string>>;
-};
+/* ---------------- MONACO THEME ---------------- */
 
 const handleEditorDidMount: OnMount = (_, monaco) => {
-  const styles = getComputedStyle(document.body);
-  const rawColor = styles.getPropertyValue("background-color");
-  let backgroundColor = "#FFFFFF";
+    const styles = getComputedStyle(document.body);
+    const rawColor = styles.getPropertyValue("background-color");
+    let backgroundColor = "#FFFFFF";
 
-  try {
-    const labMatch = rawColor.match(/lab\(([\d.]+)%?\s+([-\d.]+)\s+([-\d.]+)/);
-    if (labMatch) {
-      const l = parseFloat(labMatch[1]);
-      const a = parseFloat(labMatch[2]);
-      const b = parseFloat(labMatch[3]);
-      backgroundColor = labToHex(l, a, b);
+    try {
+        const labMatch = rawColor.match(/lab\(([\d.]+)%?\s+([-\d.]+)\s+([-\d.]+)/);
+        if (labMatch) {
+            const l = parseFloat(labMatch[1]);
+            const a = parseFloat(labMatch[2]);
+            const b = parseFloat(labMatch[3]);
+            backgroundColor = labToHex(l, a, b);
+        }
+    } catch (error) {
+        throw new Error(`Failed to parse and convert LAB color: ${error}`);
     }
-  } catch (error) {
-    throw new Error(`Failed to parse and convert LAB color: ${error}`);
-  }
 
-  monaco.editor.defineTheme("shadcn-theme", {
-    base: "vs-dark",
-    inherit: true,
-    rules: [],
-    colors: { "editor.background": backgroundColor },
-  });
+    monaco.editor.defineTheme("shadcn-theme", {
+        base: "vs-dark",
+        inherit: true,
+        rules: [],
+        colors: { "editor.background": backgroundColor },
+    });
 
-  monaco.editor.setTheme("shadcn-theme");
+    monaco.editor.setTheme("shadcn-theme");
+};
+
+/* ---------------- CUSTOM EDITOR ---------------- */
+
+type CustomEditorProps = EditorProps & {
+    file: FileNode | null;
+    setEditorContent: (content: string | ((prev: string) => string), filePath: string) => void;
 };
 
 export default function CustomEditor({
-  language,
-  editorContent,
-  setEditorContent,
-  ...props
-}: CustomEditorProps) {
-  return (
-    <div className="flex h-full flex-col">
-      <div className="flex-1">
-        <div className="h-full overflow-hidden rounded-md border">
-          <Editor
-            height="100%"
-            language={language}
-            value={editorContent}
-            onChange={(value) => value && setEditorContent(value)}
-            options={{ minimap: { enabled: false } }}
-            onMount={handleEditorDidMount}
-            theme="vs-dark"
-            {...props}
-          />
+                                         language,
+                                         file,
+                                         setEditorContent,
+                                         ...props
+                                     }: CustomEditorProps) {
+    const content = file?.content ?? "";
+    const lang = language || deriveLanguageFromFileName(file?.name);
+
+    return (
+        <div className="flex h-full flex-col">
+            <div className="flex-1">
+                <div className="h-full overflow-hidden rounded-md border">
+                    <Editor
+                        height="100%"
+                        language={lang}
+                        value={content}
+                        onChange={(value) => value !== undefined && file && setEditorContent(value, file.path)}
+                        options={{ minimap: { enabled: false } }}
+                        onMount={handleEditorDidMount}
+                        theme="vs-dark"
+                        {...props}
+                    />
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }
 
+function deriveLanguageFromFileName(name?: string): string {
+    if (!name) return "plaintext";
+    if (name.endsWith(".go")) return "go";
+    if (name.endsWith(".md")) return "markdown";
+    if (name.endsWith(".ts")) return "typescript";
+    if (name.endsWith(".js")) return "javascript";
+    return "plaintext";
+}
+
+/* ---------------- HEADERS ---------------- */
+
 type Files = {
-  name: string;
-  fileType: "go" | "markdown";
+    name: string;
+    fileType: "go" | "markdown";
 };
 
 type EditorHeaderProps = {
-  files: Files[];
-  activeFile: number;
-  onFileChange: (index: number) => void;
-  onSubmit: () => void;
-  onSave: () => void;
-  onReset: () => void;
-  disabled?: boolean;
+    files: Files[];
+    activeFile: number;
+    onFileChange: (index: number) => void;
+    onSubmit: () => void;
+    onSave: () => void;
+    onReset: () => void;
+    disabled?: boolean;
 };
 
-
-
-
 export function EditorHeader({
-  files,
-  activeFile,
-  onFileChange,
-  onSubmit,
-  onSave,
-  onReset,
-  disabled = false,
-}: EditorHeaderProps) {
-  const visibleFiles = files;
+                                 files,
+                                 activeFile,
+                                 onFileChange,
+                                 onSubmit,
+                                 onSave,
+                                 onReset,
+                                 disabled = false,
+                             }: EditorHeaderProps) {
+    return (
+        <div className="border-b bg-background flex flex-col">
+            <div className="flex items-center justify-between px-2 py-1">
+                <div className="flex items-center gap-1 overflow-x-auto flex-1 pr-20">
+                    {files.map((file, idx) => {
+                        const isActive = idx === activeFile;
+                        return (
+                            <Button
+                                key={file.name}
+                                onClick={() => onFileChange(idx)}
+                                disabled={disabled}
+                                className={cn(
+                                    "flex items-center gap-1 px-2 py-1 flex-shrink-0 transition-colors truncate",
+                                    isActive
+                                        ? "bg-secondary text-secondary-foreground"
+                                        : "hover:bg-muted"
+                                )}
+                            >
+                                <FileTypeIcon className="w-4 h-4" name={file.fileType} />
+                                <span title={file.name} className="truncate max-w-[12ch]">
+                                    {file.name}
+                                </span>
+                            </Button>
+                        );
+                    })}
+                </div>
 
-  return (
-    <div className="border-b bg-background flex flex-col">
-      <div className="flex items-center justify-between px-2 py-1">
-        <div className="flex items-center gap-1 overflow-x-auto flex-1 pr-20">
-          {visibleFiles.map((file, idx) => {
-            const trueIndex = idx;
-            return (
-              <Button
-                key={file.name}
-                onClick={() => onFileChange(trueIndex)}
-                disabled={disabled}
-                className={cn(
-                  "flex items-center gap-1 px-2 py-1 flex-shrink-0 transition-colors truncate",
-                  trueIndex === activeFile
-                    ? "bg-secondary text-secondary-foreground"
-                    : "hover:bg-muted"
-                )}
-              >
-                <FileTypeIcon className="w-4 h-4" name={file.fileType} />
-                <span title={file.name} className="truncate max-w-[12ch]">
-                  {file.name}
-                </span>
-              </Button>
-            );
-          })}
+                <div className="flex items-center gap-2 flex-shrink-0 ml-2 relative z-10">
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        className="flex items-center gap-1 px-2 py-1 text-base"
+                        onClick={onSave}
+                        disabled={disabled}
+                    >
+                        <Save className="w-4 h-4" />
+                        Save
+                    </Button>
+
+                    <Button
+                        onClick={onSubmit}
+                        type="button"
+                        variant="outline"
+                        className="flex items-center gap-1 px-2 py-1 text-base"
+                        disabled={disabled}
+                    >
+                        <Send className="w-4 h-4" />
+                        Submit
+                    </Button>
+
+                    <Button
+                        onClick={onReset}
+                        type="button"
+                        variant="outline"
+                        className="flex items-center gap-1 px-2 py-1 text-base"
+                        disabled={disabled}
+                    >
+                        Reset To Starter Code
+                    </Button>
+                </div>
+            </div>
         </div>
-
-        {/* Right side: Save / Submit / Reset */}
-        <div className="flex items-center gap-2 flex-shrink-0 ml-2 relative z-10">
-          <Button
-            type="button"
-            variant="secondary"
-            className="flex items-center gap-1 px-2 py-1 text-base"
-            onClick={onSave}
-            disabled={disabled}
-          >
-            <Save className="w-4 h-4" />
-            Save
-          </Button>
-
-          <Button
-            onClick={onSubmit}
-            type="button"
-            variant="outline"
-            className="flex items-center gap-1 px-2 py-1 text-base"
-            disabled={disabled}
-          >
-            <Send className="w-4 h-4" />
-            Submit
-          </Button>
-
-          <Button
-            onClick={onReset}
-            type="button"
-            variant="outline"
-            className="flex items-center gap-1 px-2 py-1 text-base"
-            disabled={disabled}
-          >
-            <Send className="w-4 h-4" />
-            Reset To Starter Code
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
+    );
 }
 
 type CreateExerciseHeaderProps = {
     onSubmit: () => void;
     disabled?: boolean;
-};
 
+};
 
 export function CreateExerciseHeader({
                                          onSubmit,
                                          disabled = false,
                                      }: CreateExerciseHeaderProps) {
     const router = useRouter();
-
-    const handleCancel = () => {
-        // Adjust the path to your "create exercises" page
-        router.push("/authorized/createExercise");
-    };
+    const handleCancel = () => router.push("/authorized/createExercise");
 
     return (
         <div className="border-b bg-background flex items-center justify-end px-2 py-1 gap-2">

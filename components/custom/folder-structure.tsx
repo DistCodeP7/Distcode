@@ -1,45 +1,65 @@
 ﻿"use client";
 
 import { useState } from "react";
-import { FolderNode, FileNode, Node } from "@/lib/folderStructure";
-import { Card, CardContent } from "@/components/ui/card";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronRight, ChevronDown, File } from "lucide-react";
+import type { Node, FileNode, FolderNode } from "./problemEditorClient";
 
-type TreeProps = {
+export interface TreeProps {
     node: Node;
-    onFileClick: (file: FileNode) => void;
     level?: number;
-};
+    onFileClick: (file: FileNode) => void;
+    activeFilePath?: string | null; // Added for highlighting
+}
 
-export function TreeNode({ node, onFileClick, level = 0 }: TreeProps) {
-    const [isOpen, setIsOpen] = useState(node.type === "folder" ? node.isOpen ?? false : false);
+export function TreeNode({ node, level = 0, onFileClick }: TreeProps) {
+    const isFolder = node.type === "folder";
+
+    const [isOpen, setIsOpen] = useState(() => {
+        if (isFolder) return (node as FolderNode).isOpen ?? true;
+        return false;
+    });
+
+    const padding = { paddingLeft: level * 16 };
 
     if (node.type === "file") {
+        const handleActivate = () => onFileClick(node);
+
         return (
-            <div
-                className="cursor-pointer pl-4 hover:bg-gray-100 dark:hover:bg-gray-800"
-                style={{ paddingLeft: level * 16 }}
-                onClick={() => onFileClick(node)}
+            <button
+                type="button"
+                onClick={handleActivate}
+                className={`cursor-pointer pl-4 py-1 hover:bg-muted rounded-sm flex items-center gap-1 w-full text-left`}
+                style={padding}
             >
                 📄 {node.name}
-            </div>
+            </button>
         );
     }
 
+    const folder = node as FolderNode;
+
+    const toggle = () => setIsOpen((s) => !s);
+
     return (
         <div>
-            <div
-                className="flex items-center cursor-pointer pl-4 hover:bg-gray-200 dark:hover:bg-gray-700"
-                style={{ paddingLeft: level * 16 }}
-                onClick={() => setIsOpen(!isOpen)}
+            <button
+                type="button"
+                onClick={toggle}
+                className="flex items-center py-1 hover:bg-muted rounded-sm w-full text-left"
+                style={padding}
             >
-                {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                <span className="ml-1 font-medium">📁 {node.name}</span>
-            </div>
+                {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                <span className="ml-1 font-medium">📁 {folder.name}</span>
+            </button>
 
             {isOpen &&
-                node.children.map((child) => (
-                    <TreeNode key={child.name + child.type} node={child} onFileClick={onFileClick} level={level + 1} />
+                folder.children?.map((child) => (
+                    <TreeNode
+                        key={(child as any).path ?? child.name}
+                        node={child}
+                        onFileClick={onFileClick}
+                        level={level + 1}
+                    />
                 ))}
         </div>
     );

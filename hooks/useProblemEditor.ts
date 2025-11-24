@@ -80,22 +80,22 @@ export const useProblemEditor = (
   }, [files]);
 
   const handleEditorContentChange = useCallback(
-    (value: SetStateAction<string>) => {
-      setState((prev) => {
-        const activeFileName = files[prev.activeFile]?.name;
-        if (!activeFileName) return prev;
-        const prevContent =
-          (prev.filesContent as Record<string, string>)[activeFileName] ?? "";
-        const newContent =
-          typeof value === "function" ? value(prevContent) : value;
-        const newFiles: Record<string, string> = {
-          ...(prev.filesContent as Record<string, string>),
-        };
-        newFiles[activeFileName] = newContent;
-        return { ...prev, filesContent: newFiles as Filemap };
-      });
-    },
-    [files]
+      (value: string | ((prev: string) => string), filePath: string) => {
+        setState((prev) => {
+          const prevContent =
+              (prev.filesContent as Record<string, string>)[filePath] ?? "";
+          const newContent =
+              typeof value === "function" ? value(prevContent) : value;
+          return {
+            ...prev,
+            filesContent: {
+              ...prev.filesContent,
+              [filePath]: newContent,
+            } as Filemap,
+          };
+        });
+      },
+      []
   );
 
   const setTitle = useCallback((title: string) => {
