@@ -62,72 +62,37 @@ export default function ExerciseEditor({
     const [canRate, setCanRate] = useState(initialCanRate);
     const [ratingLoading, startRatingTransition] = useTransition();
     const [rightPanelOpen, setRightPanelOpen] = useState(true);
-    const [viewingSolution, setViewingSolution] = useState(false);
+
+    // NEW: Three-tab state
+    const [rightTab, setRightTab] =
+        useState<"problem" | "solution" | "protocol">("problem");
 
     const horizontalGroupId = useId();
     const verticalGroupId = useId();
 
     const [createdFiles, setCreatedFiles] = useState<Set<string>>(new Set());
-    const addTemplateFile = (name: string) => {
-        const path = `/template/${name}`;
-        if (fileContents[path]) {
-            toast.error("File already exists!");
-            return;
-        }
-
-        // Add file to state
-        setFileContents((prev) => ({ ...prev, [path]: "" }));
-        setCreatedFiles((prev) => new Set(prev).add(path));
-        setActiveFilePath(path); // optionally open the new file
-    };
-    const removeTemplateFile = (path: string) => {
-        if (path === "/template/main.go") {
-            toast.error("Cannot delete main.go");
-            return;
-        }
-        if (!createdFiles.has(path)) {
-            toast.error("Cannot delete this file");
-            return;
-        }
-
-        // Remove from state
-        setFileContents((prev) => {
-            const copy = { ...prev };
-            delete copy[path];
-            return copy;
-        });
-        setCreatedFiles((prev) => {
-            const copy = new Set(prev);
-            copy.delete(path);
-            return copy;
-        });
-
-        // If active file is deleted, unset it
-        if (activeFilePath === path) setActiveFilePath(null);
-    };
-
-
 
     const [solutionUnlocked, setSolutionUnlocked] = useState(false);
 
-    // --- Files setup ---
+    /* ---------------- FILES ---------------- */
+    // IMPORTANT: Only include /template files on the left panel.
     const files: EditableFileNode[] = useMemo(
         () =>
             Object.entries(codeFolder.files)
-                .filter(
-                    ([path]) =>
-                        path.startsWith("/template") ||
-                        path.startsWith("/proto")
-                )
+                .filter(([path]) => path.startsWith("/template"))
                 .map(([path, content]) => ({
                     type: "file",
                     path,
                     name: path.split("/").pop() || path,
                     content,
-                    readOnly: path === "/proto/protocol.go",
+                    readOnly: false,
                 })),
         [codeFolder.files]
     );
+
+    // Protocol extracted manually (NOT shown in file tree)
+    const protocolContent =
+        codeFolder.files["/proto/protocol.go"] ?? "// protocol.go missing";
 
     const [fileContents, setFileContents] = useState<Record<string, string>>(
         () => Object.fromEntries(files.map((f) => [f.path, f.content]))
@@ -141,8 +106,9 @@ export default function ExerciseEditor({
         filePath: string
     ) => {
         if (resetting) return;
+
         const file = files.find((f) => f.path === filePath);
-        if (file?.readOnly) return; // locked
+        if (file?.readOnly) return;
 
         setFileContents((prev) => ({
             ...prev,
@@ -151,7 +117,7 @@ export default function ExerciseEditor({
         }));
     };
 
-    // --- Submit / Save / Reset ---
+    /* ---------------- SUBMIT / SAVE / RESET ---------------- */
     const onSubmit = async () => {
         clearMessages();
         connect();
@@ -186,6 +152,7 @@ export default function ExerciseEditor({
         }
     };
 
+    /* ---------------- TREE ---------------- */
     const treeNodes = useMemo(
         () =>
             buildTreeFromPaths(
@@ -197,10 +164,14 @@ export default function ExerciseEditor({
 
     const activeFile: EditableFileNode | null =
         activeFilePath != null
-            ? (flattenTree({ type: "folder", name: "root", children: treeNodes }).find(
-            (f) => f.path === activeFilePath
-        ) as EditableFileNode | undefined) ?? null
+            ? (flattenTree({
+            type: "folder",
+            name: "root",
+            children: treeNodes,
+        }).find((f) => f.path === activeFilePath) as EditableFileNode) ?? null
             : null;
+
+    /* ---------------- RENDER ---------------- */
 
     return (
         <ResizablePanelGroup
@@ -208,7 +179,7 @@ export default function ExerciseEditor({
             className="flex-1 border relative"
             id={horizontalGroupId}
         >
-            {/* Left Panel */}
+            {/* LEFT PANEL — FILE TREE */}
             <ResizablePanel
                 minSize={20}
                 className="overflow-y-auto p-2 border-l"
@@ -226,12 +197,9 @@ export default function ExerciseEditor({
 
             <ResizableHandle withHandle data-panel-group-id={horizontalGroupId} />
 
-            {/* Middle Panel */}
+            {/* MIDDLE PANEL — MAIN EDITOR + TERMINAL */}
             <ResizablePanel minSize={20} data-panel-group-id={horizontalGroupId}>
-                <ResizablePanelGroup
-                    direction="vertical"
-                    id={verticalGroupId}
-                >
+                <ResizablePanelGroup direction="vertical" id={verticalGroupId}>
                     <ResizablePanel
                         defaultSize={60}
                         className="relative"
@@ -249,7 +217,6 @@ export default function ExerciseEditor({
                                     minimap: { enabled: false },
                                 }}
                             />
-
                         )}
 
                         {resetting && (
@@ -261,7 +228,7 @@ export default function ExerciseEditor({
                             </div>
                         )}
 
-                        {/* Toggle Right Panel */}
+                        {/* Toggle right panel */}
                         <Button
                             size="sm"
                             variant="outline"
@@ -274,10 +241,7 @@ export default function ExerciseEditor({
 
                     <ResizableHandle withHandle data-panel-group-id={verticalGroupId} />
 
-                    <ResizablePanel
-                        defaultSize={40}
-                        data-panel-group-id={verticalGroupId}
-                    >
+                    <ResizablePanel defaultSize={40} data-panel-group-id={verticalGroupId}>
                         <TerminalOutput messages={messages} />
                     </ResizablePanel>
                 </ResizablePanelGroup>
@@ -285,7 +249,7 @@ export default function ExerciseEditor({
 
             <ResizableHandle withHandle data-panel-group-id={horizontalGroupId} />
 
-            {/* Right Panel */}
+            {/* RIGHT PANEL — PROBLEM / SOLUTION / PROTOCOL */}
             <ResizablePanel
                 minSize={rightPanelOpen ? 20 : 0}
                 defaultSize={rightPanelOpen ? 30 : 0}
@@ -304,40 +268,86 @@ export default function ExerciseEditor({
                         />
 
                         <div className="flex flex-col h-full">
+                            {/* Tabs */}
                             <div className="flex border-b bg-background">
-                                {/* Problem Tab */}
                                 <Button
-                                    variant={!viewingSolution ? "default" : "secondary"}
+                                    variant={rightTab === "problem" ? "default" : "secondary"}
                                     size="sm"
-                                    className="rounded-none border-r hover:cursor-pointer"
-                                    onClick={() => setViewingSolution(false)}
+                                    className="rounded-none border-r"
+                                    onClick={() => setRightTab("problem")}
                                 >
                                     <BookOpen className="w-4 h-4 mr-2" />
                                     Problem
                                 </Button>
 
-                                {/* Solution Tab */}
                                 <Button
-                                    variant={viewingSolution ? "default" : "secondary"}
+                                    variant={rightTab === "protocol" ? "default" : "secondary"}
                                     size="sm"
-                                    className="rounded-none border-r hover:cursor-pointer"
+                                    className="rounded-none"
+                                    onClick={() => setRightTab("protocol")}
+                                >
+                                    <FileText className="w-4 h-4 mr-2" />
+                                    Protocols
+                                </Button>
+
+                                <Button
+                                    variant={rightTab === "solution" ? "default" : "secondary"}
+                                    size="sm"
+                                    className="rounded-none border-r"
                                     onClick={() => {
                                         if (!solutionUnlocked) {
-                                            if (!window.confirm("Are you sure you want to view the solution?")) return;
+                                            if (
+                                                !window.confirm("Are you sure you want to view the solution?")
+                                            )
+                                                return;
                                             setSolutionUnlocked(true);
                                         }
-                                        setViewingSolution(true);
+                                        setRightTab("solution");
                                     }}
                                 >
                                     <FileText className="w-4 h-4 mr-2" />
                                     Solution
                                 </Button>
                             </div>
+
+                            {/* Tab content */}
                             <div className="flex-1 overflow-y-auto p-2">
-                                {viewingSolution ? (
-                                    <MarkdownPreview content={solutionMarkdown} />
-                                ) : (
+                                {rightTab === "problem" && (
                                     <MarkdownPreview content={problemMarkdown} />
+                                )}
+
+                                {rightTab === "protocol" && (
+                                    <Editor
+                                        file={{
+                                            path: "protocol.go",
+                                            name: "protocol.go",
+                                            type: "file",
+                                            content: protocolContent,
+                                        }}
+                                        setEditorContent={() => {}}
+                                        options={{
+                                            readOnly: true,
+                                            minimap: { enabled: false },
+                                            lineNumbers: "on",
+                                        }}
+                                    />
+                                )}
+
+                                {rightTab === "solution" && (
+                                    <Editor
+                                        file={{
+                                            path: "solution.go",
+                                            name: "solution.go",
+                                            type: "file",
+                                            content: solutionMarkdown,
+                                        }}
+                                        setEditorContent={() => {}}
+                                        options={{
+                                            readOnly: true,
+                                            minimap: { enabled: false },
+                                            lineNumbers: "on",
+                                        }}
+                                    />
                                 )}
                             </div>
                         </div>
