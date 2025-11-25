@@ -68,7 +68,7 @@ export default function CustomEditor({
 
 type Files = {
   name: string;
-  fileType: "go" | "erlang" | "akka" | "markdown";
+  fileType: "go" | "markdown";
 };
 
 type EditorHeaderProps = {
@@ -111,7 +111,9 @@ export function EditorHeader({
                 )}
               >
                 <FileTypeIcon className="w-4 h-4" name={file.fileType} />
-                <span className="truncate max-w-[12ch]">{file.name}</span>
+                <span title={file.name} className="truncate max-w-[12ch]">
+                  {file.name}
+                </span>
               </Button>
             );
           })}

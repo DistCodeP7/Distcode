@@ -1,7 +1,7 @@
 "use client";
 
 import { Plus, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
 import { Button } from "@/components/ui/button";
@@ -26,9 +26,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { Filemap, EnvironmentVariable } from "@/drizzle/schema";
 import { useProblemEditor } from "@/hooks/useProblemEditor";
-
-type FileDef = { name: string; fileType: "go" | "markdown" };
 
 export default function ProblemEditorClient({
   files,
@@ -36,17 +35,35 @@ export default function ProblemEditorClient({
   initialTitle,
   initialDescription,
   initialDifficulty,
+  initialBuildCommand,
+  initialEntryCommand,
+  initialEnvs,
   problemId,
 }: {
-  files: FileDef[];
-  initialFilesContent?: Record<string, string>;
+  files: Filemap;
+  initialFilesContent?: Filemap;
   initialTitle?: string;
   initialDescription?: string;
   initialDifficulty?: string;
+  initialBuildCommand?: string;
+  initialEntryCommand?: string;
+  initialEnvs?: EnvironmentVariable[];
   problemId?: number;
 }) {
-  const [currentFiles, setCurrentFiles] = useState<FileDef[]>([...files]);
+  const [currentFiles, setCurrentFiles] = useState<string[]>(
+    Object.keys(files)
+  );
   const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
+
+  const filesForHook: { name: string; fileType: "go" | "markdown" }[] =
+    currentFiles.map((name: string) => ({
+      name: String(name),
+      fileType: name.endsWith(".go") ? "go" : "markdown",
+    }));
+
+  const pairCount = filesForHook.filter((f) =>
+    f.name.startsWith("/template")
+  ).length;
 
   const {
     title,
@@ -61,51 +78,69 @@ export default function ProblemEditorClient({
     handleSubmit,
     handleSave,
     filesContent,
-  } = useProblemEditor(currentFiles, {
+    buildCommand,
+    entryCommand,
+    setBuildCommand,
+    setEntryCommand,
+    envs,
+    setEnvs,
+  } = useProblemEditor(filesForHook, {
     filesContent: initialFilesContent,
     title: initialTitle,
     description: initialDescription,
     difficulty: initialDifficulty,
     problemId,
+    buildCommand: initialBuildCommand,
+    entryCommand: initialEntryCommand,
+    envs: initialEnvs,
   });
-
-  const pairCount = currentFiles.filter((f) =>
-    f.name.startsWith("template")
-  ).length;
 
   const addFilesPair = () => {
     const next = pairCount + 1;
-    const newFiles: FileDef[] = [
-      { name: `template${next === 1 ? "" : next}.go`, fileType: "go" },
-      { name: `solution${next === 1 ? "" : next}.go`, fileType: "go" },
+    const newEntries: [string, string][] = [
+      [
+        `/template/template${next === 1 ? "" : next}.go`,
+        "// Write your template code here\n",
+      ],
+      [
+        `/solution/solution${next === 1 ? "" : next}.go`,
+        "// Write your solution code here\n",
+      ],
     ];
-
     setCurrentFiles((prev) => {
-      const index = prev.findIndex((f) => f.name === "testCases.go");
-      if (index === -1) return [...prev, ...newFiles]; // Append if testCases.go not found
-      return [...prev.slice(0, index), ...newFiles, ...prev.slice(index)]; // Insert before testCases.go
+      const entries = [...prev];
+      const index = entries.findIndex((name) => name.startsWith("/test"));
+      const insertNames = newEntries.map(([p]) => p);
+      if (index === -1) return [...entries, ...insertNames];
+      return [
+        ...entries.slice(0, index),
+        ...insertNames,
+        ...entries.slice(index),
+      ];
     });
   };
 
   const removeFilesPair = () => {
     if (pairCount <= 1) return;
     setCurrentFiles((prev) => {
-      const lastTemplate = [...prev]
-        .reverse()
-        .find((f) => f.name.startsWith("template"))?.name;
-      const lastSolution = [...prev]
-        .reverse()
-        .find((f) => f.name.startsWith("solution"))?.name;
-      return prev.filter(
-        (f) => f.name !== lastTemplate && f.name !== lastSolution
-      );
+      const entries = [...prev];
+      const toRemove = new Set<string>();
+      // Walk from the end and collect up to two matches (template + solution) and then remove them
+      for (let i = entries.length - 1; i >= 0 && toRemove.size < 2; i--) {
+        const n = entries[i];
+        if (n.includes("/template") || n.includes("/solution")) {
+          toRemove.add(n);
+        }
+      }
+      if (toRemove.size === 0) return entries;
+      return entries.filter((name) => !toRemove.has(name));
     });
   };
 
-  useEffect(() => {
-    if (activeFile >= currentFiles.length)
-      setActiveFile(Math.max(0, currentFiles.length - 1));
-  }, [currentFiles, activeFile, setActiveFile]);
+  const safeActiveFile = Math.min(
+    activeFile,
+    Math.max(0, filesForHook.length - 1)
+  );
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden">
@@ -152,6 +187,69 @@ export default function ProblemEditorClient({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
+        <div className="flex gap-3">
+          <Input
+            placeholder="Build command (e.g. go build ./...)"
+            value={buildCommand}
+            onChange={(e) => setBuildCommand(e.target.value)}
+            className="flex-1"
+          />
+          <Input
+            placeholder="Entry command (e.g. ./solution)"
+            value={entryCommand}
+            onChange={(e) => setEntryCommand(e.target.value)}
+            className="flex-1"
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-muted-foreground">
+              Environment Variables
+            </span>
+            <Button
+              onClick={() => setEnvs([...(envs ?? []), { key: "", value: "" }])}
+              size="sm"
+              variant="outline"
+              className="flex items-center gap-1 px-2 py-1"
+            >
+              <Plus className="w-4 h-4" /> Add
+            </Button>
+          </div>
+          {(envs ?? []).map((ev, idx) => (
+            <div key={`${ev.key}-${idx}`} className="flex gap-2 items-center">
+              <Input
+                placeholder="KEY"
+                value={ev.key}
+                onChange={(e) => {
+                  const next = [...(envs ?? [])];
+                  next[idx] = { ...next[idx], key: e.target.value };
+                  setEnvs(next);
+                }}
+                className="w-1/3"
+              />
+              <Input
+                placeholder="VALUE"
+                value={ev.value}
+                onChange={(e) => {
+                  const next = [...(envs ?? [])];
+                  next[idx] = { ...next[idx], value: e.target.value };
+                  setEnvs(next);
+                }}
+                className="flex-1"
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  const next = (envs ?? []).filter((_, i) => i !== idx);
+                  setEnvs(next);
+                }}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Editor + Preview */}
@@ -160,7 +258,11 @@ export default function ProblemEditorClient({
         className="flex-1 border h-full w-full min-w-0"
       >
         <ResizablePanel minSize={20} className="flex-1 min-w-0 overflow-auto">
-          <MarkdownPreview content={filesContent["problem.md"] || ""} />
+          <MarkdownPreview
+            content={
+              (filesContent as Record<string, string>)["/problem.md"] || ""
+            }
+          />
         </ResizablePanel>
 
         <ResizableHandle withHandle />
@@ -170,8 +272,10 @@ export default function ProblemEditorClient({
           className="flex-1 flex flex-col min-w-0 overflow-hidden"
         >
           <EditorHeader
-            files={currentFiles}
-            activeFile={activeFile}
+            files={filesForHook.map((f) => ({
+              ...f,
+            }))}
+            activeFile={safeActiveFile}
             onFileChange={setActiveFile}
             onSubmit={handleSubmit}
             onSave={handleSave}
@@ -247,12 +351,16 @@ export default function ProblemEditorClient({
 
           <div className="flex-1 overflow-auto min-w-0">
             <Editor
-              editorContent={filesContent[currentFiles[activeFile]?.name] || ""}
+              editorContent={
+                (filesContent as Record<string, string>)[
+                  filesForHook[safeActiveFile]?.name || ""
+                ] || ""
+              }
               setEditorContent={handleEditorContentChange}
               language={
-                currentFiles[activeFile]?.fileType === "markdown"
-                  ? "markdown"
-                  : "go"
+                filesForHook[safeActiveFile]?.fileType === "go"
+                  ? "go"
+                  : "markdown"
               }
             />
           </div>

@@ -14,6 +14,24 @@ import { sql } from "drizzle-orm/sql/sql";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import * as zod from "zod";
 
+
+type Path = string;
+type code = string;
+
+export type EnvironmentVariable = {
+  key: string;
+  value: string;
+}
+
+export type Filemap = Record<Path, code>;
+
+export type nodeSpec = {
+  Files: Filemap;
+  Envs: EnvironmentVariable[];
+  BuildCommand: string;
+  EntryCommand: string;
+}
+
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: varchar("email", { length: 256 }).notNull().unique(),
@@ -41,9 +59,7 @@ export const problems = pgTable(
     description: text("description").notNull(),
     difficulty: integer("difficulty").notNull(),
     problemMarkdown: text("problem_markdown").notNull(),
-    templateCode: json("template_code").$type<string[]>().notNull(),
-    solutionCode: json("solution_code").$type<string[]>().notNull(),
-    testCasesCode: text("test_cases_code").notNull(),
+    codeFolder: json("codefolder").$type<nodeSpec>().notNull(),
     isPublished: boolean("is_published").default(true).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
@@ -65,7 +81,7 @@ export const userCode = pgTable("userCode", {
     problemId: integer("problem_id")
         .notNull()
         .references(() => problems.id, { onDelete: "cascade" }),
-    codeSubmitted: json("code_submitted").$type<string[]>().notNull(),
+    codeSubmitted: json("code_submitted").$type<nodeSpec>().notNull(),
 });
 
 export const UserCodeSchema = createSelectSchema(userCode);

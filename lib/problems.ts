@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import type { nodeSpec } from "@/drizzle/schema";
 import { problems, ratings } from "@/drizzle/schema";
 import { db } from "./db";
 
@@ -17,9 +18,7 @@ export async function submitProblem(
   description: string,
   difficulty: number,
   problemMarkdown: string,
-  templateCode: string[],
-  solutionCode: string[],
-  testCasesCode: string,
+  codeFolder: nodeSpec,
   isPublished = true
 ) {
   const result = await db
@@ -30,9 +29,7 @@ export async function submitProblem(
       description,
       difficulty,
       problemMarkdown,
-      templateCode,
-      solutionCode,
-      testCasesCode,
+      codeFolder,
       isPublished,
     })
     .returning();

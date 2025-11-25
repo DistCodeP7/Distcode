@@ -2,7 +2,7 @@
 
 import { BookOpen, Code, ThumbsDown, ThumbsUp } from "lucide-react";
 import type React from "react";
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import type { StreamingJobResult } from "@/app/api/stream/route";
 import {
@@ -20,32 +20,56 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import type { nodeSpec } from "@/drizzle/schema";
 import { useSSE } from "@/hooks/useSSE";
 
 type ExerciseEditorProps = {
   exerciseId: number;
   problemMarkdown: string;
-  templateCode: string[];
-  solutionCode?: string[];
-  testCasesCode?: string;
-  savedCode?: string[] | null;
+  codeFolder: nodeSpec;
   userRating?: "up" | "down" | null;
   canRate?: boolean;
+};
+
+type FileDatas = {
+  path: string;
+  name: string;
+  content: string;
+  fileType: "go" | "markdown";
 };
 
 export default function ExerciseEditor({
   exerciseId,
   problemMarkdown,
-  templateCode,
-  solutionCode,
-  savedCode,
+  codeFolder,
   userRating: initialUserRating = null,
   canRate: initialCanRate = false,
 }: ExerciseEditorProps) {
   const [activeFile, setActiveFile] = useState(0);
-  const [fileContents, setFileContents] = useState<string[]>(
-    savedCode ?? templateCode
+
+  const files: FileDatas[] = useMemo(
+    () =>
+      Object.entries(codeFolder.Files).map(([path, content]) => ({
+        path,
+        name: path,
+        content,
+        fileType: path.endsWith(".go") ? "go" : "markdown",
+      })),
+    [codeFolder.Files]
   );
+
+  const [fileContents, setFileContents] = useState<string[]>(() =>
+    files.map((file) => file.content)
+  );
+
+  const solutionFiles = files.filter((file) =>
+    file.path.startsWith("/solution")
+  );
+
+  const templateCode = files.filter((file) =>
+    file.path.startsWith("/template")
+  );
+
   const [resetting, setResetting] = useState(false);
   const [userRating, setUserRating] = useState<"up" | "down" | null>(
     initialUserRating
@@ -53,21 +77,10 @@ export default function ExerciseEditor({
   const [canRate, setCanRate] = useState(initialCanRate);
   const [ratingLoading, startRatingTransition] = useTransition();
 
-  const files = fileContents.map((content, index) => ({
-    name: index === 0 ? "main.go" : `file${index + 1}.go`,
-    content,
-    fileType: "go" as const,
-  }));
-
   const [leftPanelView, setLeftPanelView] = useState<"problem" | "solution">(
     "problem"
   );
   const [activeSolutionFile, setActiveSolutionFile] = useState(0);
-
-  const solutionFiles = (solutionCode || []).map((content, index) => ({
-    name: index === 0 ? "main.go" : `file${index + 1}.go`,
-    content,
-  }));
 
   const { messages, connect, clearMessages } =
     useSSE<StreamingJobResult>("/api/stream");
@@ -82,15 +95,32 @@ export default function ExerciseEditor({
   const onSubmit = async () => {
     clearMessages();
     connect();
-    const problemContent = fileContents;
-    await submitCode(problemContent, { params: { id: exerciseId } });
+    const problemContent: nodeSpec = {
+      Files: Object.fromEntries(
+        files.map((file, index) => [file.path, fileContents[index]])
+      ),
+      Envs: codeFolder.Envs,
+      BuildCommand: codeFolder.BuildCommand,
+      EntryCommand: codeFolder.EntryCommand,
+    };
+    await submitCode(problemContent, {
+      params: { id: exerciseId },
+    });
   };
 
   const onSave = async () => {
     clearMessages();
 
-    const savedContent = fileContents[activeFile];
-    const result = await saveCode([savedContent], {
+    const payload: nodeSpec = {
+      Files: Object.fromEntries(
+        files.map((file, index) => [file.path, fileContents[index]])
+      ),
+      Envs: codeFolder.Envs,
+      BuildCommand: codeFolder.BuildCommand,
+      EntryCommand: codeFolder.EntryCommand,
+    };
+
+    const result = await saveCode(payload, {
       params: { id: exerciseId },
     });
 
@@ -112,7 +142,7 @@ export default function ExerciseEditor({
     try {
       const result = await resetCode({ params: { id: exerciseId } });
       if (result.success) {
-        setFileContents([...templateCode]);
+        setFileContents(templateCode.map((f) => f.content));
         toast.success("Code reset successfully!", {
           description: "Template restored and saved code cleared.",
         });
@@ -249,9 +279,9 @@ export default function ExerciseEditor({
         <ResizablePanelGroup direction="vertical">
           <ResizablePanel defaultSize={50}>
             <EditorHeader
-              files={files.map((file, x) => ({
-                ...file,
-                content: fileContents[x],
+              files={files.map((file) => ({
+                name: file.name,
+                fileType: file.fileType,
               }))}
               activeFile={activeFile}
               onFileChange={setActiveFile}
@@ -288,9 +318,11 @@ export default function ExerciseEditor({
             </div>
 
             <Editor
-              editorContent={fileContents[activeFile]}
+              editorContent={fileContents[activeFile] ?? ""}
               setEditorContent={setEditorContent}
-              language={files[activeFile].fileType}
+              language={
+                files[activeFile]?.fileType === "go" ? "go" : "markdown"
+              }
               options={{
                 readOnly: resetting,
                 minimap: { enabled: false },
