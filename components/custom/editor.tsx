@@ -4,9 +4,7 @@ import Editor, { type EditorProps, type OnMount } from "@monaco-editor/react";
 import { Save, Send, X, RotateCcw } from "lucide-react";
 import type React from "react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { labToHex } from "@/utils/labToHex";
-import { FileTypeIcon } from "./Icon";
 import { useRouter } from "next/navigation";
 import type { FileNode } from "./problemEditorClient";
 
@@ -85,11 +83,6 @@ function deriveLanguageFromFileName(name?: string): string {
 }
 
 /* ---------------- HEADERS ---------------- */
-
-type Files = {
-    name: string;
-    fileType: "go" | "markdown";
-};
 
 type EditorHeaderProps = {
     onSubmit: () => void;

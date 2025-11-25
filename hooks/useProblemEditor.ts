@@ -34,14 +34,8 @@ type ProblemEditorState = {
 };
 
 export const useProblemEditor = (
-  files: readonly ProblemFile[],
-  initial?: {
-    filesContent?: Filemap;
-    title?: string;
-    description?: string;
-    difficulty?: string;
-    problemId?: number;
-  }
+    files: { name: string; fileType: string }[],
+    initial?: { filesContent?: Filemap; title?: string; description?: string; difficulty?: string; problemId?: number }
 ) => {
   const [state, setState] = useState<ProblemEditorState>(() => {
     // Initialize Filemap (now a plain object) for files

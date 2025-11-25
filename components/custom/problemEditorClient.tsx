@@ -1,26 +1,16 @@
 "use client";
 
-import { ChevronDown, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { TreeNode, flattenTree } from "./folder-structure";
+import { useState, useMemo } from "react";
 import Editor, { CreateExerciseHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
 import { Input } from "@/components/ui/input";
-import {
-    ResizableHandle,
-    ResizablePanel,
-    ResizablePanelGroup,
-} from "@/components/ui/resizable";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Filemap } from "@/drizzle/schema";
 import { useProblemEditor } from "@/hooks/useProblemEditor";
 
-/* --------------------------- TYPES --------------------------- */
+/* ---------------- TYPES ---------------- */
 
 export type FileNode = {
     type: "file";
@@ -38,73 +28,9 @@ export type FolderNode = {
 
 export type Node = FileNode | FolderNode;
 
-/* --------------------------- TREE COMPONENT --------------------------- */
+/* ---------------- TREE BUILDER ---------------- */
 
-type TreeProps = {
-    node: Node;
-    onFileClick: (file: FileNode) => void;
-    activeFilePath: string | null;
-    level?: number;
-};
-
-function TreeNode({ node, onFileClick, activeFilePath, level = 0 }: TreeProps) {
-    const [isOpen, setIsOpen] = useState(
-        node.type === "folder" ? node.isOpen ?? true : false
-    );
-
-    const isActive = node.type === "file" && node.path === activeFilePath;
-
-    if (node.type === "file") {
-        return (
-            <button
-                type="button"
-                onClick={() => onFileClick(node)}
-                className={`cursor-pointer pl-4 truncate ${
-                    isActive
-                        ? "bg-primary text-primary-foreground font-semibold"
-                        : "hover:bg-gray-100 dark:hover:bg-gray-800"
-                }`}
-                style={{ paddingLeft: level * 16 }}
-            >
-                📄 {node.name}
-            </button>
-        );
-    }
-
-    const toggleFolder = () => setIsOpen((v) => !v);
-
-    return (
-        <div>
-            <button
-                type="button"
-                onClick={toggleFolder}
-                className="flex items-center pl-4 w-full text-left hover:bg-gray-200 dark:hover:bg-gray-700"
-                style={{ paddingLeft: level * 16 }}
-            >
-                {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                <span className="ml-1 font-medium">📁 {node.name}</span>
-            </button>
-
-            {isOpen &&
-                node.children.map((child) => (
-                    <TreeNode
-                        key={child.type === "file" ? child.path : child.name}
-                        node={child}
-                        onFileClick={onFileClick}
-                        activeFilePath={activeFilePath}
-                        level={level + 1}
-                    />
-                ))}
-        </div>
-    );
-}
-
-/* --------------------------- TREE BUILDER --------------------------- */
-
-export function buildTreeFromPaths(
-    paths: string[],
-    contents: Record<string, string>
-): Array<FileNode | FolderNode> {
+export function buildTreeFromPaths(paths: string[], contents: Record<string, string>): Array<FileNode | FolderNode> {
     const rootChildren: Array<FileNode | FolderNode> = [];
 
     for (const fullPath of paths) {
@@ -120,39 +46,22 @@ export function buildTreeFromPaths(
                     type: "file",
                     name: part,
                     path: fullPath,
-                    content: contents[fullPath] || "",
+                    content: contents[fullPath] ?? "",
                 });
             } else {
-                let folder = current.find(
-                    (c) => c.type === "folder" && c.name === part
-                ) as FolderNode;
-
+                let folder = current.find((c) => c.type === "folder" && c.name === part) as FolderNode;
                 if (!folder) {
-                    folder = {
-                        type: "folder",
-                        name: part,
-                        children: [],
-                        isOpen: true,
-                    };
+                    folder = { type: "folder", name: part, children: [], isOpen: true };
                     current.push(folder);
                 }
-
                 current = folder.children;
             }
         }
     }
-
     return rootChildren;
 }
 
-/* --------------------------- FLATTEN HELPER --------------------------- */
-
-function flatten(node: Node): FileNode[] {
-    if (node.type === "file") return [node];
-    return node.children.flatMap(flatten);
-}
-
-/* --------------------------- MAIN COMPONENT --------------------------- */
+/* ---------------- MAIN COMPONENT ---------------- */
 
 export default function ProblemEditorClient({
                                                 files,
@@ -170,10 +79,11 @@ export default function ProblemEditorClient({
     problemId?: number;
 }) {
     const [activeFilePath, setActiveFilePath] = useState<string | null>(null);
+    const [createdFiles, setCreatedFiles] = useState<Set<string>>(new Set());
 
     const filesForHook = Object.keys(files).map((path) => ({
         name: path,
-        fileType: (path.endsWith(".go") ? "go" : "markdown") as "go" | "markdown",
+        fileType: path.endsWith(".go") ? "go" : "markdown",
     }));
 
     const {
@@ -185,7 +95,6 @@ export default function ProblemEditorClient({
         setDifficulty,
         handleEditorContentChange,
         handleSubmit,
-        handleSave,
         filesContent,
     } = useProblemEditor(filesForHook, {
         filesContent: initialFilesContent,
@@ -195,21 +104,34 @@ export default function ProblemEditorClient({
         problemId,
     });
 
-    const filePaths = Object.keys(files);
-    const treeNodes = buildTreeFromPaths(
-        filePaths,
-        filesContent as Record<string, string>
-    );
+    // Merge original + newly created files
+    const allFilePaths = useMemo(() => [...Object.keys(files), ...Array.from(createdFiles)], [files, createdFiles]);
 
-    const handleFileClick = (file: FileNode) => setActiveFilePath(file.path);
+    const treeNodes = useMemo(() => buildTreeFromPaths(allFilePaths, filesContent as Record<string, string>), [
+        allFilePaths,
+        filesContent,
+    ]);
+
+    const handleAddFile = (path: string) => {
+        if ((filesContent as Record<string, string>)[path]) return alert("File already exists");
+        setCreatedFiles((prev) => new Set([...prev, path]));
+        (filesContent as Record<string, string>)[path] = "// New file";
+    };
+
+    const handleDeleteFile = (path: string) => {
+        if (!createdFiles.has(path)) return alert("Can only delete newly created files");
+        setCreatedFiles((prev) => {
+            const next = new Set(prev);
+            next.delete(path);
+            return next;
+        });
+        delete (filesContent as Record<string, string>)[path];
+        if (activeFilePath === path) setActiveFilePath(null);
+    };
 
     const activeFile = activeFilePath
-        ? {
-            ...treeNodes.flatMap(flatten).find((f) => f.path === activeFilePath)!,
-            content: (filesContent as Record<string, string>)[activeFilePath] ?? ""
-        }
+        ? treeNodes.flatMap(flattenTree).find((f) => f.path === activeFilePath) ?? null
         : null;
-
 
     return (
         <div className="flex flex-col h-screen w-screen overflow-hidden">
@@ -226,21 +148,9 @@ export default function ProblemEditorClient({
                         <Select value={difficulty} onValueChange={setDifficulty}>
                             <SelectTrigger className="w-full text-base font-medium">
                                 <SelectValue placeholder="Select difficulty">
-                                    {difficulty === "1" && (
-                                        <span className="text-chart-2 font-semibold">
-                                            Easy
-                                        </span>
-                                    )}
-                                    {difficulty === "2" && (
-                                        <span className="text-chart-3 font-semibold">
-                                            Medium
-                                        </span>
-                                    )}
-                                    {difficulty === "3" && (
-                                        <span className="text-primary font-semibold">
-                                            Hard
-                                        </span>
-                                    )}
+                                    {difficulty === "1" && <span className="text-chart-2 font-semibold">Easy</span>}
+                                    {difficulty === "2" && <span className="text-chart-3 font-semibold">Medium</span>}
+                                    {difficulty === "3" && <span className="text-primary font-semibold">Hard</span>}
                                 </SelectValue>
                             </SelectTrigger>
                             <SelectContent>
@@ -251,19 +161,11 @@ export default function ProblemEditorClient({
                         </Select>
                     </div>
                 </div>
-
-                <Input
-                    placeholder="Short description..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                />
+                <Input placeholder="Short description..." value={description} onChange={(e) => setDescription(e.target.value)} />
             </div>
 
             {/* Editor + Preview */}
-            <ResizablePanelGroup
-                direction="horizontal"
-                className="flex-1 border h-full w-full min-w-0"
-            >
+            <ResizablePanelGroup direction="horizontal" className="flex-1 border h-full w-full min-w-0">
                 {/* LEFT SIDE */}
                 <ResizablePanel minSize={25}>
                     <div className="flex h-full overflow-hidden">
@@ -272,21 +174,22 @@ export default function ProblemEditorClient({
                                 <TreeNode
                                     key={node.type === "file" ? node.path : node.name}
                                     node={node}
-                                    onFileClick={handleFileClick}
+                                    onFileClick={(file) => setActiveFilePath(file.path)}
                                     activeFilePath={activeFilePath}
+                                    onAddFile={handleAddFile}
+                                    onDeleteFile={handleDeleteFile}
+                                    createdFiles={createdFiles}
                                 />
                             ))}
                         </div>
 
                         <div className="flex-1 flex flex-col min-w-0">
-                            <Editor
-                                file={activeFile}
-                                setEditorContent={(text) => {
-                                    if (activeFile) {
-                                        handleEditorContentChange(text, activeFile.path);
-                                    }
-                                }}
-                            />
+                            {activeFile && (
+                                <Editor
+                                    file={activeFile}
+                                    setEditorContent={(text) => handleEditorContentChange(text, activeFile.path)}
+                                />
+                            )}
                         </div>
                     </div>
                 </ResizablePanel>
@@ -295,13 +198,8 @@ export default function ProblemEditorClient({
 
                 {/* RIGHT SIDE */}
                 <ResizablePanel minSize={20} className="overflow-auto">
-                    <CreateExerciseHeader
-                        onSubmit={handleSubmit}
-                        disabled={false}
-                    />
-                    <MarkdownPreview
-                        content={(filesContent as Record<string, string>)["/problem.md"] ?? ""}
-                    />
+                    <CreateExerciseHeader onSubmit={handleSubmit} disabled={false} />
+                    <MarkdownPreview content={(filesContent as Record<string, string>)["/problem.md"] ?? ""} />
                 </ResizablePanel>
             </ResizablePanelGroup>
         </div>
