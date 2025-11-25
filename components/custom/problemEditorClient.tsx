@@ -1,7 +1,7 @@
 "use client";
 
 import { Plus, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
 import { Button } from "@/components/ui/button";
@@ -124,30 +124,23 @@ export default function ProblemEditorClient({
     if (pairCount <= 1) return;
     setCurrentFiles((prev) => {
       const entries = [...prev];
-      // find last template/solution entries
-      const lastTemplateIndex = [...entries]
-        .reverse()
-        .findIndex((name) => name.includes("/template"));
-      const lastSolutionIndex = [...entries]
-        .reverse()
-        .findIndex((name) => name.includes("/solution"));
-      const toRemove: Set<string> = new Set();
-      if (lastTemplateIndex !== -1) {
-        const idx = entries.length - 1 - lastTemplateIndex;
-        toRemove.add(entries[idx]);
+      const toRemove = new Set<string>();
+      // Walk from the end and collect up to two matches (template + solution) and then remove them
+      for (let i = entries.length - 1; i >= 0 && toRemove.size < 2; i--) {
+        const n = entries[i];
+        if (n.includes("/template") || n.includes("/solution")) {
+          toRemove.add(n);
+        }
       }
-      if (lastSolutionIndex !== -1) {
-        const idx = entries.length - 1 - lastSolutionIndex;
-        toRemove.add(entries[idx]);
-      }
+      if (toRemove.size === 0) return entries;
       return entries.filter((name) => !toRemove.has(name));
     });
   };
 
-  useEffect(() => {
-    if (activeFile >= filesForHook.length)
-      setActiveFile(Math.max(0, filesForHook.length - 1));
-  }, [filesForHook, activeFile, setActiveFile]);
+  const safeActiveFile = Math.min(
+    activeFile,
+    Math.max(0, filesForHook.length - 1)
+  );
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden">
@@ -282,7 +275,7 @@ export default function ProblemEditorClient({
             files={filesForHook.map((f) => ({
               ...f,
             }))}
-            activeFile={activeFile}
+            activeFile={safeActiveFile}
             onFileChange={setActiveFile}
             onSubmit={handleSubmit}
             onSave={handleSave}
@@ -360,12 +353,14 @@ export default function ProblemEditorClient({
             <Editor
               editorContent={
                 (filesContent as Record<string, string>)[
-                  filesForHook[activeFile]?.name || ""
+                  filesForHook[safeActiveFile]?.name || ""
                 ] || ""
               }
               setEditorContent={handleEditorContentChange}
               language={
-                filesForHook[activeFile]?.fileType === "go" ? "go" : "markdown"
+                filesForHook[safeActiveFile]?.fileType === "go"
+                  ? "go"
+                  : "markdown"
               }
             />
           </div>
