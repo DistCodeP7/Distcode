@@ -26,8 +26,10 @@ export type EnvironmentVariable = {
 export type Filemap = Record<Path, code>;
 
 export type nodeSpec = {
-  files: Filemap;
-  envs: EnvironmentVariable[];
+  Files: Filemap;
+  Envs: EnvironmentVariable[];
+  BuildCommand: string;
+  EntryCommand: string;
 }
 
 export const users = pgTable("users", {

@@ -6,20 +6,22 @@ export default function NewProblemPage() {
   // No submissionId is passed, so ProblemEditorClient will use submitProblem
 
   const files: nodeSpec = {
-    files: {
+    Files: {
       "/problem.md": "# New Problem\n\nDescribe the problem here.",
       "/template/main.go": "// Write your template code here\n",
       "/solution/main.go": "// Write your solution code here\n",
       "/test/main.go": "// Write your test cases here\n",
       "/proto/protocol.go": " // Define your protocol here\n",
     },
-    envs: [],
+    Envs: [],
+    BuildCommand: "",
+    EntryCommand: "",
   };
 
   return (
     <ProblemEditorClient
-      files={files.files}
-      initialFilesContent={files.files}
+      files={files.Files}
+      initialFilesContent={files.Files}
       initialTitle=""
       initialDescription=""
       initialDifficulty=""

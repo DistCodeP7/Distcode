@@ -32,7 +32,7 @@ export async function saveProblem(data: SaveProblemParams) {
         })
       : undefined;
 
-  const filesObj = problemData.codeFolder.files;
+  const filesObj = problemData.codeFolder.Files;
 
   if (Object.keys(filesObj).length === 0) {
     return {
@@ -63,8 +63,10 @@ export async function saveProblem(data: SaveProblemParams) {
         title: problemData.title,
         problemMarkdown: problemData.problemMarkdown,
         codeFolder: {
-          files: filesObj,
-          envs: [],
+          Files: filesObj,
+          Envs: problemData.codeFolder.Envs,
+          BuildCommand: problemData.codeFolder.BuildCommand,
+          EntryCommand: problemData.codeFolder.EntryCommand,
         },
         isPublished,
       })
@@ -81,8 +83,10 @@ export async function saveProblem(data: SaveProblemParams) {
       title: problemData.title,
       problemMarkdown: problemData.problemMarkdown,
       codeFolder: {
-        files: filesObj,
-        envs: [],
+        Files: filesObj,
+        Envs: problemData.codeFolder.Envs,
+        BuildCommand: problemData.codeFolder.BuildCommand,
+        EntryCommand: problemData.codeFolder.EntryCommand,
       },
       isPublished,
       userId: user.userid,

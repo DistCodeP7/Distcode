@@ -46,9 +46,9 @@ export async function submitCode(
   if (Number.isNaN(ProblemId))
     return { error: "Invalid exercise id", status: 400 };
 
-  for (const key of Object.keys(content.files)) {
+  for (const key of Object.keys(content.Files)) {
     if (key.includes("problem.md") || key.startsWith("/solution")) {
-      delete content.files[key];
+      delete content.Files[key];
     }
   }
 

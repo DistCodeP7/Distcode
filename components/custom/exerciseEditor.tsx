@@ -49,13 +49,13 @@ export default function ExerciseEditor({
 
   const files: FileDatas[] = useMemo(
     () =>
-      Object.entries(codeFolder.files).map(([path, content]) => ({
+      Object.entries(codeFolder.Files).map(([path, content]) => ({
         path,
         name: path,
         content,
         fileType: path.endsWith(".go") ? "go" : "markdown",
       })),
-    [codeFolder.files]
+    [codeFolder.Files]
   );
 
   const [fileContents, setFileContents] = useState<string[]>(() =>
@@ -96,10 +96,12 @@ export default function ExerciseEditor({
     clearMessages();
     connect();
     const problemContent: nodeSpec = {
-      files: Object.fromEntries(
+      Files: Object.fromEntries(
         files.map((file, index) => [file.path, fileContents[index]])
       ),
-      envs: codeFolder.envs,
+      Envs: codeFolder.Envs,
+      BuildCommand: codeFolder.BuildCommand,
+      EntryCommand: codeFolder.EntryCommand,
     };
     await submitCode(problemContent, {
       params: { id: exerciseId },
@@ -110,10 +112,12 @@ export default function ExerciseEditor({
     clearMessages();
 
     const payload: nodeSpec = {
-      files: Object.fromEntries(
+      Files: Object.fromEntries(
         files.map((file, index) => [file.path, fileContents[index]])
       ),
-      envs: codeFolder.envs,
+      Envs: codeFolder.Envs,
+      BuildCommand: codeFolder.BuildCommand,
+      EntryCommand: codeFolder.EntryCommand,
     };
 
     const result = await saveCode(payload, {
