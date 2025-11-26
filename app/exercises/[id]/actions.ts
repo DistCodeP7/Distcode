@@ -173,23 +173,31 @@ export async function loadUserRating({ params }: { params: { id: number } }) {
 }
 
 export async function resetCode({ params }: { params: { id: number } }) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) return { error: "Unauthorized", status: 401 };
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) return { error: "Unauthorized", status: 401 };
 
-  const problemId = Number(params.id);
-  if (Number.isNaN(problemId))
-    return { error: "Invalid problem id", status: 400 };
+    const problemId = Number(params.id);
+    if (Number.isNaN(problemId))
+        return { error: "Invalid problem id", status: 400 };
 
-  await db
-    .delete(userCode)
-    .where(
-      and(
-        eq(userCode.userId, session.user.id),
-        eq(userCode.problemId, problemId)
-      )
-    );
+    await db
+        .delete(userCode)
+        .where(
+            and(
+                eq(userCode.userId, session.user.id),
+                eq(userCode.problemId, problemId)
+            )
+        );
 
-  return { success: true, message: "Code reset successfully." };
+    const [problem] = await db
+        .select()
+        .from(problems)
+        .where(eq(problems.id, problemId))
+        .limit(1);
+
+    if (!problem) return { error: "Problem not found", status: 404 };
+
+    return { success: true, template: problem.codeFolder };
 }
 
 export async function rateExercise(

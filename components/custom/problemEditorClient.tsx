@@ -79,8 +79,9 @@ export default function ProblemEditorClient({
     initialDifficulty?: string;
     problemId?: number;
 }) {
-    const [activeFilePath, setActiveFilePath] = useState<string | null>(null);
+    const [activeFilePath, setActiveFilePath] = useState<string>("/problem.md");
     const [createdFiles, setCreatedFiles] = useState<Set<string>>(new Set());
+    const [lastMarkdownPath, setLastMarkdownPath] = useState<string>("/problem.md"); // Track last .md for preview
 
     const filesForHook = Object.keys(files).map((path) => ({
         name: path,
@@ -118,7 +119,7 @@ export default function ProblemEditorClient({
             toast.error("File already exists");
             return;
         }
-        setCreatedFiles(prev => new Set([...prev, fullPath]));
+        setCreatedFiles((prev) => new Set([...prev, fullPath]));
         (filesContent as Record<string, string>)[fullPath] = "// New file";
         setActiveFilePath(fullPath);
         toast.success(`Created ${fullPath}`);
@@ -129,19 +130,37 @@ export default function ProblemEditorClient({
             toast.error("Can only delete newly created files");
             return;
         }
-        setCreatedFiles(prev => {
+        // Prevent deletion of any .md file
+        if (filePath.endsWith(".md")) {
+            toast.error("Markdown files cannot be deleted");
+            return;
+        }
+
+        setCreatedFiles((prev) => {
             const next = new Set(prev);
             next.delete(filePath);
             return next;
         });
-        setActiveFilePath(prev => (prev === filePath ? null : prev));
+
+        // @ts-ignore
+        setActiveFilePath((prev) => (prev === filePath ? null : prev));
         delete (filesContent as Record<string, string>)[filePath];
         toast.success(`Deleted ${filePath}`);
+    };
+
+    // Custom click handler to track last markdown file
+    const handleFileClick = (file: FileNode) => {
+        setActiveFilePath(file.path);
+        if (file.name.endsWith(".md")) {
+            setLastMarkdownPath(file.path);
+        }
     };
 
     const activeFile = activeFilePath
         ? treeNodes.flatMap(flattenTree).find((f) => f.path === activeFilePath) ?? null
         : null;
+
+    const previewContent = (filesContent as Record<string, string>)[lastMarkdownPath] ?? "";
 
     return (
         <div className="flex flex-col h-screen w-screen overflow-hidden">
@@ -184,7 +203,7 @@ export default function ProblemEditorClient({
                                 <TreeNode
                                     key={node.type === "file" ? node.path : node.name}
                                     node={node}
-                                    onFileClick={(file) => setActiveFilePath(file.path)}
+                                    onFileClick={handleFileClick}
                                     activeFilePath={activeFilePath}
                                     onAddFile={handleAddFile}
                                     onDeleteFile={handleDeleteFile}
@@ -209,7 +228,7 @@ export default function ProblemEditorClient({
                 {/* RIGHT SIDE */}
                 <ResizablePanel minSize={20} className="overflow-auto">
                     <CreateExerciseHeader onSubmit={handleSubmit} disabled={false} />
-                    <MarkdownPreview content={(filesContent as Record<string, string>)["/problem.md"] ?? ""} />
+                    <MarkdownPreview content={previewContent} />
                 </ResizablePanel>
             </ResizablePanelGroup>
         </div>

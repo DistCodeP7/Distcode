@@ -40,7 +40,6 @@ export function flattenTree(node: Node): FileNode[] {
 }
 
 /* ---------------- TREE NODE ---------------- */
-
 export function TreeNode({
                              node,
                              onFileClick,
@@ -56,7 +55,9 @@ export function TreeNode({
     if (node.type === "file") {
         const isActive = node.path === activeFilePath;
         const canDelete = onDeleteFile && !node.path.endsWith("main.go") &&
-                                           !node.path.endsWith("protocol.go");
+                                           !node.path.endsWith("protocol.go") &&
+                                           !node.path.endsWith("problem.md") &&
+                                           !node.path.endsWith("solution.md");
 
         return (
             <div className="flex items-center justify-between w-full" style={padding}>
@@ -96,7 +97,7 @@ export function TreeNode({
                     {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                     <span className="ml-1 font-medium">📁 {folder.name}</span>
                 </button>
-                {onAddFile && (
+                {onAddFile && folder.name !== "proto" && folder.name !== "solution" && (
                     <button
                         type="button"
                         onClick={() => {
