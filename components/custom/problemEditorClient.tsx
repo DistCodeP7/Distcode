@@ -9,6 +9,7 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/componen
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Filemap } from "@/drizzle/schema";
 import { useProblemEditor } from "@/hooks/useProblemEditor";
+import { toast } from "sonner";
 
 /* ---------------- TYPES ---------------- */
 
@@ -104,7 +105,6 @@ export default function ProblemEditorClient({
         problemId,
     });
 
-    // Merge original + newly created files
     const allFilePaths = useMemo(() => [...Object.keys(files), ...Array.from(createdFiles)], [files, createdFiles]);
 
     const treeNodes = useMemo(() => buildTreeFromPaths(allFilePaths, filesContent as Record<string, string>), [
@@ -112,21 +112,31 @@ export default function ProblemEditorClient({
         filesContent,
     ]);
 
-    const handleAddFile = (path: string) => {
-        if ((filesContent as Record<string, string>)[path]) return alert("File already exists");
-        setCreatedFiles((prev) => new Set([...prev, path]));
-        (filesContent as Record<string, string>)[path] = "// New file";
+    const handleAddFile = (folderAndName: string) => {
+        const fullPath = folderAndName.startsWith("/") ? folderAndName : `/${folderAndName}`;
+        if ((filesContent as Record<string, string>)[fullPath]) {
+            toast.error("File already exists");
+            return;
+        }
+        setCreatedFiles(prev => new Set([...prev, fullPath]));
+        (filesContent as Record<string, string>)[fullPath] = "// New file";
+        setActiveFilePath(fullPath);
+        toast.success(`Created ${fullPath}`);
     };
 
-    const handleDeleteFile = (path: string) => {
-        if (!createdFiles.has(path)) return alert("Can only delete newly created files");
-        setCreatedFiles((prev) => {
+    const handleDeleteFile = (filePath: string) => {
+        if (!createdFiles.has(filePath)) {
+            toast.error("Can only delete newly created files");
+            return;
+        }
+        setCreatedFiles(prev => {
             const next = new Set(prev);
-            next.delete(path);
+            next.delete(filePath);
             return next;
         });
-        delete (filesContent as Record<string, string>)[path];
-        if (activeFilePath === path) setActiveFilePath(null);
+        setActiveFilePath(prev => (prev === filePath ? null : prev));
+        delete (filesContent as Record<string, string>)[filePath];
+        toast.success(`Deleted ${filePath}`);
     };
 
     const activeFile = activeFilePath

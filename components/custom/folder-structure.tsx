@@ -55,7 +55,8 @@ export function TreeNode({
 
     if (node.type === "file") {
         const isActive = node.path === activeFilePath;
-        const canDelete = onDeleteFile && createdFiles.has(node.path);
+        const canDelete = onDeleteFile && !node.path.endsWith("main.go") &&
+                                           !node.path.endsWith("protocol.go");
 
         return (
             <div className="flex items-center justify-between w-full" style={padding}>

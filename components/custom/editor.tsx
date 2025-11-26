@@ -148,7 +148,7 @@ export function CreateExerciseHeader({
                                          disabled = false,
                                      }: CreateExerciseHeaderProps) {
     const router = useRouter();
-    const handleCancel = () => router.push("/authorized/createExercise");
+    const handleCancel = () => router.push("/authorized");
 
     return (
         <div className="border-b bg-background flex items-center justify-end px-2 py-1 gap-2">

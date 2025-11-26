@@ -153,8 +153,8 @@ export default function ExerciseEditor({
 
     /* ---------------- TREE ---------------- */
     const treeNodes = useMemo(() => {
-        const allPaths = Object.keys(fileContents);
-        return buildTreeFromPaths(allPaths, fileContents);
+        const templatePaths = Object.keys(fileContents).filter(path => path.startsWith("/template"));
+        return buildTreeFromPaths(templatePaths, fileContents);
     }, [fileContents]);
     const activeFile: EditableFileNode | null = activeFilePath
         ? flattenTree({ type: "folder", name: "root", children: treeNodes }).find(f => f.path === activeFilePath) as EditableFileNode
@@ -170,16 +170,12 @@ export default function ExerciseEditor({
 
         setCreatedFiles(prev => new Set([...prev, fullPath]));
         setFileContents(prev => ({ ...prev, [fullPath]: "// New file" }));
-        setActiveFilePath(fullPath); // automatically select/open the new file
+        setActiveFilePath(fullPath);
         toast.success(`Created ${fullPath}`);
     };
 
 
     const onDeleteFile = (filePath: string) => {
-        if (!createdFiles.has(filePath)) {
-            toast.error("You can only delete files you created");
-            return;
-        }
         setCreatedFiles(prev => {
             const next = new Set(prev);
             next.delete(filePath);
@@ -249,17 +245,30 @@ export default function ExerciseEditor({
             >
                 {rightPanelOpen && (
                     <>
-                        <EditorHeader onSubmit={onSubmit} onSave={onSave} onReset={onReset} disabled={resetting} />
+                        <EditorHeader
+                            onSubmit={onSubmit}
+                            onSave={onSave}
+                            onReset={onReset}
+                            disabled={resetting}
+                        />
 
                         <div className="flex flex-col h-full">
                             {/* Tabs */}
                             <div className="flex border-b bg-background">
-                                <Button variant="default" size="sm" className="rounded-none border-r" onClick={() => setRightTab("problem")}>
+                                <Button
+                                    variant={rightTab === "problem" ? "default" : "secondary"}
+                                    size="sm"
+                                    className="rounded-none border-r"
+                                    onClick={() => setRightTab("problem")}
+                                >
                                     <BookOpen className="w-4 h-4 mr-2" /> Problem
                                 </Button>
-                                <Button variant={rightTab === "protocol" ? "default" : "secondary"} size="sm" className="rounded-none" onClick={() => setRightTab("protocol")}>
+
+                                <Button
+                                    variant={rightTab === "protocol" ? "default" : "secondary"} size="sm" className="rounded-none" onClick={() => setRightTab("protocol")}>
                                     <FileText className="w-4 h-4 mr-2" /> Protocols
                                 </Button>
+
                                 <Button
                                     variant={rightTab === "solution" ? "default" : "secondary"}
                                     size="sm"
