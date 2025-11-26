@@ -72,7 +72,7 @@ export function TreeNode({
                     <button
                         type="button"
                         onClick={() => onDeleteFile?.(node.path)}
-                        className="p-1 hover:bg-red-600 hover:text-white rounded"
+                        className="p-1 hover:bg-gray-600 hover:text-white rounded"
                     >
                         <Trash2 size={14} />
                     </button>
@@ -105,7 +105,7 @@ export function TreeNode({
                             const newPath = `${folder.name}/${fileName}`;
                             onAddFile(newPath);
                         }}
-                        className="p-1 hover:bg-green-600 hover:text-white rounded"
+                        className="p-1 hover:bg-gray-600 hover:text-white rounded"
                     >
                         <Plus size={14} />
                     </button>
@@ -164,7 +164,7 @@ export function FilteredTreeNode({
                     <button
                         type="button"
                         onClick={() => onDeleteFile?.(file.path)}
-                        className="p-1 hover:bg-red-600 hover:text-white rounded"
+                        className="p-1 hover:bg-gray-600 hover:text-white rounded"
                     >
                         <Trash2 size={14} />
                     </button>
@@ -199,7 +199,7 @@ export function FilteredTreeNode({
                             const newPath = `${folder.name}/${fileName}`;
                             onAddFile(`/${newPath}`);
                         }}
-                        className="p-1 hover:bg-green-600 hover:text-white rounded"
+                        className="p-1 hover:bg-gray-600 hover:text-white rounded"
                     >
                         <Plus size={14} />
                     </button>
