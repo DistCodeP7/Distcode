@@ -8,6 +8,7 @@ import { problems, ratings, userCode } from "@/drizzle/schema";
 import { db } from "@/lib/db";
 import { MQJobsSender } from "@/lib/mq";
 import { getUserById } from "@/lib/user";
+import { v4 as uuid } from "uuid"; // Example for a common UUID library in JS
 
 export async function getExercise({ params }: { params: { id: number } }) {
   const id = Number(params.id);
@@ -46,9 +47,21 @@ export async function submitCode(
   if (Number.isNaN(ProblemId))
     return { error: "Invalid exercise id", status: 400 };
 
+  for (const key of Object.keys(content.Files)) {
+    if (key.includes("problem.md") || key.startsWith("/solution")) {
+      delete content.Files[key];
+    }
+  }
+
+  const contentArray = Object.entries(content.Files).map(([path, content]) => ({
+    path,
+    content,
+  }));
+
   const payload = {
+    JobUID: `${uuid()}`,
     ProblemId,
-    Nodes: content,
+    Nodes: contentArray,
     UserId: user.userid,
     Timeout: 60,
   };
@@ -59,8 +72,8 @@ export async function submitCode(
 }
 
 export async function saveCode(
-    content: nodeSpec,
-    { params }: { params: { id: number } }
+  content: nodeSpec,
+  { params }: { params: { id: number } }
 ) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) return { error: "Unauthorized", status: 401 };

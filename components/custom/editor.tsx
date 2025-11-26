@@ -73,16 +73,10 @@ export default function CustomEditor({
     );
 }
 
-function deriveLanguageFromFileName(name?: string): string {
-    if (!name) return "plaintext";
-    if (name.endsWith(".go")) return "go";
-    if (name.endsWith(".md")) return "markdown";
-    if (name.endsWith(".ts")) return "typescript";
-    if (name.endsWith(".js")) return "javascript";
-    return "plaintext";
-}
-
-/* ---------------- HEADERS ---------------- */
+type Files = {
+  name: string;
+  fileType: "go" | "markdown";
+};
 
 type EditorHeaderProps = {
     onSubmit: () => void;

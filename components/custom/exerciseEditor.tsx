@@ -9,7 +9,12 @@ import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
 import { TerminalOutput } from "@/components/custom/TerminalOutput";
 import { Button } from "@/components/ui/button";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
+import type { nodeSpec } from "@/drizzle/schema";
 import { useSSE } from "@/hooks/useSSE";
 import type { FileNode, Node } from "./problemEditorClient";
 import { buildTreeFromPaths } from "./problemEditorClient";
@@ -33,6 +38,13 @@ type ExerciseEditorProps = {
     savedCode?: nodeSpec;
     userRating?: "up" | "down" | null;
     canRate?: boolean;
+};
+
+type FileDatas = {
+  path: string;
+  name: string;
+  content: string;
+  fileType: "go" | "markdown";
 };
 
 export default function ExerciseEditor({

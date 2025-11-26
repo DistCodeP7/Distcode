@@ -32,7 +32,7 @@ export async function saveProblem(data: SaveProblemParams) {
         })
       : undefined;
 
-  const filesObj = problemData.codeFolder.files;
+  const filesObj = problemData.codeFolder.Files;
 
   if (Object.keys(filesObj).length === 0) {
     return {
@@ -63,8 +63,10 @@ export async function saveProblem(data: SaveProblemParams) {
         title: problemData.title,
         problemMarkdown: problemData.problemMarkdown,
         codeFolder: {
-          files: filesObj,
-          envs: [],
+          Files: filesObj,
+          Envs: problemData.codeFolder.Envs,
+          BuildCommand: problemData.codeFolder.BuildCommand,
+          EntryCommand: problemData.codeFolder.EntryCommand,
         },
         isPublished,
       })
@@ -81,8 +83,10 @@ export async function saveProblem(data: SaveProblemParams) {
       title: problemData.title,
       problemMarkdown: problemData.problemMarkdown,
       codeFolder: {
-        files: filesObj,
-        envs: [],
+        Files: filesObj,
+        Envs: problemData.codeFolder.Envs,
+        BuildCommand: problemData.codeFolder.BuildCommand,
+        EntryCommand: problemData.codeFolder.EntryCommand,
       },
       isPublished,
       userId: user.userid,
@@ -98,9 +102,7 @@ export async function deleteProblem(id: number) {
     return { success: false, error: "Not authenticated", status: 401 };
   }
 
-  // --- ADDED: Input validation for id ---
-  if (isNaN(id) || id <= 0) {
-    // Assuming IDs are positive integers
+  if (id <= 0 || Number.isNaN(id)) {
     return { success: false, error: "Problem ID is required", status: 400 };
   }
 
@@ -115,8 +117,6 @@ export async function deleteProblem(id: number) {
   if (existingProblem.userId !== session.user.id) {
     return { success: false, error: "Forbidden", status: 403 };
   }
-
-  // --- ADDED: Error handling for DB operation ---
   try {
     await db.delete(problems).where(eq(problems.id, id));
     return {
@@ -124,11 +124,11 @@ export async function deleteProblem(id: number) {
       message: "Problem deleted successfully",
       status: 200,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Database error during problem deletion:", error);
     return {
       success: false,
-      error: `Database error: ${error.message || "Unknown error"}`,
+      error: `Database error: ${error || "Unknown error"}`,
       status: 500,
     };
   }

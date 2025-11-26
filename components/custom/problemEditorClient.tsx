@@ -2,12 +2,23 @@
 
 import { TreeNode, flattenTree } from "./folder-structure";
 import { useState, useMemo } from "react";
-import Editor, { CreateExerciseHeader } from "@/components/custom/editor";
+import Editor, { CreateExerciseHeader, EditorHeader } from "@/components/custom/editor";
+import { Plus, X } from "lucide-react";
 import MarkdownPreview from "@/components/custom/markdown-preview";
 import { Input } from "@/components/ui/input";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { Filemap } from "@/drizzle/schema";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { Filemap, EnvironmentVariable } from "@/drizzle/schema";
 import { useProblemEditor } from "@/hooks/useProblemEditor";
 import { toast } from "sonner";
 

@@ -1,6 +1,6 @@
 import { type SetStateAction, useCallback, useState } from "react";
 import { saveProblem } from "@/app/authorized/[id]/problemActions";
-import type { Filemap, nodeSpec } from "@/drizzle/schema";
+import type { EnvironmentVariable, Filemap, nodeSpec } from "@/drizzle/schema";
 
 type ProblemFile = {
   name: string;
@@ -31,14 +31,25 @@ type ProblemEditorState = {
   description: string;
   difficulty: string;
   isSubmitting: boolean;
+  envs: EnvironmentVariable[];
+  buildCommand: string;
+  entryCommand: string;
 };
 
 export const useProblemEditor = (
-    files: { name: string; fileType: string }[],
-    initial?: { filesContent?: Filemap; title?: string; description?: string; difficulty?: string; problemId?: number }
+  files: readonly ProblemFile[],
+  initial?: {
+    filesContent?: Filemap;
+    title?: string;
+    description?: string;
+    difficulty?: string;
+    problemId?: number;
+    envs?: EnvironmentVariable[];
+    buildCommand?: string;
+    entryCommand?: string;
+  }
 ) => {
   const [state, setState] = useState<ProblemEditorState>(() => {
-    // Initialize Filemap (now a plain object) for files
     const filesMap: Filemap = {} as Record<string, string>;
     for (const file of files) {
       let content: string | undefined;
@@ -56,6 +67,9 @@ export const useProblemEditor = (
       description: initial?.description ?? "",
       difficulty: initial?.difficulty ?? "1",
       isSubmitting: false,
+      envs: initial?.envs ?? [],
+      buildCommand: initial?.buildCommand ?? "",
+      entryCommand: initial?.entryCommand ?? "",
     };
   });
 
@@ -74,22 +88,22 @@ export const useProblemEditor = (
   }, [files]);
 
   const handleEditorContentChange = useCallback(
-      (value: string | ((prev: string) => string), filePath: string) => {
-        setState((prev) => {
-          const prevContent =
-              (prev.filesContent as Record<string, string>)[filePath] ?? "";
-          const newContent =
-              typeof value === "function" ? value(prevContent) : value;
-          return {
-            ...prev,
-            filesContent: {
-              ...prev.filesContent,
-              [filePath]: newContent,
-            } as Filemap,
-          };
-        });
-      },
-      []
+    (value: SetStateAction<string>) => {
+      setState((prev) => {
+        const activeFileName = files[prev.activeFile]?.name;
+        if (!activeFileName) return prev;
+        const prevContent =
+          (prev.filesContent as Record<string, string>)[activeFileName] ?? "";
+        const newContent =
+          typeof value === "function" ? value(prevContent) : value;
+        const newFiles: Record<string, string> = {
+          ...(prev.filesContent as Record<string, string>),
+        };
+        newFiles[activeFileName] = newContent;
+        return { ...prev, filesContent: newFiles as Filemap };
+      });
+    },
+    [files]
   );
 
   const setTitle = useCallback((title: string) => {
@@ -106,6 +120,18 @@ export const useProblemEditor = (
 
   const setActiveFile = useCallback((activeFile: number) => {
     setState((prev) => ({ ...prev, activeFile }));
+  }, []);
+
+  const setBuildCommand = useCallback((buildCommand: string) => {
+    setState((prev) => ({ ...prev, buildCommand }));
+  }, []);
+
+  const setEntryCommand = useCallback((entryCommand: string) => {
+    setState((prev) => ({ ...prev, entryCommand }));
+  }, []);
+
+  const setEnvs = useCallback((envs: EnvironmentVariable[]) => {
+    setState((prev) => ({ ...prev, envs }));
   }, []);
 
   const handleSaveOrSubmit = useCallback(
@@ -153,11 +179,12 @@ export const useProblemEditor = (
             return;
           }
 
-        // Build nodeSpec payload for codeFolder using plain object Filemap
         const filesMap = state.filesContent as Record<string, string>;
         const codeFolder: nodeSpec = {
-          files: { ...filesMap } as Filemap,
-          envs: [],
+          Files: { ...filesMap } as Filemap,
+          Envs: state.envs,
+          BuildCommand: state.buildCommand,
+          EntryCommand: state.entryCommand,
         };
 
         const payload = {
@@ -201,6 +228,9 @@ export const useProblemEditor = (
     setDescription,
     setDifficulty,
     setActiveFile,
+    setBuildCommand,
+    setEntryCommand,
+    setEnvs,
     handleEditorContentChange,
     handleSubmit,
     handleSave,
