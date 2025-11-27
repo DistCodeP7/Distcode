@@ -1,5 +1,4 @@
-﻿// app/mq/index.ts
-import { RabbitMQReceiver } from "@/app/mq/RabbitMQReceiver";
+﻿import { RabbitMQReceiver } from "@/app/mq/RabbitMQReceiver";
 import { RabbitMQSender } from "@/app/mq/RabbitMQSender";
 
 const sender = new RabbitMQSender({

@@ -2,7 +2,7 @@
 
 import { and, desc, eq } from "drizzle-orm";
 import { getServerSession } from "next-auth";
-import { v4 as uuid } from "uuid"; // Example for a common UUID library in JS
+import { v4 as uuid } from "uuid";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import type { nodeSpec } from "@/drizzle/schema";
 import { problems, ratings, userCode } from "@/drizzle/schema";
@@ -59,17 +59,15 @@ export async function submitCode(
     JobUID: `${uuid()}`,
     ProblemId,
     Nodes: [
-      // <--- This is the crucial change: make 'Nodes' an array
       {
-        // <--- This is the single NodeSpec object within the array
         Files: filesForSubmission,
         Envs: content.Envs,
         BuildCommand: content.BuildCommand,
         EntryCommand: content.EntryCommand,
       },
-    ], // <--- End of the Nodes array
+    ],
     UserId: user.userid,
-    Timeout: 60, // Consider changing to "60s" or 60_000_000_000 if issues persist
+    Timeout: 60,
   };
 
   MQJobsSender.sendMessage(payload);

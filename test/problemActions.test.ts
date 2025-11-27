@@ -59,7 +59,6 @@ describe("deleteProblem", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
 
-    // Import SUT AFTER mocks are set up
     ({ deleteProblem } = await import("@/app/authorized/[id]/problemActions"));
 
     ({ getServerSession } = await import("next-auth/next"));
@@ -136,7 +135,6 @@ describe("deleteProblem", () => {
     getUserById.mockResolvedValue({ id: 123 });
     hoisted.findFirst.mockResolvedValue({ id: 42, userId: 123 });
 
-    // Make db.delete throw
     hoisted.deleteFn.mockImplementationOnce(() => {
       throw new Error("Error: Something went wrong");
     });

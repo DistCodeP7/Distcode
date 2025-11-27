@@ -1,4 +1,3 @@
-// app/authorized/[id]/problemActions.ts
 "use server";
 
 import { eq } from "drizzle-orm";
@@ -113,7 +112,6 @@ export async function deleteProblem(id: number) {
     return { success: false, error: "Problem not found", status: 404 };
   }
 
-  // --- ADDED: Ownership check ---
   if (existingProblem.userId !== session.user.id) {
     return { success: false, error: "Forbidden", status: 403 };
   }

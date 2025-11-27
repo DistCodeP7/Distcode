@@ -21,12 +21,10 @@ export class RabbitMQReceiver {
     this.conn = await getMQConnection();
     this.channel = await this.conn.createChannel();
 
-    // Always assert queue
     if (this.queue) {
       await this.channel.assertQueue(this.queue, { durable: true });
     }
 
-    // Optionally assert and bind exchange
     if (this.exchange) {
       await this.channel.assertExchange(
         this.exchange,

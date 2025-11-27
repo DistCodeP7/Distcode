@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import Editor, { CreateExerciseHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
@@ -81,7 +81,7 @@ export default function ProblemEditorClient({
   );
   const [createdFiles, setCreatedFiles] = useState<Set<string>>(new Set());
   const [lastMarkdownPath, setLastMarkdownPath] =
-    useState<string>("/problem.md"); // Track last .md for preview
+    useState<string>("/problem.md");
 
   const filesForHook: { name: string; fileType: "go" | "markdown" }[] =
     Object.keys(files).map((path) => ({
@@ -130,7 +130,7 @@ export default function ProblemEditorClient({
       return;
     }
     setCreatedFiles((prev) => new Set([...prev, fullPath]));
-    setFileContent(fullPath, "// New file");
+    setFileContent(fullPath, "// Start writing code here!");
     setActiveFilePath(fullPath);
     setActiveFile(fullPath);
     toast.success(`Created ${fullPath}`);
@@ -141,7 +141,6 @@ export default function ProblemEditorClient({
       toast.error("Can only delete newly created files");
       return;
     }
-    // Prevent deletion of any .md file
     if (filePath.endsWith(".md")) {
       toast.error("Markdown files cannot be deleted");
       return;
@@ -158,7 +157,6 @@ export default function ProblemEditorClient({
     toast.success(`Deleted ${filePath}`);
   };
 
-  // Custom click handler to track last markdown file
   const handleFileClick = (file: FileNode) => {
     setActiveFilePath(file.path);
     setActiveFile(file.path);
@@ -167,7 +165,6 @@ export default function ProblemEditorClient({
     }
   };
 
-  // Keep hook's active file in sync with local activeFilePath (e.g. initial value)
   useEffect(() => {
     if (activeFilePath) setActiveFile(activeFilePath);
   }, [activeFilePath, setActiveFile]);

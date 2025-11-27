@@ -109,7 +109,7 @@ export default function ExerciseEditor({
       type: "file" as const,
       path,
       name: path.split("/").pop() || path,
-      content: fileContents[path] || "// New file",
+      content: fileContents[path] || "// Start writing code here!",
       readOnly: false,
     }));
 
@@ -120,7 +120,7 @@ export default function ExerciseEditor({
     const protocolCode =
       codeFolder.Files["/proto/protocol.go"] ?? "// protocol.go missing";
     return `${problemMarkdown}
-\n\nThese are the protocols for the exercise:
+\n\n# These are the protocols for the exercise:
 \`\`\`go
 ${protocolCode}
 \`\`\``;
@@ -243,7 +243,10 @@ ${protocolCode}
     }
 
     setCreatedFiles((prev) => new Set([...prev, fullPath]));
-    setFileContents((prev) => ({ ...prev, [fullPath]: "// New file" }));
+    setFileContents((prev) => ({
+      ...prev,
+      [fullPath]: "// Start writing your code here!",
+    }));
     setActiveFilePath(fullPath);
     toast.success(`Created ${fullPath}`);
   };
@@ -318,20 +321,7 @@ ${protocolCode}
                   <MarkdownPreview content={problemWithProtocol} />
                 )}
                 {rightTab === "solution" && (
-                  <Editor
-                    file={{
-                      path: "solution.go",
-                      name: "solution.go",
-                      fileType: "markdown",
-                      content: solutionMarkdown,
-                    }}
-                    setEditorContent={() => {}}
-                    options={{
-                      readOnly: true,
-                      minimap: { enabled: false },
-                      lineNumbers: "on",
-                    }}
-                  />
+                  <MarkdownPreview content={solutionMarkdown} />
                 )}
               </div>
             </div>
@@ -363,9 +353,9 @@ ${protocolCode}
           <FilteredTreeNode
             key={node.type === "file" ? node.path : node.name}
             node={node}
-            onFileClick={() =>
-              setActiveFilePath(node.type === "file" ? node.path : "")
-            }
+            onFileClick={(file) => {
+              if (file.type === "file") setActiveFilePath(file.path);
+            }}
             onAddFile={onAddFile}
             onDeleteFile={onDeleteFile}
             activeFilePath={activeFilePath}

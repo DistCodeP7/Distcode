@@ -1,6 +1,6 @@
 ﻿export interface RabbitMQConfig {
-  queue: string; // optional queue name
-  exchange?: string; // optional exchange name
+  queue: string;
+  exchange?: string;
   exchangeType?: "direct" | "fanout" | "topic" | "headers";
-  routingKey?: string; // optional routing key
+  routingKey?: string;
 }

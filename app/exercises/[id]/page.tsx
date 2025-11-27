@@ -11,21 +11,20 @@ import {
 
 /* ---------------- Solution Extractor ---------------- */
 function extractSolutionMarkdown(codeFolder: {
-  files: Record<string, string>;
+  Files: Record<string, string>;
 }) {
   const candidates = [
     "/solution/solution.md",
     "/solution/solution.mdx",
     "/solution/solution.txt",
-    "/solution/main.go",
     "/solution/index.ts",
   ];
 
   for (const c of candidates) {
-    if (codeFolder.files[c]) return codeFolder.files[c];
+    if (codeFolder.Files[c]) return codeFolder.Files[c];
   }
 
-  const fallback = Object.entries(codeFolder.files).find(([path]) =>
+  const fallback = Object.entries(codeFolder.Files).find(([path]) =>
     path.startsWith("/solution/")
   );
 
@@ -41,7 +40,6 @@ export default async function ExercisePage({
   const exerciseId = Number(params.id);
   if (Number.isNaN(exerciseId)) return notFound();
 
-  // Load exercise
   const exercise = await getExercise({ params: { id: exerciseId } });
   if (!exercise || "error" in exercise) return notFound();
 
@@ -52,14 +50,11 @@ export default async function ExercisePage({
   let savedCode: typeof exercise.codeFolder | undefined;
 
   if (session?.user?.id) {
-    // Check if user has submitted code before
     canRate = await hasUserSubmitted({ params: { id: exerciseId } });
 
-    // Load their rating
     const rating = await loadUserRating({ params: { id: exerciseId } });
     if (rating === "up" || rating === "down") userRating = rating;
 
-    // Load their saved code
     const savedResult = await loadSavedCode({ params: { id: exerciseId } });
     if (savedResult?.success && savedResult.code) {
       savedCode = savedResult.code;
@@ -67,7 +62,7 @@ export default async function ExercisePage({
   }
 
   const solutionMarkdown = extractSolutionMarkdown({
-    files: exercise.codeFolder.Files,
+    Files: exercise.codeFolder.Files,
   });
 
   return (
@@ -82,7 +77,7 @@ export default async function ExercisePage({
         problemMarkdown={exercise.problemMarkdown}
         solutionMarkdown={solutionMarkdown}
         codeFolder={exercise.codeFolder}
-        savedCode={savedCode} // ✅ Pass latest saved user code
+        savedCode={savedCode}
         userRating={userRating}
         canRate={canRate}
       />

@@ -103,7 +103,7 @@ export const useProblemEditor = (
         return { ...prev, filesContent: newFiles as Filemap };
       });
     },
-    [files]
+    []
   );
 
   const setTitle = useCallback((title: string) => {
