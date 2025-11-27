@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import Editor, { CreateExerciseHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
@@ -18,49 +18,10 @@ import {
 } from "@/components/ui/select";
 import type { Filemap } from "@/drizzle/schema";
 import { useProblemEditor } from "@/hooks/useProblemEditor";
-import type { FileNode, FolderNode } from "@/lib/folderStructure";
-import { flattenTree, TreeNode } from "./folder-structure";
-
-/* ---------------- TREE BUILDER ---------------- */
-
-export function buildTreeFromPaths(
-  paths: string[],
-  contents: Record<string, string>
-): Array<FileNode | FolderNode> {
-  const rootChildren: Array<FileNode | FolderNode> = [];
-
-  for (const fullPath of paths) {
-    const parts = fullPath.split("/").filter(Boolean);
-    let current = rootChildren;
-
-    for (let i = 0; i < parts.length; i++) {
-      const part = parts[i];
-      const isFile = part.includes(".") && i === parts.length - 1;
-
-      if (isFile) {
-        current.push({
-          type: "file",
-          name: part,
-          path: fullPath,
-          content: contents[fullPath] ?? "",
-        });
-      } else {
-        let folder = current.find(
-          (c) => c.type === "folder" && c.name === part
-        ) as FolderNode;
-        if (!folder) {
-          folder = { type: "folder", name: part, children: [], isOpen: true };
-          current.push(folder);
-        }
-        current = folder.children;
-      }
-    }
-  }
-  return rootChildren;
-}
+import type { FileNode } from "@/lib/folderStructure";
+import { buildTreeFromPaths, flattenTree, TreeNode } from "./folder-structure";
 
 /* ---------------- MAIN COMPONENT ---------------- */
-
 export default function ProblemEditorClient({
   files,
   initialFilesContent,
@@ -165,10 +126,6 @@ export default function ProblemEditorClient({
     }
   };
 
-  useEffect(() => {
-    if (activeFilePath) setActiveFile(activeFilePath);
-  }, [activeFilePath, setActiveFile]);
-
   const activeFile = activeFilePath
     ? (treeNodes.flatMap(flattenTree).find((f) => f.path === activeFilePath) ??
       null)
@@ -190,7 +147,7 @@ export default function ProblemEditorClient({
           />
           <div className="w-48 min-w-[10rem]">
             <Select value={difficulty} onValueChange={setDifficulty}>
-              <SelectTrigger className="w-full text-base font-medium">
+              <SelectTrigger className="w-full text-base font-medium hover:cursor-pointer">
                 <SelectValue placeholder="Select difficulty">
                   {difficulty === "1" && (
                     <span className="text-chart-2 font-semibold">Easy</span>
@@ -204,9 +161,24 @@ export default function ProblemEditorClient({
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="1">Easy</SelectItem>
-                <SelectItem value="2">Medium</SelectItem>
-                <SelectItem value="3">Hard</SelectItem>
+                <SelectItem
+                  value="1"
+                  className={"text-chart-2 font-semibold hover:cursor-pointer"}
+                >
+                  Easy
+                </SelectItem>
+                <SelectItem
+                  value="2"
+                  className={"text-chart-3 font-semibold hover:cursor-pointer"}
+                >
+                  Medium
+                </SelectItem>
+                <SelectItem
+                  value="3"
+                  className={"text-primary font-semibold hover:cursor-pointer"}
+                >
+                  Hard
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>

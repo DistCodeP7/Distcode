@@ -1,8 +1,8 @@
 ﻿"use client";
 
-import type { FileNode, FolderNode, Node } from "@/lib/folderStructure";
 import { ChevronDown, ChevronRight, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
+import type { FileNode, FolderNode, Node } from "@/lib/folderStructure";
 
 /* ---------------- INTERFACES ---------------- */
 
@@ -32,13 +32,47 @@ export interface FilteredTreeProps {
 /* ---------------- UTILITY ---------------- */
 
 function sanitizeFileName(name: string): string {
-  const baseName = name.includes(".") ? name.split(".")[0] : name;
-  return `${baseName}.go`;
+  return `${name.includes(".") ? name.split(".")[0] : name}.go`;
 }
 
 export function flattenTree(node: Node): FileNode[] {
-  if (node.type === "file") return [node];
-  return node.children.flatMap(flattenTree);
+  return node.type === "file" ? [node] : node.children.flatMap(flattenTree);
+}
+
+export function buildTreeFromPaths(
+  paths: string[],
+  contents: Record<string, string>
+): Array<FileNode | FolderNode> {
+  const rootChildren: Array<FileNode | FolderNode> = [];
+
+  for (const fullPath of paths) {
+    const parts = fullPath.split("/").filter(Boolean);
+    let current = rootChildren;
+
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i];
+      const isFile = part.includes(".") && i === parts.length - 1;
+
+      if (isFile) {
+        current.push({
+          type: "file",
+          name: part,
+          path: fullPath,
+          content: contents[fullPath] ?? "",
+        });
+      } else {
+        let folder = current.find(
+          (c) => c.type === "folder" && c.name === part
+        ) as FolderNode;
+        if (!folder) {
+          folder = { type: "folder", name: part, children: [], isOpen: true };
+          current.push(folder);
+        }
+        current = folder.children;
+      }
+    }
+  }
+  return rootChildren;
 }
 
 /* ---------------- TREE NODE ---------------- */
@@ -90,6 +124,8 @@ export function TreeNode({
   }
 
   const folder = node as FolderNode;
+
+  // Folder toggle function; 'v' is a previous state value that comes from React
   const toggle = () => setIsOpen((v) => !v);
 
   return (

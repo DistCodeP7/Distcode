@@ -134,25 +134,25 @@ export function CreateExerciseHeader({
   disabled = false,
 }: CreateExerciseHeaderProps) {
   const router = useRouter();
-  const handleCancel = () => router.push("/authorized");
+  const handleGoBack = () => router.push("/authorized");
 
   return (
     <div className="border-b bg-background flex items-center justify-end px-2 py-1 gap-2">
       <Button
-        onClick={handleCancel}
+        onClick={handleGoBack}
         type="button"
         variant="outline"
-        className="flex items-center gap-1 px-2 py-1 text-base"
+        className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
       >
         <X className="w-4 h-4" />
-        Cancel
+        Go Back
       </Button>
 
       <Button
         onClick={onSubmitAction}
         type="button"
         variant="outline"
-        className="flex items-center gap-1 px-2 py-1 text-base"
+        className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
         disabled={disabled}
       >
         <Send className="w-4 h-4" />

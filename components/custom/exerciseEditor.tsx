@@ -27,16 +27,14 @@ import {
 } from "@/components/ui/resizable";
 import type { nodeSpec } from "@/drizzle/schema";
 import { useSSE } from "@/hooks/useSSE";
-import type { FileNode, Node } from "@/lib/folderStructure";
-import { FilteredTreeNode } from "./folder-structure";
-import { buildTreeFromPaths } from "./problemEditorClient";
+import type { FileNode } from "@/lib/folderStructure";
+import {
+  buildTreeFromPaths,
+  FilteredTreeNode,
+  flattenTree,
+} from "./folder-structure";
 
 /* ---------------- HELPERS ---------------- */
-function flattenTree(node: Node): FileNode[] {
-  if (node.type === "file") return [node];
-  return node.children.flatMap(flattenTree);
-}
-
 type EditableFileNode = FileNode & { readOnly?: boolean };
 
 type ExerciseEditorProps = {

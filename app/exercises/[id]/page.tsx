@@ -9,28 +9,6 @@ import {
   loadUserRating,
 } from "./actions";
 
-/* ---------------- Solution Extractor ---------------- */
-function extractSolutionMarkdown(codeFolder: {
-  Files: Record<string, string>;
-}) {
-  const candidates = [
-    "/solution/solution.md",
-    "/solution/solution.mdx",
-    "/solution/solution.txt",
-    "/solution/index.ts",
-  ];
-
-  for (const c of candidates) {
-    if (codeFolder.Files[c]) return codeFolder.Files[c];
-  }
-
-  const fallback = Object.entries(codeFolder.Files).find(([path]) =>
-    path.startsWith("/solution/")
-  );
-
-  return fallback ? fallback[1] : "";
-}
-
 /* ---------------- PAGE ---------------- */
 export default async function ExercisePage({
   params,
@@ -61,10 +39,6 @@ export default async function ExercisePage({
     }
   }
 
-  const solutionMarkdown = extractSolutionMarkdown({
-    Files: exercise.codeFolder.Files,
-  });
-
   return (
     <div className="h-screen flex flex-col">
       <header className="p-4 border-b">
@@ -75,7 +49,7 @@ export default async function ExercisePage({
       <ExerciseEditor
         exerciseId={exerciseId}
         problemMarkdown={exercise.problemMarkdown}
-        solutionMarkdown={solutionMarkdown}
+        solutionMarkdown={exercise.codeFolder.Files["solution.md"]}
         codeFolder={exercise.codeFolder}
         savedCode={savedCode}
         userRating={userRating}
