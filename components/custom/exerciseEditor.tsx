@@ -399,7 +399,6 @@ ${protocolCode}
             </Button>
           </div>
           <EditorHeader
-            onSubmit={onSubmit}
             onSaveAction={onSave}
             onResetAction={onReset}
             disabled={resetting}

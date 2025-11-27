@@ -66,7 +66,9 @@ export default async function ExercisePage({
     }
   }
 
-  const solutionMarkdown = extractSolutionMarkdown(codeFolder: {files: exercise.codeFolder.Files});
+  const solutionMarkdown = extractSolutionMarkdown({
+    files: exercise.codeFolder.Files,
+  });
 
   return (
     <div className="h-screen flex flex-col">
