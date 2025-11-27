@@ -47,23 +47,29 @@ export async function submitCode(
   if (Number.isNaN(ProblemId))
     return { error: "Invalid exercise id", status: 400 };
 
-  for (const key of Object.keys(content.Files)) {
+  const filesForSubmission = { ...content.Files };
+
+  for (const key of Object.keys(filesForSubmission)) {
     if (key.includes("problem.md") || key.startsWith("/solution")) {
-      delete content.Files[key];
+      delete filesForSubmission[key];
     }
   }
-
-  const contentArray = Object.entries(content.Files).map(([path, content]) => ({
-    path,
-    content,
-  }));
 
   const payload = {
     JobUID: `${uuid()}`,
     ProblemId,
-    Nodes: contentArray,
+    Nodes: [
+      // <--- This is the crucial change: make 'Nodes' an array
+      {
+        // <--- This is the single NodeSpec object within the array
+        Files: filesForSubmission,
+        Envs: content.Envs,
+        BuildCommand: content.BuildCommand,
+        EntryCommand: content.EntryCommand,
+      },
+    ], // <--- End of the Nodes array
     UserId: user.userid,
-    Timeout: 60,
+    Timeout: 60, // Consider changing to "60s" or 60_000_000_000 if issues persist
   };
 
   MQJobsSender.sendMessage(payload);

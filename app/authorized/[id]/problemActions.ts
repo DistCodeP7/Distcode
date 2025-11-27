@@ -41,7 +41,7 @@ export async function saveProblem(data: SaveProblemParams) {
       status: 400,
     };
   }
-  if (!("/solution/main.go" in filesObj)) {
+  if (!("/solution/solution.md" in filesObj)) {
     return { success: false, error: "Solution file is required", status: 400 };
   }
   if (!("/test/main.go" in filesObj)) {

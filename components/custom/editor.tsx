@@ -74,12 +74,14 @@ export default function CustomEditor({
 }
 
 type EditorHeaderProps = {
+  onSubmitAction: () => void;
   onSaveAction: () => void;
   onResetAction: () => void;
   disabled?: boolean;
 };
 
 export function EditorHeader({
+  onSubmitAction,
   onSaveAction,
   onResetAction,
   disabled = false,
@@ -88,6 +90,7 @@ export function EditorHeader({
     <div className="border-b bg-background flex items-center justify-between px-2 py-1">
       <div className="flex gap-2">
         <Button
+          onClick={onSubmitAction}
           type="button"
           variant="outline"
           className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
