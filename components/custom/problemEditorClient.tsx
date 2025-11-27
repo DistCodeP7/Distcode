@@ -247,7 +247,10 @@ export default function ProblemEditorClient({
 
         {/* RIGHT SIDE */}
         <ResizablePanel minSize={20} className="overflow-auto">
-          <CreateExerciseHeader onSubmit={handleSubmit} disabled={false} />
+          <CreateExerciseHeader
+            onSubmitAction={handleSubmit}
+            disabled={false}
+          />
           <MarkdownPreview content={previewContent} />
         </ResizablePanel>
       </ResizablePanelGroup>

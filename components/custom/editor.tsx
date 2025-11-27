@@ -74,16 +74,14 @@ export default function CustomEditor({
 }
 
 type EditorHeaderProps = {
-  onSubmit: () => void;
-  onSave: () => void;
-  onReset: () => void;
+  onSaveAction: () => void;
+  onResetAction: () => void;
   disabled?: boolean;
 };
 
 export function EditorHeader({
-  onSubmit,
-  onSave,
-  onReset,
+  onSaveAction,
+  onResetAction,
   disabled = false,
 }: EditorHeaderProps) {
   return (
@@ -99,7 +97,7 @@ export function EditorHeader({
           Submit
         </Button>
         <Button
-          onClick={onSave}
+          onClick={onSaveAction}
           type="button"
           variant="outline"
           className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
@@ -109,7 +107,7 @@ export function EditorHeader({
           Save
         </Button>
         <Button
-          onClick={onReset}
+          onClick={onResetAction}
           type="button"
           variant="outline"
           className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
@@ -124,12 +122,12 @@ export function EditorHeader({
 }
 
 type CreateExerciseHeaderProps = {
-  onSubmit: () => void;
+  onSubmitAction: () => void;
   disabled?: boolean;
 };
 
 export function CreateExerciseHeader({
-  onSubmit,
+  onSubmitAction,
   disabled = false,
 }: CreateExerciseHeaderProps) {
   const router = useRouter();
@@ -148,7 +146,7 @@ export function CreateExerciseHeader({
       </Button>
 
       <Button
-        onClick={onSubmit}
+        onClick={onSubmitAction}
         type="button"
         variant="outline"
         className="flex items-center gap-1 px-2 py-1 text-base"

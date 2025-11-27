@@ -63,14 +63,14 @@ export default function ExerciseEditor({
   );
   const [fileContents, setFileContents] = useState<Record<string, string>>(
     () => {
-      const initial =
+      return (
         savedCode?.Files ??
         Object.fromEntries(
           Object.entries(codeFolder.Files)
             .filter(([path]) => path.startsWith("/template"))
             .map(([path, content]) => [path, content])
-        );
-      return initial;
+        )
+      );
     }
   );
 
@@ -126,7 +126,7 @@ ${protocolCode}
 \`\`\``;
   }, [problemMarkdown, codeFolder.Files]);
 
-  const { messages, connect, clearMessages } = useSSE<nodeSpec>("/api/stream");
+  const { connect, clearMessages } = useSSE<nodeSpec>("/api/stream");
 
   const setEditorContent = (
     value: string | ((prev: string) => string),
@@ -146,7 +146,12 @@ ${protocolCode}
   const onSubmit = async () => {
     clearMessages();
     connect();
-    const payload: nodeSpec = { Files: fileContents, Envs: codeFolder.Envs };
+    const payload: nodeSpec = {
+      Files: fileContents,
+      Envs: codeFolder.Envs,
+      BuildCommand: codeFolder.BuildCommand,
+      EntryCommand: codeFolder.EntryCommand,
+    };
     const result = await submitCode(payload, { params: { id: exerciseId } });
     if (result?.error) toast.error(`Error submitting: ${result.error}`);
     else toast.success("Code submitted successfully!");
@@ -154,7 +159,12 @@ ${protocolCode}
   };
 
   const onSave = async () => {
-    const payload: nodeSpec = { Files: fileContents, Envs: codeFolder.Envs };
+    const payload: nodeSpec = {
+      Files: fileContents,
+      Envs: codeFolder.Envs,
+      BuildCommand: codeFolder.BuildCommand,
+      EntryCommand: codeFolder.EntryCommand,
+    };
     const result = await saveCode(payload, { params: { id: exerciseId } });
     if (result?.error) toast.error(`Error saving code: ${result.error}`);
     else toast.success("Code saved successfully!");
@@ -353,7 +363,9 @@ ${protocolCode}
           <FilteredTreeNode
             key={node.type === "file" ? node.path : node.name}
             node={node}
-            onFileClick={(f) => setActiveFilePath(f.path)}
+            onFileClick={() =>
+              setActiveFilePath(node.type === "file" ? node.path : "")
+            }
             onAddFile={onAddFile}
             onDeleteFile={onDeleteFile}
             activeFilePath={activeFilePath}
@@ -388,8 +400,8 @@ ${protocolCode}
           </div>
           <EditorHeader
             onSubmit={onSubmit}
-            onSave={onSave}
-            onReset={onReset}
+            onSaveAction={onSave}
+            onResetAction={onReset}
             disabled={resetting}
           />
         </div>

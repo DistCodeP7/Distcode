@@ -36,7 +36,7 @@ function extractSolutionMarkdown(codeFolder: {
 export default async function ExercisePage({
   params,
 }: {
-  params: { id: string }; // route params are strings
+  params: { id: string };
 }) {
   const exerciseId = Number(params.id);
   if (Number.isNaN(exerciseId)) return notFound();
@@ -66,8 +66,7 @@ export default async function ExercisePage({
     }
   }
 
-  // Extract solution markdown from code folder
-  const solutionMarkdown = extractSolutionMarkdown(exercise.codeFolder);
+  const solutionMarkdown = extractSolutionMarkdown(codeFolder: {files: exercise.codeFolder.Files});
 
   return (
     <div className="h-screen flex flex-col">

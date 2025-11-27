@@ -16,7 +16,7 @@ export type FolderNode = {
   type: "folder";
   name: string;
   children: Array<FolderNode | FileNode>;
-  isOpen?: boolean; // for collapsible state
+  isOpen?: boolean;
 };
 
 export type Node = FileNode | FolderNode;
