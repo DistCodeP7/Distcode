@@ -9,7 +9,6 @@ import {
   loadUserRating,
 } from "./actions";
 
-/* ---------------- PAGE ---------------- */
 export default async function ExercisePage({
   params,
 }: {

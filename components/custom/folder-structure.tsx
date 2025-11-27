@@ -4,8 +4,6 @@ import { ChevronDown, ChevronRight, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import type { FileNode, FolderNode, Node } from "@/lib/folderStructure";
 
-/* ---------------- INTERFACES ---------------- */
-
 export interface TreeProps {
   node: Node;
   onFileClick: (file: FileNode) => void;
@@ -28,8 +26,6 @@ export interface FilteredTreeProps {
   onAddFile?: (folderPath: string) => void;
   onDeleteFile?: (filePath: string) => void;
 }
-
-/* ---------------- UTILITY ---------------- */
 
 function sanitizeFileName(name: string): string {
   return `${name.includes(".") ? name.split(".")[0] : name}.go`;
@@ -75,7 +71,6 @@ export function buildTreeFromPaths(
   return rootChildren;
 }
 
-/* ---------------- TREE NODE ---------------- */
 export function TreeNode({
   node,
   onFileClick,
@@ -123,32 +118,31 @@ export function TreeNode({
     );
   }
 
-  const folder = node as FolderNode;
-
-  // Folder toggle function; 'v' is a previous state value that comes from React
-  const toggle = () => setIsOpen((v) => !v);
+  function addFile() {
+    const name = prompt("Enter new file name");
+    if (!name) return;
+    const fileName = sanitizeFileName(name);
+    const newPath = `${node.name}/${fileName}`;
+    if (onAddFile) {
+      onAddFile(newPath);
+    }
+  }
 
   return (
     <div>
       <div className="flex items-center justify-between" style={padding}>
         <button
           type="button"
-          onClick={toggle}
+          onClick={() => setIsOpen((v) => !v)}
           className="flex items-center py-1 hover:bg-muted rounded-sm flex-1 text-left"
         >
           {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-          <span className="ml-1 font-medium">📁 {folder.name}</span>
+          <span className="ml-1 font-medium">📁 {node.name}</span>
         </button>
-        {onAddFile && folder.name !== "proto" && folder.name !== "solution" && (
+        {onAddFile && (
           <button
             type="button"
-            onClick={() => {
-              const name = prompt("Enter new file name");
-              if (!name) return;
-              const fileName = sanitizeFileName(name);
-              const newPath = `${folder.name}/${fileName}`;
-              onAddFile(newPath);
-            }}
+            onClick={addFile}
             className="p-1 hover:bg-gray-600 hover:text-white rounded"
           >
             <Plus size={14} />
@@ -157,7 +151,7 @@ export function TreeNode({
       </div>
 
       {isOpen &&
-        folder.children?.map((child) => (
+        node.children?.map((child) => (
           <TreeNode
             key={child.type === "file" ? child.path : child.name}
             node={child}
@@ -172,8 +166,6 @@ export function TreeNode({
     </div>
   );
 }
-
-/* ---------------- FILTERED TREE NODE ---------------- */
 
 export function FilteredTreeNode({
   node,
@@ -224,32 +216,31 @@ export function FilteredTreeNode({
     );
   }
 
-  const folder = node as FolderNode;
-  const toggle = () => setIsOpen((s) => !s);
-  const isTemplateFolder = folder.name === "template";
+  function addFile() {
+    const name = prompt("Enter new file name");
+    if (!name) return;
+    const fileName = sanitizeFileName(name);
+    const newPath = `${node.name}/${fileName}`;
+    if (onAddFile) {
+      onAddFile(newPath);
+    }
+  }
 
   return (
     <div>
       <div className="flex items-center justify-between" style={padding}>
         <button
           type="button"
-          onClick={toggle}
+          onClick={() => setIsOpen((s) => !s)}
           className="flex items-center py-1 hover:bg-muted rounded-sm flex-1 text-left"
         >
           {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-          <span className="ml-1 font-medium">📁 {folder.name}</span>
+          <span className="ml-1 font-medium">📁 {node.name}</span>
         </button>
-        {isTemplateFolder && onAddFile && (
+        {node.name === "template" && onAddFile && (
           <button
             type="button"
-            onClick={() => {
-              const name = prompt("Enter new file name");
-              if (!name) return;
-              const fileName = sanitizeFileName(name);
-
-              const newPath = `${folder.name}/${fileName}`;
-              onAddFile(`/${newPath}`);
-            }}
+            onClick={addFile}
             className="p-1 hover:bg-gray-600 hover:text-white rounded"
           >
             <Plus size={14} />
@@ -258,7 +249,7 @@ export function FilteredTreeNode({
       </div>
 
       {isOpen &&
-        folder.children?.map((child) => (
+        node.children?.map((child) => (
           <FilteredTreeNode
             key={child.type === "file" ? child.path : child.name}
             node={child}

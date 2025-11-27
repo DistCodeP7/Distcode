@@ -73,56 +73,55 @@ export const useProblemEditor = (
     };
   });
 
-  const syncFilesContent = useCallback(() => {
+  const syncFilesContent = () => {
     setState((prev) => {
       const newFiles: Record<string, string> = {
         ...(prev.filesContent as Record<string, string>),
       };
+
       for (const file of files) {
         if (!(file.name in newFiles)) {
           newFiles[file.name] = getInitialContent(file);
         }
       }
+
       return { ...prev, filesContent: newFiles as Filemap };
     });
-  }, [files]);
+  };
 
-  const handleEditorContentChange = useCallback(
-    (value: SetStateAction<string>) => {
-      setState((prev) => {
-        const activeFileName = prev.activeFile;
-        if (!activeFileName) return prev;
-        const prevContent =
-          (prev.filesContent as Record<string, string>)[activeFileName] ?? "";
-        const newContent =
-          typeof value === "function" ? value(prevContent) : value;
-        const newFiles: Record<string, string> = {
-          ...(prev.filesContent as Record<string, string>),
-        };
-        newFiles[activeFileName] = newContent;
-        return { ...prev, filesContent: newFiles as Filemap };
-      });
-    },
-    []
-  );
+  const handleEditorContentChange = (value: SetStateAction<string>) => {
+    setState((prev) => {
+      const activeFileName = prev.activeFile;
+      if (!activeFileName) return prev;
+      const prevContent =
+        (prev.filesContent as Record<string, string>)[activeFileName] ?? "";
+      const newContent =
+        typeof value === "function" ? value(prevContent) : value;
+      const newFiles: Record<string, string> = {
+        ...(prev.filesContent as Record<string, string>),
+      };
+      newFiles[activeFileName] = newContent;
+      return { ...prev, filesContent: newFiles as Filemap };
+    });
+  };
 
-  const setTitle = useCallback((title: string) => {
+  const setTitle = (title: string) => {
     setState((prev) => ({ ...prev, title }));
-  }, []);
+  };
 
-  const setDescription = useCallback((description: string) => {
+  const setDescription = (description: string) => {
     setState((prev) => ({ ...prev, description }));
-  }, []);
+  };
 
-  const setDifficulty = useCallback((difficulty: string) => {
+  const setDifficulty = (difficulty: string) => {
     setState((prev) => ({ ...prev, difficulty }));
-  }, []);
+  };
 
-  const setActiveFile = useCallback((activeFile: string) => {
+  const setActiveFile = (activeFile: string) => {
     setState((prev) => ({ ...prev, activeFile }));
-  }, []);
+  };
 
-  const setFileContent = useCallback((fileName: string, content: string) => {
+  const setFileContent = (fileName: string, content: string) => {
     setState((prev) => {
       const newFiles: Record<string, string> = {
         ...(prev.filesContent as Record<string, string>),
@@ -130,9 +129,9 @@ export const useProblemEditor = (
       newFiles[fileName] = content;
       return { ...prev, filesContent: newFiles as Filemap };
     });
-  }, []);
+  };
 
-  const removeFile = useCallback((fileName: string) => {
+  const removeFile = (fileName: string) => {
     setState((prev) => {
       const newFiles: Record<string, string> = {
         ...(prev.filesContent as Record<string, string>),
@@ -142,107 +141,91 @@ export const useProblemEditor = (
       }
       return { ...prev, filesContent: newFiles as Filemap };
     });
-  }, []);
+  };
 
-  const setBuildCommand = useCallback((buildCommand: string) => {
+  const setBuildCommand = (buildCommand: string) => {
     setState((prev) => ({ ...prev, buildCommand }));
-  }, []);
+  };
 
-  const setEntryCommand = useCallback((entryCommand: string) => {
+  const setEntryCommand = (entryCommand: string) => {
     setState((prev) => ({ ...prev, entryCommand }));
-  }, []);
+  };
 
-  const setEnvs = useCallback((envs: EnvironmentVariable[]) => {
+  const setEnvs = (envs: EnvironmentVariable[]) => {
     setState((prev) => ({ ...prev, envs }));
-  }, []);
+  };
 
-  const handleSaveOrSubmit = useCallback(
-    async (isPublished: boolean) => {
-      setState((prev) => ({ ...prev, isSubmitting: true }));
+  const handleSaveOrSubmit = async (isPublished: boolean) => {
+    setState((prev) => ({ ...prev, isSubmitting: true }));
 
-      try {
-        const missingFields: string[] = [];
-        if (!state.title.trim()) missingFields.push("Title");
-        if (!state.description.trim()) missingFields.push("Description");
-        if (!["1", "2", "3"].includes(state.difficulty))
-          missingFields.push("Difficulty");
+    try {
+      const missingFields: string[] = [];
+      if (!state.title.trim()) missingFields.push("Title");
+      if (!state.description.trim()) missingFields.push("Description");
+      if (!["1", "2", "3"].includes(state.difficulty))
+        missingFields.push("Difficulty");
 
-        const getContent = (name: string) =>
-          (state.filesContent as Record<string, string>)[name] ?? "";
-        if (!getContent("/problem.md").trim())
-          missingFields.push("Problem markdown");
+      const getContent = (name: string) =>
+        (state.filesContent as Record<string, string>)[name] ?? "";
+      if (!getContent("/problem.md").trim())
+        missingFields.push("Problem markdown");
 
-        const templateFiles = files.filter((f) =>
-          f.name.startsWith("/template")
-        );
-        const solutionFiles = files.filter((f) =>
-          f.name.startsWith("/solution")
-        );
-        const protocolFiles = files.filter((f) => f.name.startsWith("/proto"));
+      const templateFiles = files.filter((f) => f.name.startsWith("/template"));
+      const solutionFiles = files.filter((f) => f.name.startsWith("/solution"));
+      const protocolFiles = files.filter((f) =>
+        f.name.startsWith("/protocol.go")
+      );
 
-        const testFiles = files.filter((f) => f.name.startsWith("/tests"));
+      const testFiles = files.filter((f) => f.name.startsWith("/tests"));
 
-        const templateCode = templateFiles.map((f) => getContent(f.name));
-        const solutionCode = solutionFiles.map((f) => getContent(f.name));
-        const protocolCode = protocolFiles.map((f) => getContent(f.name));
+      const templateCode = templateFiles.map((f) => getContent(f.name));
+      const solutionCode = solutionFiles.map((f) => getContent(f.name));
+      const protocolCode = protocolFiles.map((f) => getContent(f.name));
 
-        if (!templateFiles.length || templateCode.some((c) => !c.trim()))
-          missingFields.push("Template code");
-        if (!solutionFiles.length || solutionCode.some((c) => !c.trim()))
-          missingFields.push("Solution code");
-        if (!protocolFiles.length || protocolCode.some((c) => !c.trim()))
-          missingFields.push("Protocol code");
-        if (
-          !testFiles.length ||
-          testFiles.some((f) => !getContent(f.name).trim())
-        )
-          if (missingFields.length > 0) {
-            alert(`Missing or empty fields: ${missingFields.join(", ")}`);
-            return;
-          }
+      if (!templateFiles.length || templateCode.some((c) => !c.trim()))
+        missingFields.push("Template code");
+      if (!solutionFiles.length || solutionCode.some((c) => !c.trim()))
+        missingFields.push("Solution code");
+      if (!protocolFiles.length || protocolCode.some((c) => !c.trim()))
+        missingFields.push("Protocol code");
+      if (
+        !testFiles.length ||
+        testFiles.some((f) => !getContent(f.name).trim())
+      )
+        if (missingFields.length > 0) {
+          alert(`Missing or empty fields: ${missingFields.join(", ")}`);
+          return;
+        }
 
-        const filesMap = state.filesContent as Record<string, string>;
-        const codeFolder: nodeSpec = {
-          Files: { ...filesMap } as Filemap,
-          Envs: state.envs,
-          BuildCommand: state.buildCommand,
-          EntryCommand: state.entryCommand,
-        };
+      const filesMap = state.filesContent as Record<string, string>;
+      const codeFolder: nodeSpec = {
+        Files: { ...filesMap } as Filemap,
+        Envs: state.envs,
+        BuildCommand: state.buildCommand,
+        EntryCommand: state.entryCommand,
+      };
 
-        const payload = {
-          id: initial?.problemId,
-          title: state.title,
-          description: state.description,
-          difficulty: parseInt(state.difficulty, 10),
-          problemMarkdown:
-            (state.filesContent as Record<string, string>)["/problem.md"] ?? "",
-          isPublished,
-          codeFolder,
-        };
+      const payload = {
+        id: initial?.problemId,
+        title: state.title,
+        description: state.description,
+        difficulty: parseInt(state.difficulty, 10),
+        problemMarkdown:
+          (state.filesContent as Record<string, string>)["/problem.md"] ?? "",
+        isPublished,
+        codeFolder,
+      };
 
-        const result: ActionResult = await saveProblem(payload);
-        alert(
-          result.success
-            ? result.message || "Success!"
-            : result.error || "Error."
-        );
-      } catch (err) {
-        alert(`An unexpected error occurred: ${err}`);
-      } finally {
-        setState((prev) => ({ ...prev, isSubmitting: false }));
-      }
-    },
-    [state, files, initial?.problemId]
-  );
-
-  const handleSubmit = useCallback(
-    () => handleSaveOrSubmit(true),
-    [handleSaveOrSubmit]
-  );
-  const handleSave = useCallback(
-    () => handleSaveOrSubmit(false),
-    [handleSaveOrSubmit]
-  );
+      const result: ActionResult = await saveProblem(payload);
+      alert(
+        result.success ? result.message || "Success!" : result.error || "Error."
+      );
+    } catch (err) {
+      alert(`An unexpected error occurred: ${err}`);
+    } finally {
+      setState((prev) => ({ ...prev, isSubmitting: false }));
+    }
+  };
 
   return {
     ...state,
@@ -256,8 +239,8 @@ export const useProblemEditor = (
     setEntryCommand,
     setEnvs,
     handleEditorContentChange,
-    handleSubmit,
-    handleSave,
+    handleSubmit: () => handleSaveOrSubmit(true),
+    handleSave: () => handleSaveOrSubmit(false),
     syncFilesContent,
   };
 };

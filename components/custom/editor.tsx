@@ -7,8 +7,6 @@ import { Button } from "@/components/ui/button";
 import type { FileData } from "@/lib/folderStructure";
 import { labToHex } from "@/utils/labToHex";
 
-/* ---------------- MONACO THEME ---------------- */
-
 const handleEditorDidMount: OnMount = (_, monaco) => {
   const styles = getComputedStyle(document.body);
   const rawColor = styles.getPropertyValue("background-color");
@@ -35,8 +33,6 @@ const handleEditorDidMount: OnMount = (_, monaco) => {
 
   monaco.editor.setTheme("shadcn-theme");
 };
-
-/* ---------------- CUSTOM EDITOR ---------------- */
 
 type CustomEditorProps = EditorProps & {
   file: FileData;
@@ -134,12 +130,11 @@ export function CreateExerciseHeader({
   disabled = false,
 }: CreateExerciseHeaderProps) {
   const router = useRouter();
-  const handleGoBack = () => router.push("/authorized");
 
   return (
     <div className="border-b bg-background flex items-center justify-end px-2 py-1 gap-2">
       <Button
-        onClick={handleGoBack}
+        onClick={() => router.push("/authorized")}
         type="button"
         variant="outline"
         className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"

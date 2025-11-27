@@ -16,7 +16,7 @@ import {
   saveCode,
   submitCode,
 } from "@/app/exercises/[id]/actions";
-import { ResetDialog } from "@/components/custom/alert-dialog";
+import { ConfirmationDialog } from "@/components/custom/alert-dialog";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
 import { Button } from "@/components/ui/button";
@@ -34,7 +34,6 @@ import {
   flattenTree,
 } from "./folder-structure";
 
-/* ---------------- HELPERS ---------------- */
 type EditableFileNode = FileNode & { readOnly?: boolean };
 
 type ExerciseEditorProps = {
@@ -116,7 +115,7 @@ export default function ExerciseEditor({
 
   const problemWithProtocol = useMemo(() => {
     const protocolCode =
-      codeFolder.Files["/proto/protocol.go"] ?? "// protocol.go missing";
+      codeFolder.Files["/protocol.go"] ?? "// protocol.go missing";
     return `${problemMarkdown}
 \n\n# These are the protocols for the exercise:
 \`\`\`go
@@ -140,7 +139,6 @@ ${protocolCode}
     }));
   };
 
-  /* ---------------- SUBMIT / SAVE / RESET ---------------- */
   const onSubmit = async () => {
     clearMessages();
     connect();
@@ -186,7 +184,7 @@ ${protocolCode}
       }
 
       const templateFiles: Record<string, string> = Object.fromEntries(
-        Object.entries(result.template.Files)
+        Object.entries(result.template)
           .filter(([path]) => path.startsWith("/template"))
           .map(([path, content]) => [path, String(content)])
       );
@@ -217,7 +215,6 @@ ${protocolCode}
     });
   };
 
-  /* ---------------- TREE ---------------- */
   const treeNodes = useMemo(() => {
     const templatePaths = Object.keys(fileContents).filter((path) =>
       path.startsWith("/template")
@@ -263,7 +260,6 @@ ${protocolCode}
     toast.success(`Deleted ${filePath}`);
   };
 
-  /* ---------------- RENDER ---------------- */
   return (
     <ResizablePanelGroup
       direction="horizontal"
@@ -421,7 +417,7 @@ ${protocolCode}
         </ResizablePanelGroup>
       </ResizablePanel>
 
-      <ResetDialog
+      <ConfirmationDialog
         open={showResetDialog}
         onOpenChange={setShowResetDialog}
         title="Reset Code?"
@@ -429,7 +425,7 @@ ${protocolCode}
         onConfirm={confirmReset}
       />
 
-      <ResetDialog
+      <ConfirmationDialog
         open={showUnlockDialog}
         onOpenChange={setShowUnlockDialog}
         title="Unlock Solution?"

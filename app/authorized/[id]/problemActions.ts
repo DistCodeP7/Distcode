@@ -40,7 +40,7 @@ export async function saveProblem(data: SaveProblemParams) {
       status: 400,
     };
   }
-  if (!("/solution/solution.md" in filesObj)) {
+  if (!("/solution.md" in filesObj)) {
     return { success: false, error: "Solution file is required", status: 400 };
   }
   if (!("/test/main.go" in filesObj)) {
@@ -49,7 +49,7 @@ export async function saveProblem(data: SaveProblemParams) {
   if (!("/template/main.go" in filesObj)) {
     return { success: false, error: "Template file is required", status: 400 };
   }
-  if (!("/proto/protocol.go" in filesObj)) {
+  if (!("/protocol.go" in filesObj)) {
     return { success: false, error: "Protocol file is required", status: 400 };
   }
 

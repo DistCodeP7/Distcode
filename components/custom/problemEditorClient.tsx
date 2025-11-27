@@ -21,7 +21,6 @@ import { useProblemEditor } from "@/hooks/useProblemEditor";
 import type { FileNode } from "@/lib/folderStructure";
 import { buildTreeFromPaths, flattenTree, TreeNode } from "./folder-structure";
 
-/* ---------------- MAIN COMPONENT ---------------- */
 export default function ProblemEditorClient({
   files,
   initialFilesContent,

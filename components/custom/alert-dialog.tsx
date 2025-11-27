@@ -9,7 +9,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-export function ResetDialog({
+export function ConfirmationDialog({
   open,
   onOpenChange,
   title,
