@@ -81,10 +81,11 @@ export default function ProblemEditorClient({
   const [lastMarkdownPath, setLastMarkdownPath] =
     useState<string>("/problem.md"); // Track last .md for preview
 
-  const filesForHook = Object.keys(files).map((path) => ({
-    name: path,
-    fileType: path.endsWith(".go") ? "go" : "markdown",
-  }));
+  const filesForHook: { name: string; fileType: "go" | "markdown" }[] =
+    Object.keys(files).map((path) => ({
+      name: path,
+      fileType: (path.endsWith(".go") ? "go" : "markdown") as "go" | "markdown",
+    }));
 
   const {
     title,
@@ -235,9 +236,7 @@ export default function ProblemEditorClient({
               {activeFile && (
                 <Editor
                   file={activeFile}
-                  setEditorContent={(text) =>
-                    handleEditorContentChange(text, activeFile.path)
-                  }
+                  setEditorContent={(text) => handleEditorContentChange(text)}
                 />
               )}
             </div>
