@@ -26,7 +26,7 @@ type ActionResult =
 
 type ProblemEditorState = {
   filesContent: Filemap;
-  activeFile: number;
+  activeFile: string;
   title: string;
   description: string;
   difficulty: string;
@@ -37,7 +37,7 @@ type ProblemEditorState = {
 };
 
 export const useProblemEditor = (
-  files: readonly ProblemFile[],
+  files: ProblemFile[],
   initial?: {
     filesContent?: Filemap;
     title?: string;
@@ -62,7 +62,7 @@ export const useProblemEditor = (
 
     return {
       filesContent: filesMap,
-      activeFile: 0,
+      activeFile: files[0]?.name ?? "",
       title: initial?.title ?? "",
       description: initial?.description ?? "",
       difficulty: initial?.difficulty ?? "1",
@@ -90,7 +90,7 @@ export const useProblemEditor = (
   const handleEditorContentChange = useCallback(
     (value: SetStateAction<string>) => {
       setState((prev) => {
-        const activeFileName = files[prev.activeFile]?.name;
+        const activeFileName = prev.activeFile;
         if (!activeFileName) return prev;
         const prevContent =
           (prev.filesContent as Record<string, string>)[activeFileName] ?? "";
@@ -118,8 +118,30 @@ export const useProblemEditor = (
     setState((prev) => ({ ...prev, difficulty }));
   }, []);
 
-  const setActiveFile = useCallback((activeFile: number) => {
+  const setActiveFile = useCallback((activeFile: string) => {
     setState((prev) => ({ ...prev, activeFile }));
+  }, []);
+
+  const setFileContent = useCallback((fileName: string, content: string) => {
+    setState((prev) => {
+      const newFiles: Record<string, string> = {
+        ...(prev.filesContent as Record<string, string>),
+      };
+      newFiles[fileName] = content;
+      return { ...prev, filesContent: newFiles as Filemap };
+    });
+  }, []);
+
+  const removeFile = useCallback((fileName: string) => {
+    setState((prev) => {
+      const newFiles: Record<string, string> = {
+        ...(prev.filesContent as Record<string, string>),
+      };
+      if (fileName in newFiles) {
+        delete newFiles[fileName];
+      }
+      return { ...prev, filesContent: newFiles as Filemap };
+    });
   }, []);
 
   const setBuildCommand = useCallback((buildCommand: string) => {
@@ -228,6 +250,8 @@ export const useProblemEditor = (
     setDescription,
     setDifficulty,
     setActiveFile,
+    setFileContent,
+    removeFile,
     setBuildCommand,
     setEntryCommand,
     setEnvs,

@@ -1,8 +1,8 @@
 ﻿"use client";
 
+import type { FileNode, FolderNode, Node } from "@/lib/folderStructure";
 import { ChevronDown, ChevronRight, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
-import type { FileNode, FolderNode, Node } from "./problemEditorClient";
 
 /* ---------------- INTERFACES ---------------- */
 

@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { toast } from "sonner";
 import Editor, { CreateExerciseHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
@@ -76,7 +76,9 @@ export default function ProblemEditorClient({
   initialDifficulty?: string;
   problemId?: number;
 }) {
-  const [activeFilePath, setActiveFilePath] = useState<string>("/problem.md");
+  const [activeFilePath, setActiveFilePath] = useState<string | null>(
+    "/problem.md"
+  );
   const [createdFiles, setCreatedFiles] = useState<Set<string>>(new Set());
   const [lastMarkdownPath, setLastMarkdownPath] =
     useState<string>("/problem.md"); // Track last .md for preview
@@ -97,6 +99,9 @@ export default function ProblemEditorClient({
     handleEditorContentChange,
     handleSubmit,
     filesContent,
+    setActiveFile,
+    setFileContent,
+    removeFile,
   } = useProblemEditor(filesForHook, {
     filesContent: initialFilesContent,
     title: initialTitle,
@@ -125,8 +130,9 @@ export default function ProblemEditorClient({
       return;
     }
     setCreatedFiles((prev) => new Set([...prev, fullPath]));
-    (filesContent as Record<string, string>)[fullPath] = "// New file";
+    setFileContent(fullPath, "// New file");
     setActiveFilePath(fullPath);
+    setActiveFile(fullPath);
     toast.success(`Created ${fullPath}`);
   };
 
@@ -147,19 +153,24 @@ export default function ProblemEditorClient({
       return next;
     });
 
-    // @ts-expect-error
     setActiveFilePath((prev) => (prev === filePath ? null : prev));
-    delete (filesContent as Record<string, string>)[filePath];
+    removeFile(filePath);
     toast.success(`Deleted ${filePath}`);
   };
 
   // Custom click handler to track last markdown file
   const handleFileClick = (file: FileNode) => {
     setActiveFilePath(file.path);
+    setActiveFile(file.path);
     if (file.name.endsWith(".md")) {
       setLastMarkdownPath(file.path);
     }
   };
+
+  // Keep hook's active file in sync with local activeFilePath (e.g. initial value)
+  useEffect(() => {
+    if (activeFilePath) setActiveFile(activeFilePath);
+  }, [activeFilePath, setActiveFile]);
 
   const activeFile = activeFilePath
     ? (treeNodes.flatMap(flattenTree).find((f) => f.path === activeFilePath) ??
@@ -235,7 +246,14 @@ export default function ProblemEditorClient({
             <div className="flex-1 flex flex-col min-w-0">
               {activeFile && (
                 <Editor
-                  file={activeFile}
+                  file={{
+                    name: activeFile.name,
+                    fileType: activeFile.name.endsWith(".go")
+                      ? "go"
+                      : "markdown",
+                    content: activeFile.content,
+                    path: activeFile.path,
+                  }}
                   setEditorContent={(text) => handleEditorContentChange(text)}
                 />
               )}
