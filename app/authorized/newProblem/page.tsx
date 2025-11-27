@@ -9,7 +9,8 @@ export default function NewProblemPage() {
     Files: {
       "/problem.md": "# New Problem\n\nDescribe the problem here.",
       "/template/main.go": "// Write your template code here\n",
-      "/solution/solution.md": "# Write your Solution here\n\nExplain the solution in detail.",
+      "/solution/solution.md":
+        "# Write your Solution here\n\nExplain the solution in detail.",
       "/test/main.go": "// Write your test cases here\n",
       "/proto/protocol.go": " // Define your protocol here\n",
     },

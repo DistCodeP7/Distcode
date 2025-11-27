@@ -1,10 +1,11 @@
 "use client";
 
 import Editor, { type EditorProps, type OnMount } from "@monaco-editor/react";
-import { Save, Send, X, RotateCcw } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { labToHex } from "@/utils/labToHex";
+import { RotateCcw, Save, Send, X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import type { FileData } from "@/lib/folderStructure";
+import { labToHex } from "@/utils/labToHex";
 
 /* ---------------- MONACO THEME ---------------- */
 
@@ -38,18 +39,11 @@ const handleEditorDidMount: OnMount = (_, monaco) => {
 /* ---------------- CUSTOM EDITOR ---------------- */
 
 type CustomEditorProps = EditorProps & {
-  file: Files;
+  file: FileData;
   setEditorContent: (
     content: string | ((prev: string) => string),
     filePath: string
   ) => void;
-};
-
-type Files = {
-  name: string;
-  fileType: "go" | "markdown";
-  content: string;
-  path: string;
 };
 
 export default function CustomEditor({

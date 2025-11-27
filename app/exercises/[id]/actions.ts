@@ -2,13 +2,13 @@
 
 import { and, desc, eq } from "drizzle-orm";
 import { getServerSession } from "next-auth";
+import { v4 as uuid } from "uuid"; // Example for a common UUID library in JS
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import type { nodeSpec } from "@/drizzle/schema";
 import { problems, ratings, userCode } from "@/drizzle/schema";
 import { db } from "@/lib/db";
 import { MQJobsSender } from "@/lib/mq";
 import { getUserById } from "@/lib/user";
-import { v4 as uuid } from "uuid"; // Example for a common UUID library in JS
 
 export async function getExercise({ params }: { params: { id: number } }) {
   const id = Number(params.id);
@@ -75,52 +75,48 @@ export async function saveCode(
   content: nodeSpec,
   { params }: { params: { id: number } }
 ) {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) return { error: "Unauthorized", status: 401 };
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { error: "Unauthorized", status: 401 };
 
-    const user = await getUserById(session.user.id);
-    if (!user) return { error: "User not found.", status: 404 };
+  const user = await getUserById(session.user.id);
+  if (!user) return { error: "User not found.", status: 404 };
 
-    const problemId = Number(params.id);
-    if (Number.isNaN(problemId))
-        return { error: "Invalid problem id", status: 400 };
+  const problemId = Number(params.id);
+  if (Number.isNaN(problemId))
+    return { error: "Invalid problem id", status: 400 };
 
-    const [foundProblem] = await db
-        .select()
-        .from(problems)
-        .where(eq(problems.id, problemId))
-        .limit(1);
+  const [foundProblem] = await db
+    .select()
+    .from(problems)
+    .where(eq(problems.id, problemId))
+    .limit(1);
 
-    if (!foundProblem) {
-        return { error: "Problem not found.", status: 404 };
-    }
+  if (!foundProblem) {
+    return { error: "Problem not found.", status: 404 };
+  }
 
-    const [existingCode] = await db
-        .select()
-        .from(userCode)
-        .where(
-            and(
-                eq(userCode.userId, user.userid),
-                eq(userCode.problemId, problemId)
-            )
-        )
-        .limit(1);
+  const [existingCode] = await db
+    .select()
+    .from(userCode)
+    .where(
+      and(eq(userCode.userId, user.userid), eq(userCode.problemId, problemId))
+    )
+    .limit(1);
 
-    if (existingCode) {
-        await db
-            .update(userCode)
-            .set({ codeSubmitted: content })
-            .where(eq(userCode.id, existingCode.id));
-    } else {
+  if (existingCode) {
+    await db
+      .update(userCode)
+      .set({ codeSubmitted: content })
+      .where(eq(userCode.id, existingCode.id));
+  } else {
+    await db.insert(userCode).values({
+      userId: user.userid,
+      problemId,
+      codeSubmitted: content,
+    });
+  }
 
-        await db.insert(userCode).values({
-            userId: user.userid,
-            problemId,
-            codeSubmitted: content,
-        });
-    }
-
-    return { success: true, message: "Code saved successfully." };
+  return { success: true, message: "Code saved successfully." };
 }
 
 export async function loadSavedCode({ params }: { params: { id: number } }) {
@@ -186,31 +182,31 @@ export async function loadUserRating({ params }: { params: { id: number } }) {
 }
 
 export async function resetCode({ params }: { params: { id: number } }) {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) return { error: "Unauthorized", status: 401 };
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { error: "Unauthorized", status: 401 };
 
-    const problemId = Number(params.id);
-    if (Number.isNaN(problemId))
-        return { error: "Invalid problem id", status: 400 };
+  const problemId = Number(params.id);
+  if (Number.isNaN(problemId))
+    return { error: "Invalid problem id", status: 400 };
 
-    await db
-        .delete(userCode)
-        .where(
-            and(
-                eq(userCode.userId, session.user.id),
-                eq(userCode.problemId, problemId)
-            )
-        );
+  await db
+    .delete(userCode)
+    .where(
+      and(
+        eq(userCode.userId, session.user.id),
+        eq(userCode.problemId, problemId)
+      )
+    );
 
-    const [problem] = await db
-        .select()
-        .from(problems)
-        .where(eq(problems.id, problemId))
-        .limit(1);
+  const [problem] = await db
+    .select()
+    .from(problems)
+    .where(eq(problems.id, problemId))
+    .limit(1);
 
-    if (!problem) return { error: "Problem not found", status: 404 };
+  if (!problem) return { error: "Problem not found", status: 404 };
 
-    return { success: true, template: problem.codeFolder };
+  return { success: true, template: problem.codeFolder };
 }
 
 export async function rateExercise(
