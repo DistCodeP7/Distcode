@@ -8,6 +8,7 @@ export function DeleteButton() {
 
   return (
     <Button
+      className={"hover:cursor-pointer"}
       size="sm"
       variant="destructive"
       type="submit"

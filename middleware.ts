@@ -24,7 +24,7 @@ export default withAuth(function middleware() {}, {
     },
   },
   pages: {
-    signIn: "/auth/signout", //For some reason authorized when return false calls signIn
+    signIn: "/auth/signout",
     error: "/api/auth/signout",
     signOut: "/auth/login",
   },

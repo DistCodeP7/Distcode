@@ -10,7 +10,6 @@ type TerminalOutputProps = {
 };
 
 export const TerminalOutput = ({ messages }: TerminalOutputProps) => {
-  // Flatten messages into a list of events with a reference to their job
   const flattenedEvents = messages.flatMap((msg) =>
     msg.Events.map((event, idx) => ({
       event,

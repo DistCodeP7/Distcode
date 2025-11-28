@@ -2,13 +2,13 @@
 
 import { and, desc, eq } from "drizzle-orm";
 import { getServerSession } from "next-auth";
+import { v4 as uuid } from "uuid";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import type { nodeSpec } from "@/drizzle/schema";
 import { problems, ratings, userCode } from "@/drizzle/schema";
 import { db } from "@/lib/db";
 import { MQJobsSender } from "@/lib/mq";
 import { getUserById } from "@/lib/user";
-import { v4 as uuid } from "uuid"; // Example for a common UUID library in JS
 
 export async function getExercise({ params }: { params: { id: number } }) {
   const id = Number(params.id);
@@ -47,26 +47,30 @@ export async function submitCode(
   if (Number.isNaN(ProblemId))
     return { error: "Invalid exercise id", status: 400 };
 
-  for (const key of Object.keys(content.Files)) {
+  const filesForSubmission = { ...content.Files };
+
+  for (const key of Object.keys(filesForSubmission)) {
     if (key.includes("problem.md") || key.startsWith("/solution")) {
-      delete content.Files[key];
+      delete filesForSubmission[key];
     }
   }
-
-  const contentArray = Object.entries(content.Files).map(([path, content]) => ({
-    path,
-    content,
-  }));
 
   const payload = {
     JobUID: `${uuid()}`,
     ProblemId,
-    Nodes: contentArray,
+    Nodes: [
+      {
+        Files: filesForSubmission,
+        Envs: content.Envs,
+        BuildCommand: content.BuildCommand,
+        EntryCommand: content.EntryCommand,
+      },
+    ],
     UserId: user.userid,
     Timeout: 60,
   };
 
-  MQJobsSender.sendMessage(payload);
+  await MQJobsSender.sendMessage(payload);
 
   return { success: true, message: "Code submitted successfully" };
 }
@@ -81,25 +85,39 @@ export async function saveCode(
   const user = await getUserById(session.user.id);
   if (!user) return { error: "User not found.", status: 404 };
 
-  const problemsId = Number(params.id);
-  if (Number.isNaN(problemsId))
-    return { error: "Invalid problems id", status: 400 };
+  const problemId = Number(params.id);
+  if (Number.isNaN(problemId))
+    return { error: "Invalid problem id", status: 400 };
 
-  const [foundProblem] = await db
-    .select()
-    .from(problems)
-    .where(eq(problems.id, problemsId))
-    .limit(1);
-
-  if (!foundProblem) {
+  if (
+    !(await db
+      .select()
+      .from(problems)
+      .where(eq(problems.id, problemId))
+      .limit(1))
+  ) {
     return { error: "Problem not found.", status: 404 };
   }
-
-  await db.insert(userCode).values({
-    userId: user.userid,
-    problemId: problemsId,
-    codeSubmitted: content,
-  });
+  if (
+    await db
+      .select()
+      .from(userCode)
+      .where(
+        and(eq(userCode.userId, user.userid), eq(userCode.problemId, problemId))
+      )
+      .limit(1)
+  ) {
+    await db
+      .update(userCode)
+      .set({ codeSubmitted: content })
+      .where(eq(userCode.id, problemId));
+  } else {
+    await db.insert(userCode).values({
+      userId: user.userid,
+      problemId,
+      codeSubmitted: content,
+    });
+  }
 
   return { success: true, message: "Code saved successfully." };
 }
@@ -147,20 +165,21 @@ export async function loadUserRating({ params }: { params: { id: number } }) {
 
   const exerciseId = Number(params.id);
 
-  const [problem] = await db
-    .select()
-    .from(problems)
-    .where(
-      and(eq(problems.userId, session.user.id), eq(problems.id, exerciseId))
-    )
-    .limit(1);
-
-  if (!problem) return null;
+  if (
+    !(await db
+      .select()
+      .from(problems)
+      .where(
+        and(eq(problems.userId, session.user.id), eq(problems.id, exerciseId))
+      )
+      .limit(1))
+  )
+    return null;
 
   const [rating] = await db
     .select()
     .from(ratings)
-    .where(eq(ratings.problemId, problem.id))
+    .where(eq(ratings.problemId, exerciseId))
     .limit(1);
 
   return rating ? (rating.liked ? "up" : "down") : null;
@@ -183,7 +202,15 @@ export async function resetCode({ params }: { params: { id: number } }) {
       )
     );
 
-  return { success: true, message: "Code reset successfully." };
+  const [problem] = await db
+    .select()
+    .from(problems)
+    .where(eq(problems.id, problemId))
+    .limit(1);
+
+  if (!problem) return { error: "Problem not found", status: 404 };
+
+  return { success: true, template: problem.codeFolder };
 }
 
 export async function rateExercise(
@@ -198,39 +225,43 @@ export async function rateExercise(
   if (Number.isNaN(exerciseId))
     return { error: "Invalid exercise id", status: 400 };
 
-  const [problem] = await db
-    .select()
-    .from(problems)
-    .where(eq(problems.id, exerciseId))
-    .limit(1);
-
-  if (!problem) {
+  if (
+    !(await db
+      .select()
+      .from(problems)
+      .where(eq(problems.id, exerciseId))
+      .limit(1))
+  ) {
     return {
       error: "Then exercise doesnt exist",
       status: 403,
     };
   }
-
-  const [alreadyRated] = await db
-    .select()
-    .from(ratings)
-    .where(
-      and(
-        eq(ratings.userId, session.user.id),
-        eq(ratings.problemId, problem.id)
+  if (
+    await db
+      .select()
+      .from(ratings)
+      .where(
+        and(
+          eq(ratings.userId, session.user.id),
+          eq(ratings.problemId, exerciseId)
+        )
       )
-    )
-    .limit(1);
-
-  if (alreadyRated) {
+      .limit(1)
+  ) {
     await db
       .update(ratings)
       .set({ liked })
-      .where(eq(ratings.id, alreadyRated.id));
+      .where(
+        and(
+          eq(ratings.userId, session.user.id),
+          eq(ratings.problemId, exerciseId)
+        )
+      );
   } else {
     await db.insert(ratings).values({
       userId: session.user.id,
-      problemId: problem.id,
+      problemId: exerciseId,
       liked,
     });
   }
@@ -242,13 +273,14 @@ export async function hasUserSubmitted({ params }: { params: { id: number } }) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return false;
 
-  const problem = await db
-    .select()
-    .from(problems)
-    .where(eq(problems.id, params.id))
-    .limit(1);
-
-  if (!problem.length) return false;
+  if (
+    !(await db
+      .select()
+      .from(problems)
+      .where(eq(problems.id, params.id))
+      .limit(1))
+  )
+    return false;
 
   const UserCode = await db
     .select()

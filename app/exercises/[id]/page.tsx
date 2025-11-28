@@ -2,31 +2,40 @@ import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import ExerciseEditor from "@/components/custom/exerciseEditor";
-import { getExercise, hasUserSubmitted, loadUserRating } from "./actions";
+import {
+  getExercise,
+  hasUserSubmitted,
+  loadSavedCode,
+  loadUserRating,
+} from "./actions";
 
 export default async function ExercisePage({
   params,
 }: {
-  params: Promise<{ id: number }>;
+  params: { id: string };
 }) {
-  const exerciseParams = await params;
-  const exercise = await getExercise({ params: exerciseParams });
+  const exerciseId = Number(params.id);
+  if (Number.isNaN(exerciseId)) return notFound();
 
-  if (!exercise || "error" in exercise) {
-    return notFound();
-  }
+  const exercise = await getExercise({ params: { id: exerciseId } });
+  if (!exercise || "error" in exercise) return notFound();
 
   const session = await getServerSession(authOptions);
+
   let userRating: "up" | "down" | null = null;
   let canRate = false;
+  let savedCode: typeof exercise.codeFolder | undefined;
 
   if (session?.user?.id) {
-    canRate = await hasUserSubmitted({ params: { id: exerciseParams.id } });
+    canRate = await hasUserSubmitted({ params: { id: exerciseId } });
 
-    const rating = await loadUserRating({
-      params: { id: exerciseParams.id },
-    });
+    const rating = await loadUserRating({ params: { id: exerciseId } });
     if (rating === "up" || rating === "down") userRating = rating;
+
+    const savedResult = await loadSavedCode({ params: { id: exerciseId } });
+    if (savedResult?.success && savedResult.code) {
+      savedCode = savedResult.code;
+    }
   }
 
   return (
@@ -37,9 +46,11 @@ export default async function ExercisePage({
       </header>
 
       <ExerciseEditor
-        exerciseId={exerciseParams.id}
+        exerciseId={exerciseId}
         problemMarkdown={exercise.problemMarkdown}
+        solutionMarkdown={exercise.codeFolder.Files["solution.md"]}
         codeFolder={exercise.codeFolder}
+        savedCode={savedCode}
         userRating={userRating}
         canRate={canRate}
       />

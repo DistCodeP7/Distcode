@@ -1,4 +1,3 @@
-// app/authorized/[id]/problemActions.ts
 "use server";
 
 import { eq } from "drizzle-orm";
@@ -41,7 +40,7 @@ export async function saveProblem(data: SaveProblemParams) {
       status: 400,
     };
   }
-  if (!("/solution/main.go" in filesObj)) {
+  if (!("/solution.md" in filesObj)) {
     return { success: false, error: "Solution file is required", status: 400 };
   }
   if (!("/test/main.go" in filesObj)) {
@@ -50,7 +49,7 @@ export async function saveProblem(data: SaveProblemParams) {
   if (!("/template/main.go" in filesObj)) {
     return { success: false, error: "Template file is required", status: 400 };
   }
-  if (!("/proto/protocol.go" in filesObj)) {
+  if (!("/protocol.go" in filesObj)) {
     return { success: false, error: "Protocol file is required", status: 400 };
   }
 
@@ -112,6 +111,7 @@ export async function deleteProblem(id: number) {
   if (!existingProblem) {
     return { success: false, error: "Problem not found", status: 404 };
   }
+
   if (existingProblem.userId !== session.user.id) {
     return { success: false, error: "Forbidden", status: 403 };
   }

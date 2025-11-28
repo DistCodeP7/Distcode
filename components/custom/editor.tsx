@@ -1,17 +1,11 @@
 "use client";
 
 import Editor, { type EditorProps, type OnMount } from "@monaco-editor/react";
-import { Save, Send } from "lucide-react";
-import type React from "react";
+import { RotateCcw, Save, Send, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import type { FileData } from "@/lib/folderStructure";
 import { labToHex } from "@/utils/labToHex";
-import { FileTypeIcon } from "./Icon";
-
-type CustomEditorProps = EditorProps & {
-  editorContent: string;
-  setEditorContent: React.Dispatch<React.SetStateAction<string>>;
-};
 
 const handleEditorDidMount: OnMount = (_, monaco) => {
   const styles = getComputedStyle(document.body);
@@ -40,9 +34,16 @@ const handleEditorDidMount: OnMount = (_, monaco) => {
   monaco.editor.setTheme("shadcn-theme");
 };
 
+type CustomEditorProps = EditorProps & {
+  file: FileData;
+  setEditorContent: (
+    content: string | ((prev: string) => string),
+    filePath: string
+  ) => void;
+};
+
 export default function CustomEditor({
-  language,
-  editorContent,
+  file,
   setEditorContent,
   ...props
 }: CustomEditorProps) {
@@ -52,9 +53,11 @@ export default function CustomEditor({
         <div className="h-full overflow-hidden rounded-md border">
           <Editor
             height="100%"
-            language={language}
-            value={editorContent}
-            onChange={(value) => value && setEditorContent(value)}
+            language={file.fileType}
+            value={file.content}
+            onChange={(value) =>
+              value !== undefined && file && setEditorContent(value, file.path)
+            }
             options={{ minimap: { enabled: false } }}
             onMount={handleEditorDidMount}
             theme="vs-dark"
@@ -66,95 +69,90 @@ export default function CustomEditor({
   );
 }
 
-type Files = {
-  name: string;
-  fileType: "go" | "markdown";
-};
-
 type EditorHeaderProps = {
-  files: Files[];
-  activeFile: number;
-  onFileChange: (index: number) => void;
-  onSubmit: () => void;
-  onSave: () => void;
-  onReset: () => void;
+  onSubmitAction: () => void;
+  onSaveAction: () => void;
+  onResetAction: () => void;
   disabled?: boolean;
 };
 
 export function EditorHeader({
-  files,
-  activeFile,
-  onFileChange,
-  onSubmit,
-  onSave,
-  onReset,
+  onSubmitAction,
+  onSaveAction,
+  onResetAction,
   disabled = false,
 }: EditorHeaderProps) {
-  const visibleFiles = files;
+  return (
+    <div className="border-b bg-background flex items-center justify-between px-2 py-1">
+      <div className="flex gap-2">
+        <Button
+          onClick={onSubmitAction}
+          type="button"
+          variant="outline"
+          className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
+          disabled={disabled}
+        >
+          <Send className="w-4 h-4" />
+          Submit
+        </Button>
+        <Button
+          onClick={onSaveAction}
+          type="button"
+          variant="outline"
+          className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
+          disabled={disabled}
+        >
+          <Save className="w-4 h-4" />
+          Save
+        </Button>
+        <Button
+          onClick={onResetAction}
+          type="button"
+          variant="outline"
+          className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
+          disabled={disabled}
+        >
+          <RotateCcw className="w-4 h-4" />
+          Reset Code
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+type CreateExerciseHeaderProps = {
+  onSubmitAction: () => void;
+  disabled?: boolean;
+};
+
+export function CreateExerciseHeader({
+  onSubmitAction,
+  disabled = false,
+}: CreateExerciseHeaderProps) {
+  const router = useRouter();
 
   return (
-    <div className="border-b bg-background flex flex-col">
-      <div className="flex items-center justify-between px-2 py-1">
-        <div className="flex items-center gap-1 overflow-x-auto flex-1 pr-20">
-          {visibleFiles.map((file, idx) => {
-            const trueIndex = idx;
-            return (
-              <Button
-                key={file.name}
-                onClick={() => onFileChange(trueIndex)}
-                disabled={disabled}
-                className={cn(
-                  "flex items-center gap-1 px-2 py-1 flex-shrink-0 transition-colors truncate",
-                  trueIndex === activeFile
-                    ? "bg-secondary text-secondary-foreground"
-                    : "hover:bg-muted"
-                )}
-              >
-                <FileTypeIcon className="w-4 h-4" name={file.fileType} />
-                <span title={file.name} className="truncate max-w-[12ch]">
-                  {file.name}
-                </span>
-              </Button>
-            );
-          })}
-        </div>
+    <div className="border-b bg-background flex items-center justify-end px-2 py-1 gap-2">
+      <Button
+        onClick={() => router.push("/authorized")}
+        type="button"
+        variant="outline"
+        className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
+      >
+        <X className="w-4 h-4" />
+        Go Back
+      </Button>
 
-        {/* Right side: Save / Submit / Reset */}
-        <div className="flex items-center gap-2 flex-shrink-0 ml-2 relative z-10">
-          <Button
-            type="button"
-            variant="secondary"
-            className="flex items-center gap-1 px-2 py-1 text-base"
-            onClick={onSave}
-            disabled={disabled}
-          >
-            <Save className="w-4 h-4" />
-            Save
-          </Button>
-
-          <Button
-            onClick={onSubmit}
-            type="button"
-            variant="outline"
-            className="flex items-center gap-1 px-2 py-1 text-base"
-            disabled={disabled}
-          >
-            <Send className="w-4 h-4" />
-            Submit
-          </Button>
-
-          <Button
-            onClick={onReset}
-            type="button"
-            variant="outline"
-            className="flex items-center gap-1 px-2 py-1 text-base"
-            disabled={disabled}
-          >
-            <Send className="w-4 h-4" />
-            Reset To Starter Code
-          </Button>
-        </div>
-      </div>
+      <Button
+        onClick={onSubmitAction}
+        type="button"
+        variant="outline"
+        className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
+        disabled={disabled}
+      >
+        <Send className="w-4 h-4" />
+        Submit
+      </Button>
     </div>
   );
 }

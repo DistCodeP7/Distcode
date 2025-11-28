@@ -1,19 +1,24 @@
 "use client";
 
-import { BookOpen, Code, ThumbsDown, ThumbsUp } from "lucide-react";
-import type React from "react";
-import { useMemo, useState, useTransition } from "react";
+import {
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  ThumbsDown,
+  ThumbsUp,
+} from "lucide-react";
+import { useId, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
-import type { StreamingJobResult } from "@/app/api/stream/route";
 import {
   rateExercise,
   resetCode,
   saveCode,
   submitCode,
 } from "@/app/exercises/[id]/actions";
+import { ConfirmationDialog } from "@/components/custom/alert-dialog";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
-import { TerminalOutput } from "@/components/custom/TerminalOutput";
 import { Button } from "@/components/ui/button";
 import {
   ResizableHandle,
@@ -22,330 +27,409 @@ import {
 } from "@/components/ui/resizable";
 import type { nodeSpec } from "@/drizzle/schema";
 import { useSSE } from "@/hooks/useSSE";
+import type { FileNode } from "@/lib/folderStructure";
+import {
+  buildTreeFromPaths,
+  FilteredTreeNode,
+  flattenTree,
+} from "./folder-structure";
+
+type EditableFileNode = FileNode & { readOnly?: boolean };
 
 type ExerciseEditorProps = {
   exerciseId: number;
   problemMarkdown: string;
+  solutionMarkdown: string;
   codeFolder: nodeSpec;
+  savedCode?: nodeSpec;
   userRating?: "up" | "down" | null;
   canRate?: boolean;
-};
-
-type FileDatas = {
-  path: string;
-  name: string;
-  content: string;
-  fileType: "go" | "markdown";
 };
 
 export default function ExerciseEditor({
   exerciseId,
   problemMarkdown,
+  solutionMarkdown,
   codeFolder,
+  savedCode,
   userRating: initialUserRating = null,
   canRate: initialCanRate = false,
 }: ExerciseEditorProps) {
-  const [activeFile, setActiveFile] = useState(0);
-
-  const files: FileDatas[] = useMemo(
-    () =>
-      Object.entries(codeFolder.Files).map(([path, content]) => ({
-        path,
-        name: path,
-        content,
-        fileType: path.endsWith(".go") ? "go" : "markdown",
-      })),
-    [codeFolder.Files]
+  const [activeFilePath, setActiveFilePath] = useState<string | null>(
+    "/template/main.go"
+  );
+  const [fileContents, setFileContents] = useState<Record<string, string>>(
+    () => {
+      return (
+        savedCode?.Files ??
+        Object.fromEntries(
+          Object.entries(codeFolder.Files)
+            .filter(([path]) => path.startsWith("/template"))
+            .map(([path, content]) => [path, content])
+        )
+      );
+    }
   );
 
-  const [fileContents, setFileContents] = useState<string[]>(() =>
-    files.map((file) => file.content)
-  );
-
-  const solutionFiles = files.filter((file) =>
-    file.path.startsWith("/solution")
-  );
-
-  const templateCode = files.filter((file) =>
-    file.path.startsWith("/template")
-  );
-
+  const [createdFiles, setCreatedFiles] = useState<Set<string>>(new Set());
   const [resetting, setResetting] = useState(false);
   const [userRating, setUserRating] = useState<"up" | "down" | null>(
     initialUserRating
   );
   const [canRate, setCanRate] = useState(initialCanRate);
   const [ratingLoading, startRatingTransition] = useTransition();
+  const [leftPanelOpen, setLeftPanelOpen] = useState(true);
+  const [rightTab, setRightTab] = useState<"problem" | "solution">("problem");
+  const [solutionUnlocked, setSolutionUnlocked] = useState(false);
+  const horizontalGroupId = useId();
+  const verticalGroupId = useId();
 
-  const [leftPanelView, setLeftPanelView] = useState<"problem" | "solution">(
-    "problem"
-  );
-  const [activeSolutionFile, setActiveSolutionFile] = useState(0);
+  const [showResetDialog, setShowResetDialog] = useState(false);
+  const [showUnlockDialog, setShowUnlockDialog] = useState(false);
+  const confirmUnlockSolution = () => {
+    setSolutionUnlocked(true);
+    setRightTab("solution");
+  };
 
-  const { messages, connect, clearMessages } =
-    useSSE<StreamingJobResult>("/api/stream");
+  const files: EditableFileNode[] = useMemo(() => {
+    const templateFiles = Object.entries(codeFolder.Files)
+      .filter(([path]) => path.startsWith("/template"))
+      .map(([path, content]) => ({
+        type: "file" as const,
+        path,
+        name: path.split("/").pop() || path,
+        content,
+        readOnly: false,
+      }));
 
-  const handleSolutionClick = () => {
-    const shouldViewSolution = window.confirm(
-      "Are you sure you want to view the solution? This will show you the complete answer to the problem."
-    );
-    if (shouldViewSolution) setLeftPanelView("solution");
+    const newFiles = Array.from(createdFiles).map((path) => ({
+      type: "file" as const,
+      path,
+      name: path.split("/").pop() || path,
+      content: fileContents[path] || "// Start writing code here!",
+      readOnly: false,
+    }));
+
+    return [...templateFiles, ...newFiles];
+  }, [codeFolder.Files, createdFiles, fileContents]);
+
+  const problemWithProtocol = useMemo(() => {
+    const protocolCode =
+      codeFolder.Files["/protocol.go"] ?? "// protocol.go missing";
+    return `${problemMarkdown}
+\n\n# These are the protocols for the exercise:
+\`\`\`go
+${protocolCode}
+\`\`\``;
+  }, [problemMarkdown, codeFolder.Files]);
+
+  const { connect, clearMessages } = useSSE<nodeSpec>("/api/stream");
+
+  const setEditorContent = (
+    value: string | ((prev: string) => string),
+    filePath: string
+  ) => {
+    if (resetting) return;
+    const file = files.find((f) => f.path === filePath);
+    if (file?.readOnly) return;
+    setFileContents((prev) => ({
+      ...prev,
+      [filePath]:
+        typeof value === "function" ? value(prev[filePath] || "") : value,
+    }));
   };
 
   const onSubmit = async () => {
     clearMessages();
     connect();
-    const problemContent: nodeSpec = {
-      Files: Object.fromEntries(
-        files.map((file, index) => [file.path, fileContents[index]])
-      ),
+    const payload: nodeSpec = {
+      Files: fileContents,
       Envs: codeFolder.Envs,
       BuildCommand: codeFolder.BuildCommand,
       EntryCommand: codeFolder.EntryCommand,
     };
-    await submitCode(problemContent, {
-      params: { id: exerciseId },
-    });
+    const result = await submitCode(payload, { params: { id: exerciseId } });
+    if (result?.error) toast.error(`Error submitting: ${result.error}`);
+    else toast.success("Code submitted successfully!");
+    setCanRate(true);
   };
 
   const onSave = async () => {
-    clearMessages();
-
     const payload: nodeSpec = {
-      Files: Object.fromEntries(
-        files.map((file, index) => [file.path, fileContents[index]])
-      ),
+      Files: fileContents,
       Envs: codeFolder.Envs,
       BuildCommand: codeFolder.BuildCommand,
       EntryCommand: codeFolder.EntryCommand,
     };
-
-    const result = await saveCode(payload, {
-      params: { id: exerciseId },
-    });
-
-    if (result.error) {
-      toast.error(`Error saving code: ${result.error}`);
-    } else {
-      toast.success("Code saved successfully!");
-      setCanRate(true); // once saved, enable rating if not already
-    }
+    const result = await saveCode(payload, { params: { id: exerciseId } });
+    if (result?.error) toast.error(`Error saving code: ${result.error}`);
+    else toast.success("Code saved successfully!");
+    setCanRate(true);
   };
 
   const onReset = async () => {
-    const confirmReset = window.confirm(
-      "Are you sure you want to reset your code? This will remove your saved progress and restore the original template."
-    );
-    if (!confirmReset) return;
+    setShowResetDialog(true);
+  };
 
+  const confirmReset = async () => {
     setResetting(true);
+
     try {
       const result = await resetCode({ params: { id: exerciseId } });
-      if (result.success) {
-        setFileContents(templateCode.map((f) => f.content));
-        toast.success("Code reset successfully!", {
-          description: "Template restored and saved code cleared.",
-        });
-      } else {
-        toast.error("Failed to reset code", {
-          description: result.error || "Something went wrong.",
-        });
+
+      if (!result.success || !result.template) {
+        toast.error(result.error || "Failed to fetch template");
+        setResetting(false);
+        return;
       }
+
+      const templateFiles: Record<string, string> = Object.fromEntries(
+        Object.entries(result.template)
+          .filter(([path]) => path.startsWith("/template"))
+          .map(([path, content]) => [path, String(content)])
+      );
+
+      setFileContents(templateFiles);
+      setCreatedFiles(new Set());
+      setActiveFilePath("/template/main.go");
+      toast.success("Code reset successfully!");
     } catch (err) {
-      toast.error("Error resetting code", {
-        description: String(err),
-      });
+      toast.error(String(err));
     } finally {
       setResetting(false);
     }
   };
 
-  const handleRating = (liked: boolean) => {
+  const onRate = async (liked: boolean) => {
     if (!canRate) {
-      toast.error("You must submit at least once before rating this exercise.");
+      toast.error("You can only rate after submitting!");
       return;
     }
-
     startRatingTransition(async () => {
-      try {
-        const result = await rateExercise(
-          { params: { id: exerciseId } },
-          liked
-        );
-        if (result.success) {
-          setUserRating(liked ? "up" : "down");
-          toast.success(`You rated this exercise ${liked ? "👍" : "👎"}`);
-        } else {
-          toast.error(result.error || "Failed to rate exercise");
-        }
-      } catch (_) {
-        toast.error("Error submitting rating");
+      const result = await rateExercise({ params: { id: exerciseId } }, liked);
+      if (result?.error) toast.error(result.error);
+      else {
+        setUserRating(liked ? "up" : "down");
+        toast.success(`You rated this exercise ${liked ? "👍" : "👎"}`);
       }
     });
   };
 
-  function setEditorContent(value: React.SetStateAction<string>): void {
-    if (resetting) return; // disable editing while resetting
-    setFileContents((prev) => {
-      const newContents = [...prev];
-      newContents[activeFile] =
-        typeof value === "function" ? value(prev[activeFile]) : value;
-      return newContents;
+  const treeNodes = useMemo(() => {
+    const templatePaths = Object.keys(fileContents).filter((path) =>
+      path.startsWith("/template")
+    );
+    return buildTreeFromPaths(templatePaths, fileContents);
+  }, [fileContents]);
+  const activeFile: EditableFileNode | null = activeFilePath
+    ? (flattenTree({ type: "folder", name: "root", children: treeNodes }).find(
+        (f) => f.path === activeFilePath
+      ) as EditableFileNode)
+    : null;
+
+  const onAddFile = (folderAndName: string) => {
+    const fullPath = folderAndName.startsWith("/")
+      ? folderAndName
+      : `/${folderAndName}`;
+
+    if (fileContents[fullPath]) {
+      toast.error("File already exists");
+      return;
+    }
+
+    setCreatedFiles((prev) => new Set([...prev, fullPath]));
+    setFileContents((prev) => ({
+      ...prev,
+      [fullPath]: "// Start writing your code here!",
+    }));
+    setActiveFilePath(fullPath);
+    toast.success(`Created ${fullPath}`);
+  };
+
+  const onDeleteFile = (filePath: string) => {
+    setCreatedFiles((prev) => {
+      const next = new Set(prev);
+      next.delete(filePath);
+      return next;
     });
-  }
+    setFileContents((prev) => {
+      const { [filePath]: _, ...rest } = prev;
+      return rest;
+    });
+    if (activeFilePath === filePath) setActiveFilePath(null);
+    toast.success(`Deleted ${filePath}`);
+  };
 
   return (
     <ResizablePanelGroup
       direction="horizontal"
-      className="flex-1 border md:min-w-[450px]"
+      className="flex-1 border relative"
+      id={horizontalGroupId}
     >
-      {/* Left panel: Problem Markdown or Solution View */}
-      <ResizablePanel minSize={20} className="overflow-y-auto">
-        <div className="flex flex-col h-full">
-          {/* Toggle buttons for left panel */}
-          <div className="flex border-b bg-background">
+      {/* LEFT PANEL — PROBLEM / SOLUTION */}
+      <ResizablePanel
+        minSize={30}
+        className={`overflow-y-auto transition-all duration-200 relative ${leftPanelOpen ? "" : "hidden"}`}
+        data-panel-group-id={horizontalGroupId}
+      >
+        {leftPanelOpen && (
+          <>
             <Button
-              variant={leftPanelView === "problem" ? "default" : "ghost"}
               size="sm"
-              onClick={() => setLeftPanelView("problem")}
-              className="rounded-none border-r"
+              variant="outline"
+              className="absolute top-1/2 -translate-y-1/2 right-2 z-20"
+              onClick={() => setLeftPanelOpen(false)}
             >
-              <BookOpen className="w-4 h-4 mr-2" />
-              Problem
+              <ChevronLeft size={16} />
             </Button>
-            {solutionFiles.length > 0 && (
-              <Button
-                variant={leftPanelView === "solution" ? "default" : "ghost"}
-                size="sm"
-                onClick={handleSolutionClick}
-                className="rounded-none"
-              >
-                <Code className="w-4 h-4 mr-2" />
-                Solution
-              </Button>
-            )}
-          </div>
 
-          {/* Content area */}
-          <div className="flex-1 overflow-y-auto">
-            {leftPanelView === "problem" ? (
-              <MarkdownPreview content={problemMarkdown} />
-            ) : (
-              <div className="h-full flex flex-col">
-                {solutionFiles.length > 1 && (
-                  <div className="flex border-b bg-muted">
-                    {solutionFiles.map((file, index) => (
-                      <Button
-                        key={file.name}
-                        variant={
-                          activeSolutionFile === index ? "default" : "ghost"
-                        }
-                        size="sm"
-                        onClick={() => setActiveSolutionFile(index)}
-                        className="rounded-none border-r"
-                      >
-                        {file.name}
-                      </Button>
-                    ))}
-                  </div>
-                )}
-                <div className="flex-1">
-                  <Editor
-                    editorContent={
-                      solutionFiles[activeSolutionFile]?.content || ""
+            <div className="flex flex-col h-full">
+              <div className="flex border-b bg-background pl-2.5">
+                <Button
+                  variant={rightTab === "problem" ? "default" : "secondary"}
+                  size="sm"
+                  className="rounded-none border-r hover:cursor-pointer"
+                  onClick={() => setRightTab("problem")}
+                >
+                  <BookOpen className="w-4 h-4 mr-2" /> Problem
+                </Button>
+                <Button
+                  variant={rightTab === "solution" ? "default" : "secondary"}
+                  size="sm"
+                  className="rounded-none border-r hover:cursor-pointer"
+                  onClick={() => {
+                    if (!solutionUnlocked) {
+                      setShowUnlockDialog(true);
+                      return;
                     }
-                    setEditorContent={() => {}}
-                    language="go"
-                    options={{
-                      readOnly: true,
-                      renderLineHighlight: "none",
-                      selectionHighlight: false,
-                      occurrencesHighlight: "off",
-                      cursorBlinking: "solid",
-                      cursorStyle: "line-thin",
-                    }}
-                  />
-                </div>
+                    setRightTab("solution");
+                  }}
+                >
+                  <FileText className="w-4 h-4 mr-2" /> Solution
+                </Button>
               </div>
-            )}
-          </div>
-        </div>
+
+              <div className="flex-1 overflow-y-auto p-2">
+                {rightTab === "problem" && (
+                  <MarkdownPreview content={problemWithProtocol} />
+                )}
+                {rightTab === "solution" && (
+                  <MarkdownPreview content={solutionMarkdown} />
+                )}
+              </div>
+            </div>
+          </>
+        )}
       </ResizablePanel>
 
-      <ResizableHandle withHandle />
+      {!leftPanelOpen && (
+        <Button
+          size="sm"
+          variant="outline"
+          className="absolute top-1/2 -translate-y-1/2 left-2 z-20"
+          onClick={() => setLeftPanelOpen(true)}
+        >
+          <ChevronRight size={16} />
+        </Button>
+      )}
 
-      {/* Right panel: Editor + Terminal Output */}
-      <ResizablePanel minSize={20}>
-        <ResizablePanelGroup direction="vertical">
-          <ResizablePanel defaultSize={50}>
-            <EditorHeader
-              files={files.map((file) => ({
-                name: file.name,
-                fileType: file.fileType,
-              }))}
-              activeFile={activeFile}
-              onFileChange={setActiveFile}
-              onSubmit={onSubmit}
-              onSave={onSave}
-              onReset={onReset}
-              disabled={resetting}
-            />
+      <ResizableHandle withHandle data-panel-group-id={horizontalGroupId} />
 
-            <div className="flex items-center justify-end gap-3 p-2 border-t bg-muted/40">
-              <span className="text-sm text-muted-foreground">
-                Rate this exercise:
-              </span>
+      {/* MIDDLE PANEL — FILE TREE */}
+      <ResizablePanel
+        minSize={20}
+        className="overflow-y-auto p-2 border-l"
+        data-panel-group-id={horizontalGroupId}
+      >
+        {treeNodes.map((node) => (
+          <FilteredTreeNode
+            key={node.type === "file" ? node.path : node.name}
+            node={node}
+            onFileClick={(file) => {
+              if (file.type === "file") setActiveFilePath(file.path);
+            }}
+            onAddFile={onAddFile}
+            onDeleteFile={onDeleteFile}
+            activeFilePath={activeFilePath}
+          />
+        ))}
+      </ResizablePanel>
 
-              <Button
-                variant={userRating === "up" ? "default" : "outline"}
-                size="icon"
-                disabled={ratingLoading || !canRate}
-                onClick={() => handleRating(true)}
-                className="w-8 h-8"
-              >
-                <ThumbsUp className="w-4 h-4" />
-              </Button>
+      <ResizableHandle withHandle data-panel-group-id={horizontalGroupId} />
 
-              <Button
-                variant={userRating === "down" ? "default" : "outline"}
-                size="icon"
-                disabled={ratingLoading || !canRate}
-                onClick={() => handleRating(false)}
-                className="w-8 h-8"
-              >
-                <ThumbsDown className="w-4 h-4" />
-              </Button>
-            </div>
+      {/* RIGHT PANEL — EDITOR + TERMINAL */}
+      <ResizablePanel minSize={50} data-panel-group-id={horizontalGroupId}>
+        <div className="flex justify-end">
+          <div className="flex items-center p-2 space-x-2">
+            <Button
+              size="sm"
+              variant={userRating === "up" ? "default" : "outline"}
+              className="mr-2 hover:cursor-pointer"
+              onClick={() => onRate(true)}
+              disabled={ratingLoading}
+            >
+              <ThumbsUp className="w-4 h-4 mr-1" /> Like
+            </Button>
+            <Button
+              size="sm"
+              variant={userRating === "down" ? "default" : "outline"}
+              className="mr-2 hover:cursor-pointer"
+              onClick={() => onRate(false)}
+              disabled={ratingLoading}
+            >
+              <ThumbsDown className="w-4 h-4 mr-1" /> Dislike
+            </Button>
+          </div>
+          <EditorHeader
+            onSubmitAction={onSubmit}
+            onSaveAction={onSave}
+            onResetAction={onReset}
+            disabled={resetting}
+          />
+        </div>
 
-            <Editor
-              editorContent={fileContents[activeFile] ?? ""}
-              setEditorContent={setEditorContent}
-              language={
-                files[activeFile]?.fileType === "go" ? "go" : "markdown"
-              }
-              options={{
-                readOnly: resetting,
-                minimap: { enabled: false },
-              }}
-            />
-
-            {resetting && (
-              <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm z-10">
-                <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
-                  <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                  <span>Resetting to starter code...</span>
-                </div>
-              </div>
+        <ResizablePanelGroup direction="vertical" id={verticalGroupId}>
+          <ResizablePanel
+            defaultSize={60}
+            className="relative"
+            data-panel-group-id={verticalGroupId}
+          >
+            {activeFile && (
+              <Editor
+                file={{
+                  path: activeFile.path,
+                  name: activeFile.name,
+                  fileType: activeFile.path.endsWith(".go") ? "go" : "markdown",
+                  content: fileContents[activeFile.path] || "",
+                }}
+                setEditorContent={(val) =>
+                  setEditorContent(val, activeFile.path)
+                }
+                options={{
+                  readOnly: resetting || activeFile.readOnly,
+                  minimap: { enabled: false },
+                }}
+              />
             )}
-          </ResizablePanel>
-
-          <ResizableHandle withHandle />
-
-          <ResizablePanel defaultSize={50}>
-            <TerminalOutput messages={messages} />
           </ResizablePanel>
         </ResizablePanelGroup>
       </ResizablePanel>
+
+      <ConfirmationDialog
+        open={showResetDialog}
+        onOpenChange={setShowResetDialog}
+        title="Reset Code?"
+        description="This will delete all your changes and restore the original template files."
+        onConfirm={confirmReset}
+      />
+
+      <ConfirmationDialog
+        open={showUnlockDialog}
+        onOpenChange={setShowUnlockDialog}
+        title="Unlock Solution?"
+        description="Once unlocked, the solution will be visible. This action cannot be undone."
+        onConfirm={confirmUnlockSolution}
+      />
     </ResizablePanelGroup>
   );
 }

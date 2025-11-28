@@ -1,4 +1,3 @@
-// NeonLine.tsx
 interface NeonLineProps {
   index: number;
   total: number;
