@@ -1,4 +1,4 @@
-import { type SetStateAction, useCallback, useState } from "react";
+import { type SetStateAction, useState } from "react";
 import { saveProblem } from "@/app/authorized/[id]/problemActions";
 import type { EnvironmentVariable, Filemap, nodeSpec } from "@/drizzle/schema";
 
