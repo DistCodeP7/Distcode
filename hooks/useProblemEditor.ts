@@ -7,15 +7,27 @@ type ProblemFile = {
 };
 
 const getInitialContent = (file: ProblemFile): string => {
-  if (file.fileType === "markdown")
-    return "# Problem\n\nDescribe the problem here.";
-  if (file.fileType === "go") {
-    if (file.name.startsWith("template"))
-      return "// Write your template code here\n";
-    if (file.name.startsWith("solution"))
-      return "// Write your solution code here\n";
-    if (file.name === "testCases.go") return "// Write your test cases here\n";
+  if (file.fileType === "markdown") {
+    const name = file.name.startsWith("/") ? file.name.slice(1) : file.name;
+    if (name.startsWith("problem"))
+      return "# Problem Description\n\nDescribe the problem here.\n";
+    if (name.startsWith("solution"))
+      return "# Solution Explanation\n\nDescribe the solution here.\n";
   }
+
+  if (file.fileType === "go") {
+    // Normalize names so we accept both "test" and "/test" style prefixes
+    const name = file.name.startsWith("/") ? file.name.slice(1) : file.name;
+    if (name.startsWith("student")) return "// Write your template code here\n";
+
+    if (name.startsWith("test")) return "// Write your test cases here\n";
+    if (name === "protocol.go")
+      return `package main
+
+// Define any shared protocols or interfaces here
+`;
+  }
+
   return "";
 };
 
@@ -120,28 +132,48 @@ export const useProblemEditor = (
         if (!state.description.trim()) missingFields.push("Description");
         if (!["1", "2", "3"].includes(state.difficulty))
           missingFields.push("Difficulty");
-        if (!state.filesContent["problem.md"]?.trim())
+
+        const normalize = (n: string) => (n.startsWith("/") ? n.slice(1) : n);
+
+        // Find the problem markdown key regardless of leading '/'
+        const problemKey = Object.keys(state.filesContent).find((k) => {
+          const nn = normalize(k);
+          return nn === "problem.md" || nn.startsWith("problem");
+        });
+
+        if (!problemKey || !state.filesContent[problemKey]?.trim())
           missingFields.push("Problem markdown");
 
         const templateFiles = files.filter((f) =>
-          f.name.startsWith("template")
+          normalize(f.name).startsWith("student")
         );
         const solutionFiles = files.filter((f) =>
-          f.name.startsWith("solution")
+          normalize(f.name).startsWith("solution")
         );
         const templateCode = templateFiles.map(
           (f) => state.filesContent[f.name] || ""
         );
-        const solutionCode = solutionFiles.map(
-          (f) => state.filesContent[f.name] || ""
+        const solutionCode =
+          solutionFiles.length > 0
+            ? state.filesContent[solutionFiles[0].name] || ""
+            : "";
+
+        const testFiles = files.filter((f) =>
+          normalize(f.name).startsWith("test")
         );
+        const testCode = testFiles.map((f) => state.filesContent[f.name] || "");
+
+        const protocolCode =
+          files
+            .filter((f) => normalize(f.name) === "protocol.go")
+            .map((f) => state.filesContent[f.name] || "")[0] || "";
 
         if (!templateFiles.length || templateCode.some((c) => !c.trim()))
           missingFields.push("Template code");
-        if (!solutionFiles.length || solutionCode.some((c) => !c.trim()))
+        if (solutionFiles.length !== 1 || !solutionCode.trim())
           missingFields.push("Solution code");
-        if (!state.filesContent["testCases.go"]?.trim())
-          missingFields.push("Test cases code");
+        if (!testFiles.length || testCode.some((c) => !c.trim()))
+          missingFields.push("Test code");
 
         if (missingFields.length > 0) {
           alert(`Missing or empty fields: ${missingFields.join(", ")}`);
@@ -156,7 +188,8 @@ export const useProblemEditor = (
           problemMarkdown: state.filesContent["problem.md"],
           templateCode,
           solutionCode,
-          testCasesCode: state.filesContent["testCases.go"],
+          testCode,
+          protocolCode,
           isPublished,
         };
 

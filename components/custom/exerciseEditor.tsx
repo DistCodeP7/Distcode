@@ -21,13 +21,14 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { useSSE } from "@/hooks/useSSE";
+import { FolderSystem } from "../folderSystem/folderSystem";
 
 type ExerciseEditorProps = {
   exerciseId: number;
   problemMarkdown: string;
   templateCode: string[];
-  solutionCode?: string[];
-  testCasesCode?: string;
+  solutionCode?: string;
+  testCasesCode?: string[];
   savedCode?: string[] | null;
   userRating?: "up" | "down" | null;
   canRate?: boolean;
@@ -64,10 +65,9 @@ export default function ExerciseEditor({
   );
   const [activeSolutionFile, setActiveSolutionFile] = useState(0);
 
-  const solutionFiles = (solutionCode || []).map((content, index) => ({
-    name: index === 0 ? "main.go" : `file${index + 1}.go`,
-    content,
-  }));
+  const solutionFiles = solutionCode
+    ? [{ name: "main.go", content: solutionCode }]
+    : [];
 
   const { messages, connect, clearMessages } =
     useSSE<StreamingJobResult>("/api/stream");
@@ -243,18 +243,15 @@ export default function ExerciseEditor({
       </ResizablePanel>
 
       <ResizableHandle withHandle />
+      <ResizablePanel minSize={1} className="w-1 bg-muted/50 cursor-col-resize">
+        <FolderSystem files={files} onFileChange={setActiveFile} />
+      </ResizablePanel>
 
       {/* Right panel: Editor + Terminal Output */}
       <ResizablePanel minSize={20}>
         <ResizablePanelGroup direction="vertical">
           <ResizablePanel defaultSize={50}>
             <EditorHeader
-              files={files.map((file, x) => ({
-                ...file,
-                content: fileContents[x],
-              }))}
-              activeFile={activeFile}
-              onFileChange={setActiveFile}
               onSubmit={onSubmit}
               onSave={onSave}
               onReset={onReset}

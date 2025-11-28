@@ -18,8 +18,9 @@ export async function submitProblem(
   difficulty: number,
   problemMarkdown: string,
   templateCode: string[],
-  solutionCode: string[],
-  testCasesCode: string,
+  solutionCode: string,
+  protocolCode: string,
+  testCode: string[],
   isPublished = true
 ) {
   const result = await db
@@ -32,7 +33,8 @@ export async function submitProblem(
       problemMarkdown,
       templateCode,
       solutionCode,
-      testCasesCode,
+      protocolCode,
+      testCode,
       isPublished,
     })
     .returning();

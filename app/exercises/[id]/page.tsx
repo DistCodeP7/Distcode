@@ -50,7 +50,7 @@ export default async function ExercisePage({
         problemMarkdown={exercise.problemMarkdown}
         templateCode={exercise.templateCode}
         solutionCode={exercise.solutionCode}
-        testCasesCode={exercise.testCasesCode}
+        testCasesCode={exercise.testCode}
         savedCode={savedCode}
         userRating={userRating}
         canRate={canRate}

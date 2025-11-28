@@ -18,8 +18,9 @@ export type SaveProblemParams = {
   difficulty: number;
   problemMarkdown: string;
   templateCode: string[];
-  solutionCode: string[];
-  testCasesCode: string;
+  solutionCode: string;
+  testCode: string[];
+  protocolCode?: string;
   isPublished?: boolean;
 };
 
@@ -51,11 +52,12 @@ export async function saveProblem(data: SaveProblemParams) {
     { value: dataToValidate.problemMarkdown, name: "Problem markdown" },
     { value: dataToValidate.templateCode, name: "Template code" },
     { value: dataToValidate.solutionCode, name: "Solution code" },
-    { value: dataToValidate.testCasesCode, name: "Test cases code" },
+    { value: dataToValidate.testCode, name: "Test code" },
   ];
+
   for (const field of fieldsToValidate) {
     const isArrayField =
-      field.name.includes("Template") || field.name.includes("Solution");
+      field.name.includes("Template") || field.name.includes("Test");
     if (!field.value) {
       return {
         success: false,
@@ -91,12 +93,32 @@ export async function saveProblem(data: SaveProblemParams) {
     if (id) {
       await db
         .update(problems)
-        .set({ ...problemData, isPublished })
+        .set({
+          title: problemData.title,
+          description: problemData.description,
+          difficulty: problemData.difficulty,
+          problemMarkdown: problemData.problemMarkdown,
+          templateCode: problemData.templateCode,
+          solutionCode: problemData.solutionCode,
+          testCode: problemData.testCode,
+          protocolCode:
+            problemData.protocolCode ?? existingProblem?.protocolCode ?? "",
+          isPublished,
+        })
         .where(eq(problems.id, id));
     } else {
-      await db
-        .insert(problems)
-        .values({ ...problemData, userId: session.user.id, isPublished });
+      await db.insert(problems).values({
+        title: problemData.title,
+        description: problemData.description,
+        difficulty: problemData.difficulty,
+        problemMarkdown: problemData.problemMarkdown,
+        templateCode: problemData.templateCode,
+        solutionCode: problemData.solutionCode,
+        testCode: problemData.testCode,
+        protocolCode: problemData.protocolCode ?? "",
+        userId: session.user.id,
+        isPublished,
+      });
     }
 
     return {

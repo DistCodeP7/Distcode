@@ -5,9 +5,10 @@ export default function NewProblemPage() {
   // No submissionId is passed, so ProblemEditorClient will use submitProblem
   const files = [
     { name: "problem.md", fileType: "markdown" as const },
-    { name: "template.go", fileType: "go" as const },
-    { name: "solution.go", fileType: "go" as const },
-    { name: "testCases.go", fileType: "go" as const },
+    { name: "/student/main.go", fileType: "go" as const },
+    { name: "solution.md", fileType: "markdown" as const },
+    { name: "/test/test.go", fileType: "go" as const },
+    { name: "protocol.go", fileType: "go" as const },
   ];
 
   return (

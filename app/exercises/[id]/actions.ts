@@ -8,6 +8,26 @@ import { db } from "@/lib/db";
 import { MQJobsSender } from "@/lib/mq";
 import { getUserById } from "@/lib/user";
 
+type payload = {
+  JobUID: string;
+  ProblemId: number;
+  UserId: string;
+  Nodes: string[];
+  Timeoutlimit: number;
+};
+
+type nodeSpec = {
+  Alias: string;
+  Files: Filemap;
+  Envs: string[];
+  BuildCommand: string;
+  EntryCommand: string;
+};
+
+type Filemap = {
+  [key: string]: string;
+};
+
 export async function getExercise({ params }: { params: { id: number } }) {
   const id = Number(params.id);
 
@@ -45,7 +65,7 @@ export async function submitCode(
   if (Number.isNaN(problemId))
     return { error: "Invalid exercise id", status: 400 };
 
-  const payload = {
+  const payload: payload = {
     ProblemId: problemId,
     UserId: user.userid,
     Code: content,

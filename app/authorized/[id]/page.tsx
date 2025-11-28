@@ -32,13 +32,15 @@ export default async function EditProblemPage({
   const files = [
     { name: "problem.md", fileType: "markdown" as const },
     ...makeFiles("template", exercise.templateCode),
-    ...makeFiles("solution", exercise.solutionCode),
-    { name: "testCases.go", fileType: "go" as const },
+    // single solution file
+    ...(exercise.solutionCode
+      ? [{ name: "solution.go", fileType: "go" as const }]
+      : []),
+    ...makeFiles("test", exercise.testCode || []),
   ];
 
   const initialFilesContent: Record<string, string> = {
     "problem.md": exercise.problemMarkdown,
-    "testCases.go": exercise.testCasesCode,
   };
 
   function assignFilesContent(
@@ -52,7 +54,9 @@ export default async function EditProblemPage({
   }
 
   assignFilesContent("template", exercise.templateCode, initialFilesContent);
-  assignFilesContent("solution", exercise.solutionCode, initialFilesContent);
+  if (exercise.solutionCode)
+    initialFilesContent["solution.go"] = exercise.solutionCode;
+  assignFilesContent("test", exercise.testCode || [], initialFilesContent);
 
   return (
     <ProblemEditorClient
