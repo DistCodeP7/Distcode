@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Filemap } from "@/drizzle/schema";
+import type { nodeSpec } from "@/drizzle/schema";
 import { useProblemEditor } from "@/hooks/useProblemEditor";
 import type { FileNode } from "@/lib/folderStructure";
 import { buildTreeFromPaths, flattenTree, TreeNode } from "./folder-structure";
@@ -29,25 +29,35 @@ export default function ProblemEditorClient({
   initialDifficulty,
   problemId,
 }: {
-  files: Filemap;
-  initialFilesContent?: Filemap;
+  files: nodeSpec[];
+  initialFilesContent?: nodeSpec[];
   initialTitle?: string;
   initialDescription?: string;
   initialDifficulty?: string;
   problemId?: number;
 }) {
   const [activeFilePath, setActiveFilePath] = useState<string | null>(
-    "/problem.md"
+    "problem.md"
   );
   const [createdFiles, setCreatedFiles] = useState<Set<string>>(new Set());
   const [lastMarkdownPath, setLastMarkdownPath] =
-    useState<string>("/problem.md");
+    useState<string>("problem.md");
 
-  const filesForHook: { name: string; fileType: "go" | "markdown" }[] =
-    Object.keys(files).map((path) => ({
+  const filesForHook = useMemo(() => {
+    const fileSet = new Set<string>();
+    for (const ns of files ?? []) {
+      if (ns && typeof ns.Files === "object") {
+        for (const p of Object.keys(ns.Files as Record<string, string>)) {
+          const normalized = p.startsWith("/") ? p.slice(1) : p;
+          fileSet.add(normalized);
+        }
+      }
+    }
+    return Array.from(fileSet).map((path) => ({
       name: path,
       fileType: (path.endsWith(".go") ? "go" : "markdown") as "go" | "markdown",
     }));
+  }, [files]);
 
   const {
     title,
@@ -70,22 +80,67 @@ export default function ProblemEditorClient({
     problemId,
   });
 
-  const allFilePaths = useMemo(
-    () => [...Object.keys(files), ...Array.from(createdFiles)],
-    [files, createdFiles]
-  );
+  // Merge files coming from the `files` prop (nodeSpec[]) into a single map
+  const mergedFilesFromProps = useMemo(() => {
+    const m: Record<string, string> = {};
+    for (const ns of files ?? []) {
+      if (ns && typeof ns.Files === "object") {
+        for (const raw of Object.keys(ns.Files as Record<string, string>)) {
+          const normalized = raw.startsWith("/") ? raw.slice(1) : raw;
+          m[normalized] = (ns.Files as Record<string, string>)[raw];
+        }
+      }
+    }
+    return m;
+  }, [files]);
+
+  // The hook's `filesContent` may be either a flat map or an array of nodeSpec[].
+  const mergedFilesFromHook = useMemo(() => {
+    // The hook now normalizes file names (no leading slash). Ensure we
+    // produce a normalized map as well (strip leading slashes from props just in case).
+    if (Array.isArray(filesContent)) {
+      const m: Record<string, string> = {};
+      for (const ns of filesContent as nodeSpec[]) {
+        if (ns && typeof ns.Files === "object") {
+          for (const raw of Object.keys(ns.Files as Record<string, string>)) {
+            const normalized = raw.startsWith("/") ? raw.slice(1) : raw;
+            m[normalized] = (ns.Files as Record<string, string>)[raw];
+          }
+        }
+      }
+      return m;
+    }
+    const fc = filesContent as unknown as Record<string, string>;
+    const m: Record<string, string> = {};
+    if (fc) {
+      for (const raw of Object.keys(fc)) {
+        const normalized = raw.startsWith("/") ? raw.slice(1) : raw;
+        m[normalized] = fc[raw];
+      }
+    }
+    return m;
+  }, [filesContent]);
+
+  const allFilePaths = useMemo(() => {
+    return Array.from(
+      new Set([
+        ...Object.keys(mergedFilesFromHook),
+        ...Object.keys(mergedFilesFromProps),
+        ...Array.from(createdFiles),
+      ])
+    );
+  }, [mergedFilesFromHook, mergedFilesFromProps, createdFiles]);
 
   const treeNodes = useMemo(
-    () =>
-      buildTreeFromPaths(allFilePaths, filesContent as Record<string, string>),
-    [allFilePaths, filesContent]
+    () => buildTreeFromPaths(allFilePaths, mergedFilesFromHook),
+    [allFilePaths, mergedFilesFromHook]
   );
 
   const handleAddFile = (folderAndName: string) => {
     const fullPath = folderAndName.startsWith("/")
-      ? folderAndName
-      : `/${folderAndName}`;
-    if ((filesContent as Record<string, string>)[fullPath]) {
+      ? folderAndName.slice(1)
+      : folderAndName;
+    if (mergedFilesFromHook[fullPath]) {
       toast.error("File already exists");
       return;
     }
@@ -130,8 +185,7 @@ export default function ProblemEditorClient({
       null)
     : null;
 
-  const previewContent =
-    (filesContent as Record<string, string>)[lastMarkdownPath] ?? "";
+  const previewContent = mergedFilesFromHook[lastMarkdownPath] ?? "";
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden">

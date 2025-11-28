@@ -34,7 +34,9 @@ export default async function ExercisePage({
 
     const savedResult = await loadSavedCode({ params: { id: exerciseId } });
     if (savedResult?.success && savedResult.code) {
-      savedCode = savedResult.code;
+      savedCode = Array.isArray(savedResult.code)
+        ? savedResult.code
+        : [savedResult.code];
     }
   }
 
@@ -48,7 +50,11 @@ export default async function ExercisePage({
       <ExerciseEditor
         exerciseId={exerciseId}
         problemMarkdown={exercise.problemMarkdown}
-        solutionMarkdown={exercise.codeFolder.Files["solution.md"]}
+        solutionMarkdown={
+          exercise.codeFolder.find((node) => node.Alias === "Root")?.Files[
+            "solution.md"
+          ] || ""
+        }
         codeFolder={exercise.codeFolder}
         savedCode={savedCode}
         userRating={userRating}

@@ -26,6 +26,7 @@ export type EnvironmentVariable = {
 export type Filemap = Record<Path, code>;
 
 export type nodeSpec = {
+  Alias: string;
   Files: Filemap;
   Envs: EnvironmentVariable[];
   BuildCommand: string;
@@ -59,7 +60,7 @@ export const problems = pgTable(
     description: text("description").notNull(),
     difficulty: integer("difficulty").notNull(),
     problemMarkdown: text("problem_markdown").notNull(),
-    codeFolder: json("codefolder").$type<nodeSpec>().notNull(),
+    codeFolder: json("codefolder").$type<nodeSpec[]>().notNull(),
     isPublished: boolean("is_published").default(true).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
@@ -81,7 +82,7 @@ export const userCode = pgTable("userCode", {
     problemId: integer("problem_id")
         .notNull()
         .references(() => problems.id, { onDelete: "cascade" }),
-    codeSubmitted: json("code_submitted").$type<nodeSpec>().notNull(),
+    codeSubmitted: json("code_submitted").$type<nodeSpec[]>().notNull(),
 });
 
 export const UserCodeSchema = createSelectSchema(userCode);

@@ -40,8 +40,8 @@ type ExerciseEditorProps = {
   exerciseId: number;
   problemMarkdown: string;
   solutionMarkdown: string;
-  codeFolder: nodeSpec;
-  savedCode?: nodeSpec;
+  codeFolder: nodeSpec[];
+  savedCode?: nodeSpec[];
   userRating?: "up" | "down" | null;
   canRate?: boolean;
 };
@@ -56,19 +56,25 @@ export default function ExerciseEditor({
   canRate: initialCanRate = false,
 }: ExerciseEditorProps) {
   const [activeFilePath, setActiveFilePath] = useState<string | null>(
-    "/template/main.go"
+    "/student/main.go"
   );
-  const [fileContents, setFileContents] = useState<Record<string, string>>(
-    () => {
-      return (
-        savedCode?.Files ??
-        Object.fromEntries(
-          Object.entries(codeFolder.Files)
-            .filter(([path]) => path.startsWith("/template"))
-            .map(([path, content]) => [path, content])
-        )
+  // Normalize incoming nodeSpec arrays so file paths consistently start with a leading '/'
+  const normalizeNodeSpecs = (arr: nodeSpec[] | undefined) => {
+    if (!arr) return [] as nodeSpec[];
+    return arr.map((ns) => {
+      if (!ns || !ns.Files) return ns;
+      const Files = Object.fromEntries(
+        Object.entries(ns.Files).map(([p, v]) => [
+          p.startsWith("/") ? p : `/${p}`,
+          v,
+        ])
       );
-    }
+      return { ...ns, Files } as nodeSpec;
+    });
+  };
+
+  const [fileContents, setFileContents] = useState<nodeSpec[]>(() =>
+    normalizeNodeSpecs(savedCode ?? codeFolder)
   );
 
   const [createdFiles, setCreatedFiles] = useState<Set<string>>(new Set());
@@ -92,8 +98,12 @@ export default function ExerciseEditor({
   };
 
   const files: EditableFileNode[] = useMemo(() => {
-    const templateFiles = Object.entries(codeFolder.Files)
-      .filter(([path]) => path.startsWith("/template"))
+    const studentFiles =
+      fileContents.find((ns) => String(ns?.Alias).toLowerCase() === "student")
+        ?.Files || {};
+
+    const templateFiles = Object.entries(studentFiles)
+      .filter(([path]) => path.startsWith("/student"))
       .map(([path, content]) => ({
         type: "file" as const,
         path,
@@ -106,22 +116,29 @@ export default function ExerciseEditor({
       type: "file" as const,
       path,
       name: path.split("/").pop() || path,
-      content: fileContents[path] || "// Start writing code here!",
+      content: (() => {
+        // find content in nodeSpec[] for this path
+        for (const ns of fileContents) {
+          if (ns?.Files && ns.Files[path] !== undefined) return ns.Files[path];
+        }
+        return "// Start writing code here!";
+      })(),
       readOnly: false,
     }));
 
     return [...templateFiles, ...newFiles];
-  }, [codeFolder.Files, createdFiles, fileContents]);
+  }, [createdFiles, fileContents]);
 
   const problemWithProtocol = useMemo(() => {
     const protocolCode =
-      codeFolder.Files["/protocol.go"] ?? "// protocol.go missing";
+      fileContents.find((ns) => String(ns?.Alias).toLowerCase() === "root")
+        ?.Files["protocol.go"] ?? "// protocol.go missing";
     return `${problemMarkdown}
 \n\n# These are the protocols for the exercise:
 \`\`\`go
 ${protocolCode}
 \`\`\``;
-  }, [problemMarkdown, codeFolder.Files]);
+  }, [problemMarkdown, fileContents]);
 
   const { connect, clearMessages } = useSSE<nodeSpec>("/api/stream");
 
@@ -132,36 +149,70 @@ ${protocolCode}
     if (resetting) return;
     const file = files.find((f) => f.path === filePath);
     if (file?.readOnly) return;
-    setFileContents((prev) => ({
-      ...prev,
-      [filePath]:
-        typeof value === "function" ? value(prev[filePath] || "") : value,
-    }));
+    const compute = (prevContent: string | undefined) =>
+      typeof value === "function" ? value(prevContent || "") : value;
+
+    setFileContents((prev) => {
+      let found = false;
+      const next = prev.map((ns) => {
+        if (ns?.Files && Object.hasOwn(ns.Files, filePath)) {
+          found = true;
+          return {
+            ...ns,
+            Files: {
+              ...ns.Files,
+              [filePath]: compute(ns.Files[filePath]),
+            },
+          } as nodeSpec;
+        }
+        return ns;
+      });
+
+      if (found) return next;
+
+      // If not found, add to Student namespace (create if missing)
+      const studentIdx = prev.findIndex(
+        (ns) => String(ns?.Alias).toLowerCase() === "student"
+      );
+      if (studentIdx >= 0) {
+        const student = prev[studentIdx];
+        const updatedStudent = {
+          ...student,
+          Files: {
+            ...student.Files,
+            [filePath]: compute(undefined),
+          },
+        } as nodeSpec;
+        return prev.map((ns, i) => (i === studentIdx ? updatedStudent : ns));
+      }
+
+      // No Student namespace found — append one
+      return [
+        ...prev,
+        {
+          Alias: "Student",
+          Files: { [filePath]: compute(undefined) },
+        } as nodeSpec,
+      ];
+    });
   };
 
   const onSubmit = async () => {
     clearMessages();
     connect();
-    const payload: nodeSpec = {
-      Files: fileContents,
-      Envs: codeFolder.Envs,
-      BuildCommand: codeFolder.BuildCommand,
-      EntryCommand: codeFolder.EntryCommand,
-    };
-    const result = await submitCode(payload, { params: { id: exerciseId } });
+
+    // submit the nodeSpec[] state so server receives updated namespaces/files
+    const result = await submitCode(fileContents, {
+      params: { id: exerciseId },
+    });
     if (result?.error) toast.error(`Error submitting: ${result.error}`);
     else toast.success("Code submitted successfully!");
     setCanRate(true);
   };
 
   const onSave = async () => {
-    const payload: nodeSpec = {
-      Files: fileContents,
-      Envs: codeFolder.Envs,
-      BuildCommand: codeFolder.BuildCommand,
-      EntryCommand: codeFolder.EntryCommand,
-    };
-    const result = await saveCode(payload, { params: { id: exerciseId } });
+    // send nodeSpec[] (fileContents) to save
+    const result = await saveCode(fileContents, { params: { id: exerciseId } });
     if (result?.error) toast.error(`Error saving code: ${result.error}`);
     else toast.success("Code saved successfully!");
     setCanRate(true);
@@ -183,15 +234,34 @@ ${protocolCode}
         return;
       }
 
+      // Normalize template keys to ensure consistent leading '/'
       const templateFiles: Record<string, string> = Object.fromEntries(
         Object.entries(result.template)
-          .filter(([path]) => path.startsWith("/template"))
+          .filter(([path]) => path.startsWith("/student"))
           .map(([path, content]) => [path, String(content)])
       );
 
-      setFileContents(templateFiles);
+      // replace Student namespace Files with templateFiles, keep other namespaces
+      setFileContents((prev) => {
+        const studentIdx = prev.findIndex(
+          (ns) => String(ns?.Alias).toLowerCase() === "student"
+        );
+        if (studentIdx >= 0) {
+          return prev.map((ns, i) =>
+            i === studentIdx
+              ? ({ ...ns, Files: templateFiles } as nodeSpec)
+              : ns
+          );
+        }
+
+        return [
+          ...prev,
+          { Alias: "Student", Files: templateFiles } as nodeSpec,
+        ];
+      });
+
       setCreatedFiles(new Set());
-      setActiveFilePath("/template/main.go");
+      setActiveFilePath("/student/main.go");
       toast.success("Code reset successfully!");
     } catch (err) {
       toast.error(String(err));
@@ -216,10 +286,11 @@ ${protocolCode}
   };
 
   const treeNodes = useMemo(() => {
-    const templatePaths = Object.keys(fileContents).filter((path) =>
-      path.startsWith("/template")
-    );
-    return buildTreeFromPaths(templatePaths, fileContents);
+    const studentFiles =
+      fileContents.find((ns) => String(ns?.Alias).toLowerCase() === "student")
+        ?.Files || {};
+    const templatePaths = Object.keys(studentFiles);
+    return buildTreeFromPaths(templatePaths, studentFiles);
   }, [fileContents]);
   const activeFile: EditableFileNode | null = activeFilePath
     ? (flattenTree({ type: "folder", name: "root", children: treeNodes }).find(
@@ -232,16 +303,45 @@ ${protocolCode}
       ? folderAndName
       : `/${folderAndName}`;
 
-    if (fileContents[fullPath]) {
+    // simple existence check inside nodeSpec[]
+    const exists = fileContents.some(
+      (ns) => ns?.Files && Object.hasOwn(ns.Files, fullPath)
+    );
+    if (exists) {
       toast.error("File already exists");
       return;
     }
 
+    // add to createdFiles set
     setCreatedFiles((prev) => new Set([...prev, fullPath]));
-    setFileContents((prev) => ({
-      ...prev,
-      [fullPath]: "// Start writing your code here!",
-    }));
+
+    // add file into Student namespace
+    setFileContents((prev) => {
+      const studentIdx = prev.findIndex(
+        (ns) => String(ns?.Alias).toLowerCase() === "student"
+      );
+      if (studentIdx >= 0) {
+        return prev.map((ns, i) =>
+          i === studentIdx
+            ? ({
+                ...ns,
+                Files: {
+                  ...ns.Files,
+                  [fullPath]: "// Start writing your code here!",
+                },
+              } as nodeSpec)
+            : ns
+        );
+      }
+      // no Student namespace — append one
+      return [
+        ...prev,
+        {
+          Alias: "Student",
+          Files: { [fullPath]: "// Start writing your code here!" },
+        } as nodeSpec,
+      ];
+    });
     setActiveFilePath(fullPath);
     toast.success(`Created ${fullPath}`);
   };
@@ -252,10 +352,17 @@ ${protocolCode}
       next.delete(filePath);
       return next;
     });
-    setFileContents((prev) => {
-      const { [filePath]: _, ...rest } = prev;
-      return rest;
-    });
+    setFileContents((prev) =>
+      prev.map((ns) => {
+        if (ns?.Files && Object.hasOwn(ns.Files, filePath)) {
+          const nextFiles = Object.fromEntries(
+            Object.entries(ns.Files).filter(([p]) => p !== filePath)
+          );
+          return { ...ns, Files: nextFiles } as nodeSpec;
+        }
+        return ns;
+      })
+    );
     if (activeFilePath === filePath) setActiveFilePath(null);
     toast.success(`Deleted ${filePath}`);
   };
@@ -402,7 +509,13 @@ ${protocolCode}
                   path: activeFile.path,
                   name: activeFile.name,
                   fileType: activeFile.path.endsWith(".go") ? "go" : "markdown",
-                  content: fileContents[activeFile.path] || "",
+                  content: (() => {
+                    for (const ns of fileContents) {
+                      if (ns?.Files && ns.Files[activeFile.path] !== undefined)
+                        return ns.Files[activeFile.path];
+                    }
+                    return "";
+                  })(),
                 }}
                 setEditorContent={(val) =>
                   setEditorContent(val, activeFile.path)

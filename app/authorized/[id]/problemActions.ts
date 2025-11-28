@@ -13,7 +13,7 @@ export type SaveProblemParams = {
   description: string;
   difficulty: number;
   problemMarkdown: string;
-  codeFolder: nodeSpec;
+  codeFolder: nodeSpec[];
   isPublished?: boolean;
 };
 
@@ -31,7 +31,17 @@ export async function saveProblem(data: SaveProblemParams) {
         })
       : undefined;
 
-  const filesObj = problemData.codeFolder.Files;
+  // `codeFolder` is an array of `nodeSpec`. Merge all `Files` maps
+  // so we can validate presence of required files across the whole codeFolder.
+  const codeFolderArray = problemData.codeFolder;
+  const filesObj: Record<string, string> = {};
+  if (Array.isArray(codeFolderArray)) {
+    for (const ns of codeFolderArray) {
+      if (ns && typeof ns.Files === "object") {
+        Object.assign(filesObj, ns.Files as Record<string, string>);
+      }
+    }
+  }
 
   if (Object.keys(filesObj).length === 0) {
     return {
@@ -40,16 +50,16 @@ export async function saveProblem(data: SaveProblemParams) {
       status: 400,
     };
   }
-  if (!("/solution.md" in filesObj)) {
+  if (!("solution.md" in filesObj)) {
     return { success: false, error: "Solution file is required", status: 400 };
   }
-  if (!("/test/main.go" in filesObj)) {
-    return { success: false, error: "Tests file is required", status: 400 };
+  if (!("/test/test.go" in filesObj)) {
+    return { success: false, error: "Test file is required", status: 400 };
   }
-  if (!("/template/main.go" in filesObj)) {
-    return { success: false, error: "Template file is required", status: 400 };
+  if (!("/student/main.go" in filesObj)) {
+    return { success: false, error: "Student file is required", status: 400 };
   }
-  if (!("/protocol.go" in filesObj)) {
+  if (!("protocol.go" in filesObj)) {
     return { success: false, error: "Protocol file is required", status: 400 };
   }
 
@@ -61,12 +71,7 @@ export async function saveProblem(data: SaveProblemParams) {
         description: problemData.description,
         title: problemData.title,
         problemMarkdown: problemData.problemMarkdown,
-        codeFolder: {
-          Files: filesObj,
-          Envs: problemData.codeFolder.Envs,
-          BuildCommand: problemData.codeFolder.BuildCommand,
-          EntryCommand: problemData.codeFolder.EntryCommand,
-        },
+        codeFolder: problemData.codeFolder,
         isPublished,
       })
       .where(eq(problems.id, existingProblem.id));
@@ -81,12 +86,7 @@ export async function saveProblem(data: SaveProblemParams) {
       description: problemData.description,
       title: problemData.title,
       problemMarkdown: problemData.problemMarkdown,
-      codeFolder: {
-        Files: filesObj,
-        Envs: problemData.codeFolder.Envs,
-        BuildCommand: problemData.codeFolder.BuildCommand,
-        EntryCommand: problemData.codeFolder.EntryCommand,
-      },
+      codeFolder: problemData.codeFolder,
       isPublished,
       userId: user.userid,
     });

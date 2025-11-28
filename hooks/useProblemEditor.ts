@@ -11,11 +11,12 @@ const getInitialContent = (file: ProblemFile): string => {
   if (file.fileType === "markdown")
     return "# Problem\n\nDescribe the problem here.";
   if (file.fileType === "go") {
-    if (file.name.startsWith("/template"))
-      return "// Write your template code here\n";
-    if (file.name.startsWith("/solution"))
+    if (file.name.startsWith("student") || file.name.startsWith("/student"))
+      return "// Write your student code here\n";
+    if (file.name.startsWith("solution"))
       return "// Write your solution code here\n";
-    if (file.name.startsWith("/test")) return "// Write your test cases here\n";
+    if (file.name.startsWith("test") || file.name.startsWith("/test"))
+      return "// Write your test cases here\n";
   }
   return "";
 };
@@ -25,51 +26,72 @@ type ActionResult =
   | { success: false; error?: string; status?: number };
 
 type ProblemEditorState = {
-  filesContent: Filemap;
+  filesContent: Record<string, string>;
   activeFile: string;
   title: string;
   description: string;
   difficulty: string;
   isSubmitting: boolean;
-  envs: EnvironmentVariable[];
-  buildCommand: string;
-  entryCommand: string;
 };
 
 export const useProblemEditor = (
   files: ProblemFile[],
   initial?: {
-    filesContent?: Filemap;
+    filesContent?: nodeSpec[];
     title?: string;
     description?: string;
     difficulty?: string;
     problemId?: number;
-    envs?: EnvironmentVariable[];
-    buildCommand?: string;
-    entryCommand?: string;
   }
 ) => {
-  const [state, setState] = useState<ProblemEditorState>(() => {
-    const filesMap: Filemap = {} as Record<string, string>;
-    for (const file of files) {
-      let content: string | undefined;
-      const ic = initial?.filesContent as Filemap | undefined;
-      if (ic && typeof ic === "object") {
-        content = (ic as Record<string, string>)[file.name];
-      }
-      filesMap[file.name] = content ?? getInitialContent(file);
-    }
+  // Normalize file names to a canonical form (no leading slash)
+  const normalize = (p: string) => (p.startsWith("/") ? p.slice(1) : p);
 
+  const normalizedFiles = files.map((f) => ({
+    ...f,
+    name: normalize(f.name),
+  }));
+
+  const [state, setState] = useState<ProblemEditorState>(() => {
+    const filesMap: Record<string, string> = {};
+    if (initial?.filesContent && Array.isArray(initial.filesContent)) {
+      for (const node of initial.filesContent) {
+        for (const rawName of Object.keys(node.Files)) {
+          const fileName = normalize(rawName);
+          const fileType = fileName.endsWith(".md") ? "markdown" : "go";
+          const file: ProblemFile = { name: fileName, fileType };
+          const content: string | undefined = node.Files[rawName];
+          filesMap[fileName] = content ?? getInitialContent(file);
+        }
+      }
+    } else if (
+      initial?.filesContent &&
+      typeof initial.filesContent === "object" &&
+      !Array.isArray(initial.filesContent)
+    ) {
+      for (const rawName of Object.keys(
+        initial.filesContent as Record<string, string>
+      )) {
+        const fileName = normalize(rawName);
+        const fileType = fileName.endsWith(".md") ? "markdown" : "go";
+        const file: ProblemFile = { name: fileName, fileType };
+        const content: string | undefined = (
+          initial.filesContent as Record<string, string>
+        )[rawName];
+        filesMap[fileName] = content ?? getInitialContent(file);
+      }
+    } else {
+      for (const file of normalizedFiles) {
+        filesMap[file.name] = getInitialContent(file);
+      }
+    }
     return {
       filesContent: filesMap,
-      activeFile: files[0]?.name ?? "",
+      activeFile: normalizedFiles[0]?.name ?? "",
       title: initial?.title ?? "",
       description: initial?.description ?? "",
       difficulty: initial?.difficulty ?? "1",
       isSubmitting: false,
-      envs: initial?.envs ?? [],
-      buildCommand: initial?.buildCommand ?? "",
-      entryCommand: initial?.entryCommand ?? "",
     };
   });
 
@@ -79,7 +101,7 @@ export const useProblemEditor = (
         ...(prev.filesContent as Record<string, string>),
       };
 
-      for (const file of files) {
+      for (const file of normalizedFiles) {
         if (!(file.name in newFiles)) {
           newFiles[file.name] = getInitialContent(file);
         }
@@ -118,7 +140,9 @@ export const useProblemEditor = (
   };
 
   const setActiveFile = (activeFile: string) => {
-    setState((prev) => ({ ...prev, activeFile }));
+    // normalize active file
+    const normalize = (p: string) => (p.startsWith("/") ? p.slice(1) : p);
+    setState((prev) => ({ ...prev, activeFile: normalize(activeFile) }));
   };
 
   const setFileContent = (fileName: string, content: string) => {
@@ -126,7 +150,10 @@ export const useProblemEditor = (
       const newFiles: Record<string, string> = {
         ...(prev.filesContent as Record<string, string>),
       };
-      newFiles[fileName] = content;
+      const normalized = fileName.startsWith("/")
+        ? fileName.slice(1)
+        : fileName;
+      newFiles[normalized] = content;
       return { ...prev, filesContent: newFiles as Filemap };
     });
   };
@@ -136,8 +163,11 @@ export const useProblemEditor = (
       const newFiles: Record<string, string> = {
         ...(prev.filesContent as Record<string, string>),
       };
-      if (fileName in newFiles) {
-        delete newFiles[fileName];
+      const normalized = fileName.startsWith("/")
+        ? fileName.slice(1)
+        : fileName;
+      if (normalized in newFiles) {
+        delete newFiles[normalized];
       }
       return { ...prev, filesContent: newFiles as Filemap };
     });
@@ -166,52 +196,76 @@ export const useProblemEditor = (
         missingFields.push("Difficulty");
 
       const getContent = (name: string) =>
-        (state.filesContent as Record<string, string>)[name] ?? "";
-      if (!getContent("/problem.md").trim())
+        (state.filesContent as Record<string, string>)[
+          name.startsWith("/") ? name.slice(1) : name
+        ] ?? "";
+      if (!getContent("problem.md").trim())
         missingFields.push("Problem markdown");
 
-      const templateFiles = files.filter((f) => f.name.startsWith("/template"));
-      const solutionFiles = files.filter((f) => f.name.startsWith("/solution"));
-      const protocolFiles = files.filter((f) =>
-        f.name.startsWith("/protocol.go")
+      const paramNames = normalizedFiles.map((f) => f.name);
+      console.log("Param names for validation:", paramNames);
+
+      const templateFiles = paramNames.filter(
+        (n) => n.startsWith("student") || n.startsWith("/student")
+      );
+      const solutionFiles = paramNames.filter((n) => n.startsWith("solution"));
+      const protocolFiles = paramNames.filter(
+        (n) => n === "protocol.go" || n.startsWith("protocol.go")
+      );
+      const testFiles = paramNames.filter(
+        (n) => n.startsWith("test") || n.startsWith("/test")
       );
 
-      const testFiles = files.filter((f) => f.name.startsWith("/tests"));
-
-      const templateCode = templateFiles.map((f) => getContent(f.name));
-      const solutionCode = solutionFiles.map((f) => getContent(f.name));
-      const protocolCode = protocolFiles.map((f) => getContent(f.name));
+      const templateCode = templateFiles.map((name) => getContent(name));
+      const solutionCode = solutionFiles.map((name) => getContent(name));
+      const protocolCode = protocolFiles.map((name) => getContent(name));
 
       if (!templateFiles.length || templateCode.some((c) => !c.trim()))
-        missingFields.push("Template code");
+        missingFields.push("Student code");
       if (!solutionFiles.length || solutionCode.some((c) => !c.trim()))
         missingFields.push("Solution code");
       if (!protocolFiles.length || protocolCode.some((c) => !c.trim()))
         missingFields.push("Protocol code");
       if (
         !testFiles.length ||
-        testFiles.some((f) => !getContent(f.name).trim())
+        testFiles.some((name) => !getContent(name).trim())
       )
-        if (missingFields.length > 0) {
-          alert(`Missing or empty fields: ${missingFields.join(", ")}`);
-          return;
-        }
+        missingFields.push("Tests");
+
+      if (missingFields.length > 0) {
+        alert(`Missing or empty fields: ${missingFields.join(", ")}`);
+        return;
+      }
 
       const filesMap = state.filesContent as Record<string, string>;
-      const codeFolder: nodeSpec = {
-        Files: { ...filesMap } as Filemap,
-        Envs: state.envs,
-        BuildCommand: state.buildCommand,
-        EntryCommand: state.entryCommand,
-      };
+
+      // Helper to group files by folder
+      const folderMap: Record<string, Record<string, string>> = {};
+      for (const fileName of Object.keys(filesMap)) {
+        // Extract folder name (e.g. "Student", "Root", etc.) from normalized name
+        const match = fileName.match(/^([^/]+)\//);
+        const folder = match ? match[1] : "Root";
+        if (!folderMap[folder]) folderMap[folder] = {};
+        const keyName = folder === "Root" ? fileName : `/${fileName}`;
+        folderMap[folder][keyName] = filesMap[fileName];
+      }
+
+      const codeFolder: nodeSpec[] = Object.entries(folderMap).map(
+        ([alias, files]) => ({
+          Alias: alias,
+          Files: files as Filemap,
+          Envs: [],
+          BuildCommand: "",
+          EntryCommand: "",
+        })
+      );
 
       const payload = {
         id: initial?.problemId,
         title: state.title,
         description: state.description,
         difficulty: parseInt(state.difficulty, 10),
-        problemMarkdown:
-          (state.filesContent as Record<string, string>)["/problem.md"] ?? "",
+        problemMarkdown: getContent("problem.md"),
         isPublished,
         codeFolder,
       };

@@ -189,7 +189,7 @@ export function FilteredTreeNode({
     const canDelete =
       onDeleteFile &&
       !file.path.endsWith("main.go") &&
-      file.path.startsWith("/template");
+      (file.path.startsWith("student") || file.path.startsWith("/student"));
     const isActive = activeFilePath === file.path;
 
     return (
@@ -237,7 +237,7 @@ export function FilteredTreeNode({
           {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
           <span className="ml-1 font-medium">📁 {node.name}</span>
         </button>
-        {node.name === "template" && onAddFile && (
+        {(node.name === "/student" || node.name === "student") && onAddFile && (
           <button
             type="button"
             onClick={addFile}

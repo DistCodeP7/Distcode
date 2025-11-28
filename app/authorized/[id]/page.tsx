@@ -25,8 +25,8 @@ export default async function EditProblemPage({
 
   return (
     <ProblemEditorClient
-      files={exercise.codeFolder.Files}
-      initialFilesContent={exercise.codeFolder.Files}
+      files={exercise.codeFolder}
+      initialFilesContent={exercise.codeFolder}
       problemId={exercise.id}
       initialTitle={exercise.title}
       initialDescription={exercise.description}
