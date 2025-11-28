@@ -37,7 +37,9 @@ export default async function ProblemListPage() {
         </p>
         <div className="flex justify-end">
           <Link href="/authorized/newProblem">
-            <Button>Create new exercise</Button>
+            <Button className={"hover:cursor-pointer"}>
+              Create new exercise
+            </Button>
           </Link>
         </div>
 
@@ -119,10 +121,16 @@ export default async function ProblemListPage() {
 
                 <div className="flex gap-2 mt-2">
                   <Link href={`/authorized/${s.id}`}>
-                    <Button size="sm">Edit</Button>
+                    <Button size="sm" className={"hover:cursor-pointer"}>
+                      Edit
+                    </Button>
                   </Link>
                   <Link href={`/exercises/${s.id}`}>
-                    <Button size="sm" variant="ghost">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className={"hover:cursor-pointer"}
+                    >
                       Open
                     </Button>
                   </Link>
