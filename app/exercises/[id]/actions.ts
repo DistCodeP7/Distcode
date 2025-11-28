@@ -249,7 +249,15 @@ export async function rateExercise(
       )
       .limit(1)
   ) {
-    await db.update(ratings).set({ liked }).where(eq(ratings.id, exerciseId));
+    await db
+      .update(ratings)
+      .set({ liked })
+      .where(
+        and(
+          eq(ratings.userId, session.user.id),
+          eq(ratings.problemId, exerciseId)
+        )
+      );
   } else {
     await db.insert(ratings).values({
       userId: session.user.id,

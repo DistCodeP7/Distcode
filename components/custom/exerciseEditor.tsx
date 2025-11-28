@@ -274,7 +274,6 @@ ${protocolCode}
       >
         {leftPanelOpen && (
           <>
-            {/* Collapse button */}
             <Button
               size="sm"
               variant="outline"
@@ -323,7 +322,6 @@ ${protocolCode}
         )}
       </ResizablePanel>
 
-      {/* Expand button when left panel is collapsed */}
       {!leftPanelOpen && (
         <Button
           size="sm"
@@ -366,7 +364,7 @@ ${protocolCode}
             <Button
               size="sm"
               variant={userRating === "up" ? "default" : "outline"}
-              className="mr-2"
+              className="mr-2 hover:cursor-pointer"
               onClick={() => onRate(true)}
               disabled={ratingLoading}
             >
@@ -375,7 +373,7 @@ ${protocolCode}
             <Button
               size="sm"
               variant={userRating === "down" ? "default" : "outline"}
-              className="mr-2"
+              className="mr-2 hover:cursor-pointer"
               onClick={() => onRate(false)}
               disabled={ratingLoading}
             >

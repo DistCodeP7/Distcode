@@ -2,6 +2,7 @@
 
 import { ChevronDown, ChevronRight, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { NewFileDialog } from "@/components/custom/alert-dialog";
 import type { FileNode, FolderNode, Node } from "@/lib/folderStructure";
 
 export interface TreeProps {
@@ -83,6 +84,9 @@ export function TreeNode({
   const [isOpen, setIsOpen] = useState(
     node.type === "folder" ? (node.isOpen ?? true) : false
   );
+
+  const [newFileOpen, setNewFileOpen] = useState(false);
+
   const padding = { paddingLeft: level * 16 };
 
   if (node.type === "file") {
@@ -118,14 +122,10 @@ export function TreeNode({
     );
   }
 
-  function addFile() {
-    const name = prompt("Enter new file name");
-    if (!name) return;
-    const fileName = sanitizeFileName(name);
-    const newPath = `${node.name}/${fileName}`;
-    if (onAddFile) {
-      onAddFile(newPath);
-    }
+  function addFile(name: string) {
+    const sanitized = sanitizeFileName(name);
+    const newPath = `${node.name}/${sanitized}`;
+    onAddFile?.(newPath);
   }
 
   return (
@@ -139,16 +139,25 @@ export function TreeNode({
           {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
           <span className="ml-1 font-medium">📁 {node.name}</span>
         </button>
+
         {onAddFile && (
           <button
             type="button"
-            onClick={addFile}
-            className="p-1 hover:bg-gray-600 hover:text-white rounded"
+            onClick={() => setNewFileOpen(true)}
+            className="p-1 hover:bg-gray-600 hover:text-white rounded hover:cursor-pointer"
           >
             <Plus size={14} />
           </button>
         )}
       </div>
+
+      <NewFileDialog
+        open={newFileOpen}
+        onOpenChange={setNewFileOpen}
+        title="Create New File"
+        description="Enter a name for the new file. Any suffixes will be ignored."
+        onCreate={addFile}
+      />
 
       {isOpen &&
         node.children?.map((child) => (
@@ -179,17 +188,22 @@ export function FilteredTreeNode({
   const [isOpen, setIsOpen] = useState(
     isFolder ? ((node as FolderNode).isOpen ?? true) : false
   );
+  const [newFileOpen, setNewFileOpen] = useState(false);
+
   const padding = { paddingLeft: level * 16 };
 
   if (node.type === "file") {
     const file = node as EditableFileNode;
+
     const handleActivate = () => {
       if (!file.readOnly) onFileClick(file);
     };
+
     const canDelete =
       onDeleteFile &&
       !file.path.endsWith("main.go") &&
       file.path.startsWith("/template");
+
     const isActive = activeFilePath === file.path;
 
     return (
@@ -198,8 +212,8 @@ export function FilteredTreeNode({
           type="button"
           onClick={handleActivate}
           className={`cursor-pointer pl-4 py-1 rounded-sm flex-1 text-left flex items-center gap-1
-                        ${file.readOnly ? "opacity-70 cursor-not-allowed" : ""}
-                        ${isActive ? "bg-primary/75 font-semibold" : "hover:bg-muted"}`}
+            ${file.readOnly ? "opacity-70 cursor-not-allowed" : ""}
+            ${isActive ? "bg-primary/75 font-semibold" : "hover:bg-muted"}`}
         >
           📄 {file.name}
         </button>
@@ -216,14 +230,10 @@ export function FilteredTreeNode({
     );
   }
 
-  function addFile() {
-    const name = prompt("Enter new file name");
-    if (!name) return;
-    const fileName = sanitizeFileName(name);
-    const newPath = `${node.name}/${fileName}`;
-    if (onAddFile) {
-      onAddFile(newPath);
-    }
+  function addFile(name: string) {
+    const sanitized = sanitizeFileName(name);
+    const newPath = `${node.name}/${sanitized}`;
+    onAddFile?.(newPath);
   }
 
   return (
@@ -237,16 +247,25 @@ export function FilteredTreeNode({
           {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
           <span className="ml-1 font-medium">📁 {node.name}</span>
         </button>
+
         {node.name === "template" && onAddFile && (
           <button
             type="button"
-            onClick={addFile}
-            className="p-1 hover:bg-gray-600 hover:text-white rounded"
+            onClick={() => setNewFileOpen(true)}
+            className="p-1 hover:bg-gray-600 hover:text-white rounded hover:cursor-pointer"
           >
             <Plus size={14} />
           </button>
         )}
       </div>
+
+      <NewFileDialog
+        open={newFileOpen}
+        onOpenChange={setNewFileOpen}
+        title="Create New File"
+        description="Enter a name for the new file. Any suffixes will be ignored."
+        onCreate={addFile}
+      />
 
       {isOpen &&
         node.children?.map((child) => (
