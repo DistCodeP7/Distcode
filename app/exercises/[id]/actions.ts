@@ -34,7 +34,7 @@ export async function getExercise({ params }: { params: { id: number } }) {
 }
 
 export async function submitCode(
-  content: nodeSpec,
+  content: nodeSpec[],
   { params }: { params: { id: number } }
 ) {
   const session = await getServerSession(authOptions);
@@ -47,25 +47,21 @@ export async function submitCode(
   if (Number.isNaN(ProblemId))
     return { error: "Invalid exercise id", status: 400 };
 
-  const filesForSubmission = { ...content.Files };
+  const protocolNode = content.find((ns) => ns.Alias === "Protocol");
+  const protofile = protocolNode?.Files?.["protocol.go"];
 
-  for (const key of Object.keys(filesForSubmission)) {
-    if (key.includes("problem.md") || key.startsWith("/solution")) {
-      delete filesForSubmission[key];
+  //Exclue root alias from submissiom
+  content = content.filter((node) => node.Alias !== "Root");
+
+  for (const ns of content) {
+    if (!ns.Files["protocol.go"]) {
+      ns.Files["protocol.go"] = protofile || "// Define your protocols here\n";
     }
   }
-
   const payload = {
     JobUID: `${uuid()}`,
     ProblemId,
-    Nodes: [
-      {
-        Files: filesForSubmission,
-        Envs: content.Envs,
-        BuildCommand: content.BuildCommand,
-        EntryCommand: content.EntryCommand,
-      },
-    ],
+    Nodes: content,
     UserId: user.userid,
     Timeout: 60,
   };
@@ -76,7 +72,7 @@ export async function submitCode(
 }
 
 export async function saveCode(
-  content: nodeSpec,
+  content: nodeSpec[],
   { params }: { params: { id: number } }
 ) {
   const session = await getServerSession(authOptions);
@@ -98,19 +94,22 @@ export async function saveCode(
   ) {
     return { error: "Problem not found.", status: 404 };
   }
-  if (
-    await db
-      .select()
-      .from(userCode)
-      .where(
-        and(eq(userCode.userId, user.userid), eq(userCode.problemId, problemId))
-      )
-      .limit(1)
-  ) {
+  const existing = await db
+    .select()
+    .from(userCode)
+    .where(
+      and(eq(userCode.userId, user.userid), eq(userCode.problemId, problemId))
+    )
+    .limit(1);
+
+  if (existing.length > 0) {
+    // Update the existing user's submission for this problem
     await db
       .update(userCode)
       .set({ codeSubmitted: content })
-      .where(eq(userCode.id, problemId));
+      .where(
+        and(eq(userCode.userId, user.userid), eq(userCode.problemId, problemId))
+      );
   } else {
     await db.insert(userCode).values({
       userId: user.userid,
