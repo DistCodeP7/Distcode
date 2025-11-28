@@ -37,7 +37,9 @@ export default async function ProblemListPage() {
         </p>
         <div className="flex justify-end">
           <Link href="/authorized/newProblem">
-            <Button>Create new exercise</Button>
+            <Button className={"hover:cursor-pointer"}>
+              Create new exercise
+            </Button>
           </Link>
         </div>
 
