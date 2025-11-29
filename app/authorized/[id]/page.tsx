@@ -68,8 +68,8 @@ export default async function EditProblemPage({
 
   return (
     <ProblemEditorClient
-      files={files}
-      initialFilesContent={initialFilesContent}
+      files={exercise.codeFolder.Files}
+      initialFilesContent={exercise.codeFolder.Files}
       problemId={exercise.id}
       initialTitle={exercise.title}
       initialDescription={exercise.description}

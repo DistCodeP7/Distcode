@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import type { nodeSpec } from "@/drizzle/schema";
 import { problems, ratings } from "@/drizzle/schema";
 import { db } from "./db";
 

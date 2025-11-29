@@ -2,7 +2,7 @@
 
 import { BookOpen, Code, ThumbsDown, ThumbsUp } from "lucide-react";
 import type React from "react";
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import type { StreamingJobResult } from "@/app/api/stream/route";
 import type { Filemap } from "@/app/exercises/[id]/actions";
@@ -21,6 +21,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import type { nodeSpec } from "@/drizzle/schema";
 import { useSSE } from "@/hooks/useSSE";
 import { FolderSystem } from "./folderSystem";
 
@@ -36,6 +37,13 @@ type ExerciseEditorProps = {
   canRate?: boolean;
 };
 
+type FileDatas = {
+  path: string;
+  name: string;
+  content: string;
+  fileType: "go" | "markdown";
+};
+
 export default function ExerciseEditor({
   exerciseId,
   problemMarkdown,
@@ -48,8 +56,24 @@ export default function ExerciseEditor({
   canRate: initialCanRate = false,
 }: ExerciseEditorProps) {
   const [activeFile, setActiveFile] = useState(0);
-  const [fileContents, setFileContents] = useState<string[]>(
-    savedCode ?? templateCode
+
+  const files: FileDatas[] = useMemo(
+    () =>
+      Object.entries(codeFolder.Files).map(([path, content]) => ({
+        path,
+        name: path,
+        content,
+        fileType: path.endsWith(".go") ? "go" : "markdown",
+      })),
+    [codeFolder.Files]
+  );
+
+  const [fileContents, setFileContents] = useState<string[]>(() =>
+    files.map((file) => file.content)
+  );
+
+  const solutionFiles = files.filter((file) =>
+    file.path.startsWith("/solution")
   );
   // Maintain file metadata (name + type) separately so created files keep their names
   const [files, setFiles] = useState<FileDef[]>(() =>
@@ -71,9 +95,6 @@ export default function ExerciseEditor({
   );
   const [canRate, setCanRate] = useState(initialCanRate);
   const [ratingLoading, startRatingTransition] = useTransition();
-
-  // (files state is defined above)
-
   const [leftPanelView, setLeftPanelView] = useState<"problem" | "solution">(
     "problem"
   );
@@ -97,8 +118,7 @@ export default function ExerciseEditor({
     clearMessages();
     connect();
     const problemContent = fileContents;
-    console.log("Submitting code:", problemContent);
-
+ 
     const allFiles: Filemap = allOtherFiles;
     files.forEach((file, index) => {
       allFiles[file.name] = problemContent[index];
@@ -149,8 +169,16 @@ export default function ExerciseEditor({
   const onSave = async () => {
     clearMessages();
 
-    const savedContent = fileContents[activeFile];
-    const result = await saveCode([savedContent], {
+    const payload: nodeSpec = {
+      Files: Object.fromEntries(
+        files.map((file, index) => [file.path, fileContents[index]])
+      ),
+      Envs: codeFolder.Envs,
+      BuildCommand: codeFolder.BuildCommand,
+      EntryCommand: codeFolder.EntryCommand,
+    };
+
+    const result = await saveCode(payload, {
       params: { id: exerciseId },
     });
 
@@ -370,7 +398,7 @@ ${protoCode}
             </div>
 
             <Editor
-              editorContent={fileContents[activeFile]}
+              editorContent={fileContents[activeFile] ?? ""}
               setEditorContent={setEditorContent}
               language={files[activeFile]?.fileType}
               options={{

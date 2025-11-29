@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { Filemap, EnvironmentVariable } from "@/drizzle/schema";
 import { useProblemEditor } from "@/hooks/useProblemEditor";
 import { FolderSystem } from "./folderSystem";
 
@@ -25,13 +26,19 @@ export default function ProblemEditorClient({
   initialTitle,
   initialDescription,
   initialDifficulty,
+  initialBuildCommand,
+  initialEntryCommand,
+  initialEnvs,
   problemId,
 }: {
-  files: FileDef[];
-  initialFilesContent?: Record<string, string>;
+  files: Filemap;
+  initialFilesContent?: Filemap;
   initialTitle?: string;
   initialDescription?: string;
   initialDifficulty?: string;
+  initialBuildCommand?: string;
+  initialEntryCommand?: string;
+  initialEnvs?: EnvironmentVariable[];
   problemId?: number;
 }) {
   const {
@@ -53,6 +60,9 @@ export default function ProblemEditorClient({
     description: initialDescription,
     difficulty: initialDifficulty,
     problemId,
+    buildCommand: initialBuildCommand,
+    entryCommand: initialEntryCommand,
+    envs: initialEnvs,
   });
 
   return (
@@ -100,6 +110,69 @@ export default function ProblemEditorClient({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
+        <div className="flex gap-3">
+          <Input
+            placeholder="Build command (e.g. go build ./...)"
+            value={buildCommand}
+            onChange={(e) => setBuildCommand(e.target.value)}
+            className="flex-1"
+          />
+          <Input
+            placeholder="Entry command (e.g. ./solution)"
+            value={entryCommand}
+            onChange={(e) => setEntryCommand(e.target.value)}
+            className="flex-1"
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-muted-foreground">
+              Environment Variables
+            </span>
+            <Button
+              onClick={() => setEnvs([...(envs ?? []), { key: "", value: "" }])}
+              size="sm"
+              variant="outline"
+              className="flex items-center gap-1 px-2 py-1"
+            >
+              <Plus className="w-4 h-4" /> Add
+            </Button>
+          </div>
+          {(envs ?? []).map((ev, idx) => (
+            <div key={`${ev.key}-${idx}`} className="flex gap-2 items-center">
+              <Input
+                placeholder="KEY"
+                value={ev.key}
+                onChange={(e) => {
+                  const next = [...(envs ?? [])];
+                  next[idx] = { ...next[idx], key: e.target.value };
+                  setEnvs(next);
+                }}
+                className="w-1/3"
+              />
+              <Input
+                placeholder="VALUE"
+                value={ev.value}
+                onChange={(e) => {
+                  const next = [...(envs ?? [])];
+                  next[idx] = { ...next[idx], value: e.target.value };
+                  setEnvs(next);
+                }}
+                className="flex-1"
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  const next = (envs ?? []).filter((_, i) => i !== idx);
+                  setEnvs(next);
+                }}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Editor + Preview */}
@@ -108,7 +181,11 @@ export default function ProblemEditorClient({
         className="flex-1 border h-full w-full min-w-0"
       >
         <ResizablePanel minSize={20} className="flex-1 min-w-0 overflow-auto">
-          <MarkdownPreview content={filesContent["problem.md"] || ""} />
+          <MarkdownPreview
+            content={
+              (filesContent as Record<string, string>)["/problem.md"] || ""
+            }
+          />
         </ResizablePanel>
         <ResizablePanel
           minSize={12}
