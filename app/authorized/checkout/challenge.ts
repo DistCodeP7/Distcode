@@ -1,4 +1,4 @@
-export type Difficulty = "Easy" | "Medium" | "Hard";
+export type Env = { key: string; value: string; id: string };
 
 export type TestContainerConfig = {
   alias: string;
@@ -21,13 +21,17 @@ export type SubmissionConfig = {
   replicaConfigs: Record<number, ReplicaConfig>;
 };
 
-export type CheckoutFormState = {
-  step: number;
+export type Difficulty = "Easy" | "Medium" | "Hard";
+
+export type DetailsConfig = {
   title: string;
   description: string;
   difficulty: Difficulty | "";
+};
+
+export type CheckoutFormState = {
+  step: number;
+  details: DetailsConfig;
   testContainer: TestContainerConfig;
   submission: SubmissionConfig;
 };
-
-export type Env = { key: string; value: string; id: string };

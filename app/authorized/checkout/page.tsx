@@ -10,7 +10,6 @@ import StepOneDetails from "./steps/StepOneDetails";
 import StepFourSummary from "./steps/StepFourSummary";
 import StepThreeSubmission from "./steps/StepThreeSubmission";
 import StepTwoTestEnv from "./steps/StepTwoTest";
-
 export default function CreateChallenge() {
   const {
     form,
@@ -33,7 +32,7 @@ export default function CreateChallenge() {
         <Card className="min-h-[600px] flex flex-col ">
           <CardContent className="flex-1 p-0">
             {form.step === 1 && (
-              <StepOneDetails form={form} updateField={updateDetails} />
+              <StepOneDetails form={form.details} updateField={updateDetails} />
             )}
             {form.step === 2 && (
               <StepTwoTestEnv

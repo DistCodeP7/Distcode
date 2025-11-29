@@ -3,14 +3,17 @@ import type {
   CheckoutFormState,
   TestContainerConfig,
   SubmissionConfig,
+  DetailsConfig,
 } from "./challenge";
 import { nanoid } from "nanoid";
 
 const initialFormState: CheckoutFormState = {
   step: 1,
-  title: "",
-  description: "",
-  difficulty: "",
+  details: {
+    title: "",
+    description: "",
+    difficulty: "",
+  },
   testContainer: {
     alias: "test-runner",
     testFiles: [],
@@ -51,9 +54,13 @@ const useCreateChallenge = () => {
 
   // --- Updaters ---
   const updateDetails = (
-    field: keyof CheckoutFormState,
-    value: CheckoutFormState[keyof CheckoutFormState]
-  ) => setForm((prev) => ({ ...prev, [field]: value }));
+    field: keyof DetailsConfig,
+    value: DetailsConfig[keyof DetailsConfig]
+  ) =>
+    setForm((prev) => ({
+      ...prev,
+      details: { ...prev.details, [field]: value },
+    }));
 
   const updateTestConfig = (
     field: keyof TestContainerConfig,

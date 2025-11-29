@@ -2,7 +2,7 @@ import { CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useId } from "react";
-import { CheckoutFormState } from "../challenge";
+import { DetailsConfig, Difficulty } from "../challenge";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -14,10 +14,10 @@ import {
 import * as motion from "motion/react-client";
 
 type StepOneDetailsProps = {
-  form: CheckoutFormState;
+  form: DetailsConfig;
   updateField: (
-    field: keyof CheckoutFormState,
-    value: CheckoutFormState[keyof CheckoutFormState]
+    field: keyof DetailsConfig,
+    value: DetailsConfig[keyof DetailsConfig]
   ) => void;
 };
 
@@ -61,7 +61,7 @@ const StepOneDetails = ({ form, updateField }: StepOneDetailsProps) => {
           <Label htmlFor="difficulty">Difficulty Level</Label>
           <Select
             value={form.difficulty}
-            onValueChange={(val) => updateField("difficulty", val)}
+            onValueChange={(val: Difficulty) => updateField("difficulty", val)}
           >
             <SelectTrigger className="w-full md:w-[240px] h-11" id={useId()}>
               <SelectValue placeholder="Select difficulty" />
