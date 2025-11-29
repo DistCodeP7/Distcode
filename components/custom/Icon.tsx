@@ -1,14 +1,20 @@
 import type { LucideProps } from "lucide-react";
-import GoLogo from "@/public/go.svg";
-import MarkdownLogo from "@/public/markdown.svg";
+import AkkaLogo from "@/assets/icons/akka.svg";
+import ErlangLogo from "@/assets/icons/erlang.svg";
+import GoLogo from "@/assets/icons/go.svg";
+import MarkdownLogo from "@/assets/icons/markdown.svg";
 
 const customIcons = {
   go: GoLogo,
+  erlang: ErlangLogo,
+  akka: AkkaLogo,
   markdown: MarkdownLogo,
 };
 
 const defaultColors: Record<keyof typeof customIcons, string> = {
   go: "#00ADD8",
+  erlang: "#A90533",
+  akka: "#1681C4",
   markdown: "#a53434ff",
 };
 

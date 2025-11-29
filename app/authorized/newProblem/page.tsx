@@ -1,5 +1,4 @@
 import ProblemEditorClient from "@/components/custom/problemEditorClient";
-import type { nodeSpec } from "@/drizzle/schema";
 
 export default function NewProblemPage() {
   // Only create a problem when the user saves or publishes
@@ -14,8 +13,8 @@ export default function NewProblemPage() {
 
   return (
     <ProblemEditorClient
-      files={files.Files}
-      initialFilesContent={files.Files}
+      files={files}
+      initialFilesContent={{}}
       initialTitle=""
       initialDescription=""
       initialDifficulty=""

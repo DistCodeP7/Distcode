@@ -1,6 +1,5 @@
 import { type SetStateAction, useCallback, useState } from "react";
 import { saveProblem } from "@/app/authorized/[id]/problemActions";
-import type { EnvironmentVariable, Filemap, nodeSpec } from "@/drizzle/schema";
 
 type ProblemFile = {
   name: string;
@@ -37,65 +36,55 @@ type ActionResult =
   | { success: false; error?: string; status?: number };
 
 type ProblemEditorState = {
-  filesContent: Filemap;
+  filesContent: Record<string, string>;
   activeFile: number;
   title: string;
   description: string;
   difficulty: string;
   isSubmitting: boolean;
-  envs: EnvironmentVariable[];
-  buildCommand: string;
-  entryCommand: string;
 };
 
 export const useProblemEditor = (
   files: readonly ProblemFile[],
   initial?: {
-    filesContent?: Filemap;
+    filesContent?: Record<string, string>;
     title?: string;
     description?: string;
     difficulty?: string;
     problemId?: number;
-    envs?: EnvironmentVariable[];
-    buildCommand?: string;
-    entryCommand?: string;
   }
 ) => {
   const [state, setState] = useState<ProblemEditorState>(() => {
-    const filesMap: Filemap = {} as Record<string, string>;
-    for (const file of files) {
-      let content: string | undefined;
-      const ic = initial?.filesContent as Filemap | undefined;
-      if (ic && typeof ic === "object") {
-        content = (ic as Record<string, string>)[file.name];
-      }
-      filesMap[file.name] = content ?? getInitialContent(file);
-    }
+    const filesContent = files.reduce(
+      (acc, file) => {
+        acc[file.name] =
+          initial?.filesContent?.[file.name] ?? getInitialContent(file);
+        return acc;
+      },
+      {} as Record<string, string>
+    );
 
     return {
-      filesContent: filesMap,
+      filesContent,
       activeFile: 0,
       title: initial?.title ?? "",
       description: initial?.description ?? "",
       difficulty: initial?.difficulty ?? "1",
       isSubmitting: false,
-      envs: initial?.envs ?? [],
-      buildCommand: initial?.buildCommand ?? "",
-      entryCommand: initial?.entryCommand ?? "",
     };
   });
 
   const syncFilesContent = useCallback(() => {
     setState((prev) => {
-      const newFiles: Record<string, string> = {
-        ...(prev.filesContent as Record<string, string>),
-      };
-      for (const file of files) {
-        if (!(file.name in newFiles)) {
-          newFiles[file.name] = getInitialContent(file);
-        }
-      }
-      return { ...prev, filesContent: newFiles as Filemap };
+      const newFilesContent = files.reduce(
+        (acc, file) => {
+          acc[file.name] =
+            prev.filesContent[file.name] ?? getInitialContent(file);
+          return acc;
+        },
+        {} as Record<string, string>
+      );
+      return { ...prev, filesContent: newFilesContent };
     });
   }, [files]);
 
@@ -104,15 +93,14 @@ export const useProblemEditor = (
       setState((prev) => {
         const activeFileName = files[prev.activeFile]?.name;
         if (!activeFileName) return prev;
-        const prevContent =
-          (prev.filesContent as Record<string, string>)[activeFileName] ?? "";
         const newContent =
-          typeof value === "function" ? value(prevContent) : value;
-        const newFiles: Record<string, string> = {
-          ...(prev.filesContent as Record<string, string>),
+          typeof value === "function"
+            ? value(prev.filesContent[activeFileName])
+            : value;
+        return {
+          ...prev,
+          filesContent: { ...prev.filesContent, [activeFileName]: newContent },
         };
-        newFiles[activeFileName] = newContent;
-        return { ...prev, filesContent: newFiles as Filemap };
       });
     },
     [files]
@@ -132,18 +120,6 @@ export const useProblemEditor = (
 
   const setActiveFile = useCallback((activeFile: number) => {
     setState((prev) => ({ ...prev, activeFile }));
-  }, []);
-
-  const setBuildCommand = useCallback((buildCommand: string) => {
-    setState((prev) => ({ ...prev, buildCommand }));
-  }, []);
-
-  const setEntryCommand = useCallback((entryCommand: string) => {
-    setState((prev) => ({ ...prev, entryCommand }));
-  }, []);
-
-  const setEnvs = useCallback((envs: EnvironmentVariable[]) => {
-    setState((prev) => ({ ...prev, envs }));
   }, []);
 
   const handleSaveOrSubmit = useCallback(
@@ -215,7 +191,6 @@ export const useProblemEditor = (
           testCode,
           protocolCode,
           isPublished,
-          codeFolder,
         };
 
         const result: ActionResult = await saveProblem(payload);
@@ -248,9 +223,6 @@ export const useProblemEditor = (
     setDescription,
     setDifficulty,
     setActiveFile,
-    setBuildCommand,
-    setEntryCommand,
-    setEnvs,
     handleEditorContentChange,
     handleSubmit,
     handleSave,

@@ -14,24 +14,6 @@ import { sql } from "drizzle-orm/sql/sql";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import * as zod from "zod";
 
-
-type Path = string;
-type code = string;
-
-export type EnvironmentVariable = {
-  key: string;
-  value: string;
-}
-
-export type Filemap = Record<Path, code>;
-
-export type nodeSpec = {
-  Files: Filemap;
-  Envs: EnvironmentVariable[];
-  BuildCommand: string;
-  EntryCommand: string;
-}
-
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: varchar("email", { length: 256 }).notNull().unique(),
@@ -84,7 +66,7 @@ export const userCode = pgTable("userCode", {
     problemId: integer("problem_id")
         .notNull()
         .references(() => problems.id, { onDelete: "cascade" }),
-    codeSubmitted: json("code_submitted").$type<nodeSpec>().notNull(),
+    codeSubmitted: json("code_submitted").$type<string[]>().notNull(),
 });
 
 export const UserCodeSchema = createSelectSchema(userCode);

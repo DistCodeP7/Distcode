@@ -38,7 +38,7 @@ vi.mock("@/lib/db", () => ({
 }));
 
 vi.mock("drizzle-orm", () => ({
-  eq: () => true,
+  eq: (..._args: unknown[]) => true,
 }));
 
 vi.mock("@/drizzle/schema", () => ({
@@ -46,12 +46,12 @@ vi.mock("@/drizzle/schema", () => ({
 }));
 
 describe("deleteProblem", () => {
-  let deleteProblem: (id: number) => Promise<{
-    success: boolean;
-    message?: string;
-    error?: string;
-    status: number;
-  }>;
+  let deleteProblem: (
+    id: number
+  ) => Promise<
+    | { success: true; message: string; status: number }
+    | { success: false; error: string; status: number }
+  >;
   //TODO: Fix any types
   let getServerSession: any;
   let getUserById: any;
@@ -74,6 +74,18 @@ describe("deleteProblem", () => {
       success: false,
       error: "Not authenticated",
       status: 401,
+    });
+  });
+
+  it("returns 404 when user not found", async () => {
+    getServerSession.mockResolvedValue({ user: { id: 123 } });
+    getUserById.mockResolvedValue(null);
+
+    const res = await deleteProblem(1);
+    expect(res).toEqual({
+      success: false,
+      error: "User not found",
+      status: 404,
     });
   });
 
@@ -126,7 +138,7 @@ describe("deleteProblem", () => {
     expect(hoisted.deleteWhere).toHaveBeenCalled();
     expect(res).toEqual({
       success: true,
-      message: "Problem deleted successfully",
+      message: "Problem deleted successfully.",
       status: 200,
     });
   });
