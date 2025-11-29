@@ -1,6 +1,6 @@
 {
-  "id": "5d53db1d-357d-46f7-a236-db157373ab23",
-  "prevId": "061cc2e2-e091-4000-ab9f-dc00d513ddf9",
+  "id": "fdd9d8c8-9ae5-4588-9dc7-856997779b99",
+  "prevId": "243ea3c7-415d-4965-b194-96ae67b93286",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -44,8 +44,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "template_code": {
-          "name": "template_code",
+        "student_code": {
+          "name": "student_code",
           "type": "json",
           "primaryKey": false,
           "notNull": true
@@ -62,8 +62,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "test_cases_code": {
-          "name": "test_cases_code",
+        "test_code": {
+          "name": "test_code",
           "type": "json",
           "primaryKey": false,
           "notNull": true

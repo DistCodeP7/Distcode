@@ -10,6 +10,26 @@ import { MQJobsSender } from "@/lib/mq";
 import { getUserById } from "@/lib/user";
 import { v4 as uuid } from "uuid"; // Example for a common UUID library in JS
 
+type payload = {
+  JobUID: string;
+  ProblemId: number;
+  UserId: string;
+  Nodes: nodeSpec[];
+  Timeoutlimit: number;
+};
+
+export type nodeSpec = {
+  Alias: string;
+  Files: Filemap;
+  Envs: string[];
+  BuildCommand: string;
+  EntryCommand: string;
+};
+
+export type Filemap = {
+  [key: string]: string;
+};
+
 export async function getExercise({ params }: { params: { id: number } }) {
   const id = Number(params.id);
 

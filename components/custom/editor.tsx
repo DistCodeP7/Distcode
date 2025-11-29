@@ -4,9 +4,7 @@ import Editor, { type EditorProps, type OnMount } from "@monaco-editor/react";
 import { Save, Send } from "lucide-react";
 import type React from "react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { labToHex } from "@/utils/labToHex";
-import { FileTypeIcon } from "./Icon";
 
 type CustomEditorProps = EditorProps & {
   editorContent: string;
@@ -66,15 +64,7 @@ export default function CustomEditor({
   );
 }
 
-type Files = {
-  name: string;
-  fileType: "go" | "markdown";
-};
-
 type EditorHeaderProps = {
-  files: Files[];
-  activeFile: number;
-  onFileChange: (index: number) => void;
   onSubmit: () => void;
   onSave: () => void;
   onReset: () => void;
@@ -82,43 +72,14 @@ type EditorHeaderProps = {
 };
 
 export function EditorHeader({
-  files,
-  activeFile,
-  onFileChange,
   onSubmit,
   onSave,
   onReset,
   disabled = false,
 }: EditorHeaderProps) {
-  const visibleFiles = files;
-
   return (
     <div className="border-b bg-background flex flex-col">
       <div className="flex items-center justify-between px-2 py-1">
-        <div className="flex items-center gap-1 overflow-x-auto flex-1 pr-20">
-          {visibleFiles.map((file, idx) => {
-            const trueIndex = idx;
-            return (
-              <Button
-                key={file.name}
-                onClick={() => onFileChange(trueIndex)}
-                disabled={disabled}
-                className={cn(
-                  "flex items-center gap-1 px-2 py-1 flex-shrink-0 transition-colors truncate",
-                  trueIndex === activeFile
-                    ? "bg-secondary text-secondary-foreground"
-                    : "hover:bg-muted"
-                )}
-              >
-                <FileTypeIcon className="w-4 h-4" name={file.fileType} />
-                <span title={file.name} className="truncate max-w-[12ch]">
-                  {file.name}
-                </span>
-              </Button>
-            );
-          })}
-        </div>
-
         {/* Right side: Save / Submit / Reset */}
         <div className="flex items-center gap-2 flex-shrink-0 ml-2 relative z-10">
           <Button
