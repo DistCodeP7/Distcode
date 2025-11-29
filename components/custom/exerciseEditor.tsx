@@ -5,13 +5,11 @@ import type React from "react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import type { StreamingJobResult } from "@/app/api/stream/route";
+import type { Filemap } from "@/app/exercises/[id]/actions";
 import {
-  Filemap,
-  nodeSpec,
   rateExercise,
   resetCode,
   saveCode,
-  submitCode,
 } from "@/app/exercises/[id]/actions";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import type { FileDef } from "./problemEditorClient";
@@ -24,7 +22,7 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { useSSE } from "@/hooks/useSSE";
-import { FolderSystem } from "../folderSystem/folderSystem";
+import { FolderSystem } from "./folderSystem";
 
 type ExerciseEditorProps = {
   exerciseId: number;

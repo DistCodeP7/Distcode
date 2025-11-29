@@ -1,6 +1,4 @@
 "use client";
-
-import { useState } from "react";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
 import { Input } from "@/components/ui/input";
@@ -17,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useProblemEditor } from "@/hooks/useProblemEditor";
-import { FolderSystem } from "../folderSystem/folderSystem";
+import { FolderSystem } from "./folderSystem";
 
 export type FileDef = { name: string; fileType: "go" | "markdown" };
 
@@ -36,8 +34,6 @@ export default function ProblemEditorClient({
   initialDifficulty?: string;
   problemId?: number;
 }) {
-  const [currentFiles, setCurrentFiles] = useState<FileDef[]>([...files]);
-
   const {
     title,
     description,
@@ -51,7 +47,7 @@ export default function ProblemEditorClient({
     handleSubmit,
     handleSave,
     filesContent,
-  } = useProblemEditor(currentFiles, {
+  } = useProblemEditor(files, {
     filesContent: initialFilesContent,
     title: initialTitle,
     description: initialDescription,
@@ -118,7 +114,7 @@ export default function ProblemEditorClient({
           minSize={12}
           className="w-56 min-w-[12rem] bg-background border-r overflow-auto cursor-col-resize"
         >
-          <FolderSystem files={currentFiles} onFileChange={setActiveFile} />
+          <FolderSystem files={files} onFileChange={setActiveFile} />
         </ResizablePanel>
         <ResizableHandle withHandle />
 
@@ -134,12 +130,10 @@ export default function ProblemEditorClient({
 
           <div className="flex-1 overflow-auto min-w-0">
             <Editor
-              editorContent={filesContent[currentFiles[activeFile]?.name] || ""}
+              editorContent={filesContent[files[activeFile]?.name] || ""}
               setEditorContent={handleEditorContentChange}
               language={
-                currentFiles[activeFile]?.fileType === "markdown"
-                  ? "markdown"
-                  : "go"
+                files[activeFile]?.fileType === "markdown" ? "markdown" : "go"
               }
             />
           </div>
