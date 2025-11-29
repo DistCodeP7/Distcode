@@ -51,6 +51,7 @@ export default async function ExercisePage({
         templateCode={exercise.studentCode}
         solutionCode={exercise.solutionCode}
         testCasesCode={exercise.testCode}
+        protocalCode={exercise.protocolCode}
         savedCode={savedCode}
         userRating={userRating}
         canRate={canRate}

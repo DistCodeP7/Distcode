@@ -12,11 +12,11 @@ type payload = {
   JobUID: string;
   ProblemId: number;
   UserId: string;
-  Nodes: string[];
+  Nodes: nodeSpec[];
   Timeoutlimit: number;
 };
 
-type nodeSpec = {
+export type nodeSpec = {
   Alias: string;
   Files: Filemap;
   Envs: string[];
@@ -24,7 +24,7 @@ type nodeSpec = {
   EntryCommand: string;
 };
 
-type Filemap = {
+export type Filemap = {
   [key: string]: string;
 };
 
@@ -52,7 +52,7 @@ export async function getExercise({ params }: { params: { id: number } }) {
 }
 
 export async function submitCode(
-  content: string[],
+  content: nodeSpec[],
   { params }: { params: { id: number } }
 ) {
   const session = await getServerSession(authOptions);
@@ -66,9 +66,10 @@ export async function submitCode(
     return { error: "Invalid exercise id", status: 400 };
 
   const payload: payload = {
+    JobUID: crypto.randomUUID(),
     ProblemId: problemId,
     UserId: user.userid,
-    Code: content,
+    Nodes: content,
     Timeoutlimit: 60,
   };
 

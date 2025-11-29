@@ -6,6 +6,8 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import type { StreamingJobResult } from "@/app/api/stream/route";
 import {
+  Filemap,
+  nodeSpec,
   rateExercise,
   resetCode,
   saveCode,
@@ -28,8 +30,9 @@ type ExerciseEditorProps = {
   exerciseId: number;
   problemMarkdown: string;
   templateCode: string[];
-  solutionCode?: string;
-  testCasesCode?: string[];
+  solutionCode: string;
+  protocalCode: string;
+  testCasesCode: string[];
   savedCode?: string[] | null;
   userRating?: "up" | "down" | null;
   canRate?: boolean;
@@ -39,7 +42,9 @@ export default function ExerciseEditor({
   exerciseId,
   problemMarkdown,
   templateCode,
+  testCasesCode,
   solutionCode,
+  protocalCode,
   savedCode,
   userRating: initialUserRating = null,
   canRate: initialCanRate = false,
@@ -55,6 +60,13 @@ export default function ExerciseEditor({
       fileType: "go",
     }))
   );
+  const allOtherFiles: Filemap = {
+    ...testCasesCode.reduce((acc, code, idx) => {
+      acc[`/testcases/testcase${idx + 1}.go`] = code;
+      return acc;
+    }, {} as Filemap),
+    "/protocol/protocol.go": protocalCode,
+  };
   const [resetting, setResetting] = useState(false);
   const [userRating, setUserRating] = useState<"up" | "down" | null>(
     initialUserRating
@@ -87,7 +99,14 @@ export default function ExerciseEditor({
     clearMessages();
     connect();
     const problemContent = fileContents;
-    await submitCode(problemContent, { params: { id: exerciseId } });
+    console.log("Submitting code:", problemContent);
+
+    const allFiles: Filemap = allOtherFiles;
+    files.forEach((file, index) => {
+      allFiles[file.name] = problemContent[index];
+    });
+    console.log("Submitting code as nodes:", allFiles);
+    //await submitCode(problemContent, { params: { id: exerciseId } });
   };
 
   const onCreateFile = async (filename: string) => {
@@ -143,6 +162,17 @@ export default function ExerciseEditor({
       toast.success("Code saved successfully!");
       setCanRate(true); // once saved, enable rating if not already
     }
+  };
+
+  const appendProtoToMarkdown = (markdown: string, protoCode: string) => {
+    return `${markdown}
+
+## Protocol Definition
+
+\`\`\`go
+${protoCode}
+\`\`\`
+`;
   };
 
   const onReset = async () => {
@@ -249,7 +279,9 @@ export default function ExerciseEditor({
           {/* Content area */}
           <div className="flex-1 overflow-y-auto">
             {leftPanelView === "problem" ? (
-              <MarkdownPreview content={problemMarkdown} />
+              <MarkdownPreview
+                content={appendProtoToMarkdown(problemMarkdown, protocalCode)}
+              />
             ) : (
               <div className="h-full flex flex-col">
                 {solutionFiles.length > 1 && (
@@ -292,6 +324,7 @@ export default function ExerciseEditor({
         </div>
       </ResizablePanel>
       <ResizablePanel minSize={2} className="w-1 bg-muted/50 cursor-col-resize">
+        <ResizableHandle withHandle />
         <FolderSystem
           files={files}
           onFileChange={setActiveFile}
@@ -301,7 +334,8 @@ export default function ExerciseEditor({
       </ResizablePanel>
 
       {/* Right panel: Editor + Terminal Output */}
-      <ResizablePanel minSize={20}>
+      <ResizablePanel minSize={30}>
+        <ResizableHandle withHandle />
         <ResizablePanelGroup direction="vertical">
           <ResizablePanel defaultSize={50}>
             <EditorHeader
