@@ -4,19 +4,13 @@ import type { nodeSpec } from "@/drizzle/schema";
 export default function NewProblemPage() {
   // Only create a problem when the user saves or publishes
   // No submissionId is passed, so ProblemEditorClient will use submitProblem
-
-  const files: nodeSpec = {
-    Files: {
-      "/problem.md": "# New Problem\n\nDescribe the problem here.",
-      "/template/main.go": "// Write your template code here\n",
-      "/solution/main.go": "// Write your solution code here\n",
-      "/test/main.go": "// Write your test cases here\n",
-      "/proto/protocol.go": " // Define your protocol here\n",
-    },
-    Envs: [],
-    BuildCommand: "",
-    EntryCommand: "",
-  };
+  const files = [
+    { name: "problem.md", fileType: "markdown" as const },
+    { name: "/student/main.go", fileType: "go" as const },
+    { name: "solution.md", fileType: "markdown" as const },
+    { name: "/test/test.go", fileType: "go" as const },
+    { name: "protocol.go", fileType: "go" as const },
+  ];
 
   return (
     <ProblemEditorClient

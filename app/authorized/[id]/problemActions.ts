@@ -14,7 +14,10 @@ export type SaveProblemParams = {
   description: string;
   difficulty: number;
   problemMarkdown: string;
-  codeFolder: nodeSpec;
+  templateCode: string[];
+  solutionCode: string;
+  testCode: string[];
+  protocolCode?: string;
   isPublished?: boolean;
 };
 
@@ -34,7 +37,43 @@ export async function saveProblem(data: SaveProblemParams) {
 
   const filesObj = problemData.codeFolder.Files;
 
-  if (Object.keys(filesObj).length === 0) {
+  const dataToValidate = { ...existingProblem, ...problemData };
+  const fieldsToValidate = [
+    { value: dataToValidate.title, name: "Title" },
+    { value: dataToValidate.description, name: "Description" },
+    { value: dataToValidate.problemMarkdown, name: "Problem markdown" },
+    { value: dataToValidate.templateCode, name: "Template code" },
+    { value: dataToValidate.solutionCode, name: "Solution code" },
+    { value: dataToValidate.testCode, name: "Test code" },
+  ];
+
+  for (const field of fieldsToValidate) {
+    const isArrayField =
+      field.name.includes("Template") || field.name.includes("Test");
+    if (!field.value) {
+      return {
+        success: false,
+        error: `${field.name} is required (missing).`,
+        status: 400,
+      };
+    }
+    if (isArrayField) {
+      if (!Array.isArray(field.value) || field.value.length === 0) {
+        return {
+          success: false,
+          error: `${field.name} is required (empty).`,
+          status: 400,
+        };
+      }
+    } else if (typeof field.value === "string" && field.value.trim() === "") {
+      return {
+        success: false,
+        error: `${field.name} is required (empty).`,
+        status: 400,
+      };
+    }
+  }
+  if (dataToValidate.difficulty < 1 || dataToValidate.difficulty > 3) {
     return {
       success: false,
       error: "Code folder cannot be empty",
@@ -54,28 +93,36 @@ export async function saveProblem(data: SaveProblemParams) {
     return { success: false, error: "Protocol file is required", status: 400 };
   }
 
-  if (existingProblem) {
-    await db
-      .update(problems)
-      .set({
-        difficulty: problemData.difficulty,
-        description: problemData.description,
+  try {
+    if (id) {
+      await db
+        .update(problems)
+        .set({
+          title: problemData.title,
+          description: problemData.description,
+          difficulty: problemData.difficulty,
+          problemMarkdown: problemData.problemMarkdown,
+          studentCode: problemData.templateCode,
+          solutionCode: problemData.solutionCode,
+          testCode: problemData.testCode,
+          protocolCode:
+            problemData.protocolCode ?? existingProblem?.protocolCode ?? "",
+          isPublished,
+        })
+        .where(eq(problems.id, id));
+    } else {
+      await db.insert(problems).values({
         title: problemData.title,
+        description: problemData.description,
+        difficulty: problemData.difficulty,
         problemMarkdown: problemData.problemMarkdown,
-        codeFolder: {
-          Files: filesObj,
-          Envs: problemData.codeFolder.Envs,
-          BuildCommand: problemData.codeFolder.BuildCommand,
-          EntryCommand: problemData.codeFolder.EntryCommand,
-        },
+        studentCode: problemData.templateCode,
+        solutionCode: problemData.solutionCode,
+        testCode: problemData.testCode,
+        protocolCode: problemData.protocolCode ?? "",
+        userId: session.user.id,
         isPublished,
-      })
-      .where(eq(problems.id, existingProblem.id));
-    return { success: true, message: "Problem updated", status: 200 };
-  } else {
-    const user = await getUserById(session.user.id);
-    if (!user) {
-      return { success: false, error: "User not found", status: 404 };
+      });
     }
     await db.insert(problems).values({
       difficulty: problemData.difficulty,

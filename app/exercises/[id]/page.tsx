@@ -39,7 +39,11 @@ export default async function ExercisePage({
       <ExerciseEditor
         exerciseId={exerciseParams.id}
         problemMarkdown={exercise.problemMarkdown}
-        codeFolder={exercise.codeFolder}
+        templateCode={exercise.studentCode}
+        solutionCode={exercise.solutionCode}
+        testCasesCode={exercise.testCode}
+        protocalCode={exercise.protocolCode}
+        savedCode={savedCode}
         userRating={userRating}
         canRate={canRate}
       />

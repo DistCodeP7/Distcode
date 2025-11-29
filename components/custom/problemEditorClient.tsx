@@ -1,18 +1,6 @@
 "use client";
-
-import { Plus, X } from "lucide-react";
-import { useState } from "react";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   ResizableHandle,
@@ -28,6 +16,9 @@ import {
 } from "@/components/ui/select";
 import type { Filemap, EnvironmentVariable } from "@/drizzle/schema";
 import { useProblemEditor } from "@/hooks/useProblemEditor";
+import { FolderSystem } from "./folderSystem";
+
+export type FileDef = { name: string; fileType: "go" | "markdown" };
 
 export default function ProblemEditorClient({
   files,
@@ -50,21 +41,6 @@ export default function ProblemEditorClient({
   initialEnvs?: EnvironmentVariable[];
   problemId?: number;
 }) {
-  const [currentFiles, setCurrentFiles] = useState<string[]>(
-    Object.keys(files)
-  );
-  const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
-
-  const filesForHook: { name: string; fileType: "go" | "markdown" }[] =
-    currentFiles.map((name: string) => ({
-      name: String(name),
-      fileType: name.endsWith(".go") ? "go" : "markdown",
-    }));
-
-  const pairCount = filesForHook.filter((f) =>
-    f.name.startsWith("/template")
-  ).length;
-
   const {
     title,
     description,
@@ -78,13 +54,7 @@ export default function ProblemEditorClient({
     handleSubmit,
     handleSave,
     filesContent,
-    buildCommand,
-    entryCommand,
-    setBuildCommand,
-    setEntryCommand,
-    envs,
-    setEnvs,
-  } = useProblemEditor(filesForHook, {
+  } = useProblemEditor(files, {
     filesContent: initialFilesContent,
     title: initialTitle,
     description: initialDescription,
@@ -94,53 +64,6 @@ export default function ProblemEditorClient({
     entryCommand: initialEntryCommand,
     envs: initialEnvs,
   });
-
-  const addFilesPair = () => {
-    const next = pairCount + 1;
-    const newEntries: [string, string][] = [
-      [
-        `/template/template${next === 1 ? "" : next}.go`,
-        "// Write your template code here\n",
-      ],
-      [
-        `/solution/solution${next === 1 ? "" : next}.go`,
-        "// Write your solution code here\n",
-      ],
-    ];
-    setCurrentFiles((prev) => {
-      const entries = [...prev];
-      const index = entries.findIndex((name) => name.startsWith("/test"));
-      const insertNames = newEntries.map(([p]) => p);
-      if (index === -1) return [...entries, ...insertNames];
-      return [
-        ...entries.slice(0, index),
-        ...insertNames,
-        ...entries.slice(index),
-      ];
-    });
-  };
-
-  const removeFilesPair = () => {
-    if (pairCount <= 1) return;
-    setCurrentFiles((prev) => {
-      const entries = [...prev];
-      const toRemove = new Set<string>();
-      // Walk from the end and collect up to two matches (template + solution) and then remove them
-      for (let i = entries.length - 1; i >= 0 && toRemove.size < 2; i--) {
-        const n = entries[i];
-        if (n.includes("/template") || n.includes("/solution")) {
-          toRemove.add(n);
-        }
-      }
-      if (toRemove.size === 0) return entries;
-      return entries.filter((name) => !toRemove.has(name));
-    });
-  };
-
-  const safeActiveFile = Math.min(
-    activeFile,
-    Math.max(0, filesForHook.length - 1)
-  );
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden">
@@ -264,7 +187,12 @@ export default function ProblemEditorClient({
             }
           />
         </ResizablePanel>
-
+        <ResizablePanel
+          minSize={12}
+          className="w-56 min-w-[12rem] bg-background border-r overflow-auto cursor-col-resize"
+        >
+          <FolderSystem files={files} onFileChange={setActiveFile} />
+        </ResizablePanel>
         <ResizableHandle withHandle />
 
         <ResizablePanel
@@ -272,95 +200,17 @@ export default function ProblemEditorClient({
           className="flex-1 flex flex-col min-w-0 overflow-hidden"
         >
           <EditorHeader
-            files={filesForHook.map((f) => ({
-              ...f,
-            }))}
-            activeFile={safeActiveFile}
-            onFileChange={setActiveFile}
             onSubmit={handleSubmit}
             onSave={handleSave}
             onReset={() => {}}
           />
 
-          <div className="flex-shrink-0 flex items-center justify-between gap-2 p-2 border-b bg-muted/30 flex-wrap">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-medium text-muted-foreground">
-                Go Files:
-              </span>
-              <Button
-                onClick={addFilesPair}
-                size="sm"
-                variant="outline"
-                className="flex items-center gap-1 px-2 py-1"
-              >
-                <Plus className="w-4 h-4" /> Add new file pair
-              </Button>
-
-              {pairCount > 1 && (
-                <>
-                  <Button
-                    onClick={() => setIsRemoveDialogOpen(true)}
-                    size="sm"
-                    variant="outline"
-                    className="flex items-center gap-1 px-2 py-1"
-                  >
-                    <X className="w-4 h-4" /> Remove latest file pair
-                  </Button>
-                  <Dialog
-                    open={isRemoveDialogOpen}
-                    onOpenChange={setIsRemoveDialogOpen}
-                  >
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Remove file pair</DialogTitle>
-                        <DialogDescription>
-                          Are you sure you want to remove the last
-                          template/solution pair? This cannot be undone.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <DialogFooter>
-                        <Button
-                          variant="outline"
-                          onClick={() => setIsRemoveDialogOpen(false)}
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          onClick={() => {
-                            removeFilesPair();
-                            setIsRemoveDialogOpen(false);
-                          }}
-                        >
-                          Remove
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </>
-              )}
-            </div>
-
-            <div className="text-xs text-muted-foreground whitespace-nowrap">
-              {pairCount} file pair{pairCount !== 1 ? "s" : ""}{" "}
-              <span className="ml-1 text-primary">
-                (Template + Solution each)
-              </span>
-            </div>
-          </div>
-
           <div className="flex-1 overflow-auto min-w-0">
             <Editor
-              editorContent={
-                (filesContent as Record<string, string>)[
-                  filesForHook[safeActiveFile]?.name || ""
-                ] || ""
-              }
+              editorContent={filesContent[files[activeFile]?.name] || ""}
               setEditorContent={handleEditorContentChange}
               language={
-                filesForHook[safeActiveFile]?.fileType === "go"
-                  ? "go"
-                  : "markdown"
+                files[activeFile]?.fileType === "markdown" ? "markdown" : "go"
               }
             />
           </div>

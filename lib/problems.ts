@@ -18,7 +18,10 @@ export async function submitProblem(
   description: string,
   difficulty: number,
   problemMarkdown: string,
-  codeFolder: nodeSpec,
+  templateCode: string[],
+  solutionCode: string,
+  protocolCode: string,
+  testCode: string[],
   isPublished = true
 ) {
   const result = await db
@@ -29,7 +32,10 @@ export async function submitProblem(
       description,
       difficulty,
       problemMarkdown,
-      codeFolder,
+      templateCode,
+      solutionCode,
+      protocolCode,
+      testCode,
       isPublished,
     })
     .returning();
