@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
 import { Input } from "@/components/ui/input";
@@ -37,7 +37,6 @@ export default function ProblemEditorClient({
   problemId?: number;
 }) {
   const [currentFiles, setCurrentFiles] = useState<FileDef[]>([...files]);
-  const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
 
   const {
     title,
@@ -59,11 +58,6 @@ export default function ProblemEditorClient({
     difficulty: initialDifficulty,
     problemId,
   });
-
-  useEffect(() => {
-    if (activeFile >= currentFiles.length)
-      setActiveFile(Math.max(0, currentFiles.length - 1));
-  }, [currentFiles, activeFile, setActiveFile]);
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden">
@@ -121,8 +115,8 @@ export default function ProblemEditorClient({
           <MarkdownPreview content={filesContent["problem.md"] || ""} />
         </ResizablePanel>
         <ResizablePanel
-          minSize={2}
-          className="w-1 bg-muted/50 cursor-col-resize"
+          minSize={12}
+          className="w-56 min-w-[12rem] bg-background border-r overflow-auto cursor-col-resize"
         >
           <FolderSystem files={currentFiles} onFileChange={setActiveFile} />
         </ResizablePanel>

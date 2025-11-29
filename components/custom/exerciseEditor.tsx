@@ -12,6 +12,7 @@ import {
   submitCode,
 } from "@/app/exercises/[id]/actions";
 import Editor, { EditorHeader } from "@/components/custom/editor";
+import type { FileDef } from "./problemEditorClient";
 import MarkdownPreview from "@/components/custom/markdown-preview";
 import { TerminalOutput } from "@/components/custom/TerminalOutput";
 import { Button } from "@/components/ui/button";
@@ -47,6 +48,13 @@ export default function ExerciseEditor({
   const [fileContents, setFileContents] = useState<string[]>(
     savedCode ?? templateCode
   );
+  // Maintain file metadata (name + type) separately so created files keep their names
+  const [files, setFiles] = useState<FileDef[]>(() =>
+    fileContents.map((_, index) => ({
+      name: index === 0 ? "/student/main.go" : `/student/file${index + 1}.go`,
+      fileType: "go",
+    }))
+  );
   const [resetting, setResetting] = useState(false);
   const [userRating, setUserRating] = useState<"up" | "down" | null>(
     initialUserRating
@@ -54,11 +62,7 @@ export default function ExerciseEditor({
   const [canRate, setCanRate] = useState(initialCanRate);
   const [ratingLoading, startRatingTransition] = useTransition();
 
-  const files = fileContents.map((content, index) => ({
-    name: index === 0 ? "main.go" : `file${index + 1}.go`,
-    content,
-    fileType: "go" as const,
-  }));
+  // (files state is defined above)
 
   const [leftPanelView, setLeftPanelView] = useState<"problem" | "solution">(
     "problem"
@@ -84,6 +88,45 @@ export default function ExerciseEditor({
     connect();
     const problemContent = fileContents;
     await submitCode(problemContent, { params: { id: exerciseId } });
+  };
+
+  const onCreateFile = async (filename: string) => {
+    const cleanFilename = filename.split(".").pop() || filename;
+    const newFile: FileDef = {
+      name: `/student/${cleanFilename}.go`,
+      fileType: "go",
+    };
+    setFileContents((fcPrev) => {
+      const newIndex = fcPrev.length;
+      const defaultContent = `// New file: ${filename}`;
+      setFiles((fPrev) => [...fPrev, newFile]);
+      setActiveFile(newIndex);
+      return [...fcPrev, defaultContent];
+    });
+  };
+
+  const onDeleteFile = async (index: number) => {
+    if (files.length <= 1) {
+      toast.error("Cannot delete the last remaining file.");
+      return;
+    }
+    if (files[index].name === "/student/main.go") {
+      toast.error("Cannot delete the main.go file.");
+      return;
+    }
+
+    setFiles((fPrev) => fPrev.filter((_, i) => i !== index));
+    setFileContents((fcPrev) => fcPrev.filter((_, i) => i !== index));
+
+    // Adjust active file index if necessary
+    setActiveFile((prevActive) => {
+      if (prevActive === index) {
+        return Math.max(0, prevActive - 1);
+      } else if (prevActive > index) {
+        return prevActive - 1;
+      }
+      return prevActive;
+    });
   };
 
   const onSave = async () => {
@@ -113,6 +156,13 @@ export default function ExerciseEditor({
       const result = await resetCode({ params: { id: exerciseId } });
       if (result.success) {
         setFileContents([...templateCode]);
+        // Reset file metadata to match template files
+        setFiles(
+          templateCode.map((_, index) => ({
+            name: index === 0 ? "main.go" : `file${index + 1}.go`,
+            fileType: "go",
+          }))
+        );
         toast.success("Code reset successfully!", {
           description: "Template restored and saved code cleared.",
         });
@@ -241,10 +291,13 @@ export default function ExerciseEditor({
           </div>
         </div>
       </ResizablePanel>
-
-      <ResizableHandle withHandle />
-      <ResizablePanel minSize={1} className="w-1 bg-muted/50 cursor-col-resize">
-        <FolderSystem files={files} onFileChange={setActiveFile} />
+      <ResizablePanel minSize={2} className="w-1 bg-muted/50 cursor-col-resize">
+        <FolderSystem
+          files={files}
+          onFileChange={setActiveFile}
+          onCreateFile={onCreateFile}
+          onDeleteFile={onDeleteFile}
+        />
       </ResizablePanel>
 
       {/* Right panel: Editor + Terminal Output */}
@@ -287,7 +340,7 @@ export default function ExerciseEditor({
             <Editor
               editorContent={fileContents[activeFile]}
               setEditorContent={setEditorContent}
-              language={files[activeFile].fileType}
+              language={files[activeFile]?.fileType}
               options={{
                 readOnly: resetting,
                 minimap: { enabled: false },

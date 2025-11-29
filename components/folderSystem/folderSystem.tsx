@@ -1,7 +1,9 @@
+import React, { useState } from "react";
 import { FileTypeIcon } from "../custom/Icon";
 import type { FileDef } from "../custom/problemEditorClient";
 import { Button } from "../ui/button";
 import { PlusIcon, TrashIcon } from "lucide-react";
+import FileAlertDialog from "../custom/fileAlertDialog";
 
 interface FileTreeNode {
   name: string;
@@ -13,8 +15,10 @@ interface FileTreeNode {
 
 // Helper to sort tree nodes consistently
 const sortNodes = (a: FileTreeNode, b: FileTreeNode) => {
-  if (a.type === "folder" && b.type === "file") return 1;
-  if (a.type === "file" && b.type === "folder") return -1;
+  // Folders before files
+  if (a.type === "folder" && b.type === "file") return -1;
+  if (a.type === "file" && b.type === "folder") return 1;
+  // Alphabetical sort
   return a.name.localeCompare(b.name);
 };
 
@@ -35,7 +39,7 @@ function buildFileTree(files: FileDef[]): FileTreeNode {
       currentPathParts.push(part);
       const partFullPath = currentPathParts.join("/");
 
-      current.children = current.children || {}; // Ensure children object exists
+      current.children = current.children || {};
 
       if (!current.children[part]) {
         const isFile = partIndex === parts.length - 1;
@@ -58,6 +62,7 @@ interface FileTreeItemProps {
   activeFileIndex?: number;
   onFileChange: (index: number) => void;
   onDeleteFile?: (index: number) => void;
+  onCreateFile?: (filename: string, parentPath: string) => void;
 }
 
 function FileTreeItem({
@@ -66,55 +71,125 @@ function FileTreeItem({
   activeFileIndex,
   onFileChange,
   onDeleteFile,
+  onCreateFile,
 }: FileTreeItemProps) {
-  const paddingLeft = depth * 12;
-  const isFile = node.type === "file";
+  const paddingLeft = depth * 8;
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
-  return isFile ? (
-    <div className="flex items-center group">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() =>
-          node.fileIndex !== undefined && onFileChange(node.fileIndex)
-        }
-        className={`w-full justify-start text-left gap-2 text-sm h-8 rounded-none ${
-          node.fileIndex === activeFileIndex
-            ? "bg-accent text-accent-foreground"
-            : ""
-        }`}
-        style={{ paddingLeft: `${paddingLeft + 4}px` }}
-      >
-        <FileTypeIcon name={node.name.endsWith(".go") ? "go" : "markdown"} />
-        <span className="truncate flex-1">{node.name}</span>
-      </Button>
-      {onDeleteFile && node.fileIndex !== undefined && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() =>
-            node.fileIndex !== undefined && onDeleteFile(node.fileIndex)
-          }
-          className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100"
-          title={`Delete ${node.name}`}
-        >
-          <TrashIcon className="h-4 w-4" />
-        </Button>
-      )}
-    </div>
-  ) : (
-    <div className="w-full">
-      <div className="flex flex-col">
-        {depth > 0 && (
-          <div
-            className="flex items-center h-8 font-semibold text-sm"
-            style={{ paddingLeft: "4px" }}
-          >
-            📂 {node.name}/
-          </div>
-        )}
+  // Do not render the root folder's own display, only its children
+  if (node.name === "" && node.type === "folder") {
+    return (
+      <>
         {node.children &&
           Object.values(node.children)
+            .sort(sortNodes)
+            .map((childNode) => (
+              <FileTreeItem
+                key={childNode.fullPath}
+                node={childNode}
+                depth={depth} // Start depth from 0 for top-level items
+                activeFileIndex={activeFileIndex}
+                onFileChange={onFileChange}
+                onDeleteFile={onDeleteFile}
+                onCreateFile={onCreateFile}
+              />
+            ))}
+      </>
+    );
+  }
+
+  const isFile = node.type === "file";
+
+  return (
+    <div className="w-full">
+      <div className="flex items-center group w-full min-w-0">
+        {isFile ? (
+          <>
+            <div className="flex-1 min-w-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  node.fileIndex !== undefined && onFileChange(node.fileIndex)
+                }
+                className={`w-full justify-start text-left gap-2 text-sm h-8 rounded-none ${
+                  node.fileIndex === activeFileIndex
+                    ? "bg-accent text-accent-foreground"
+                    : ""
+                }`}
+                style={{ paddingLeft: `${paddingLeft}px` }}
+              >
+                <FileTypeIcon
+                  name={node.name.endsWith(".go") ? "go" : "markdown"}
+                />
+                <span className="truncate flex-1">{node.name}</span>
+              </Button>
+            </div>
+            {onDeleteFile && node.fileIndex !== undefined && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setDeleteDialogOpen(true)}
+                  className="h-8 w-8 text-destructive flex-shrink-0"
+                  title={`Delete ${node.name}`}
+                >
+                  <TrashIcon className="h-4 w-4" />
+                </Button>
+                <FileAlertDialog
+                  open={deleteDialogOpen}
+                  onOpenChange={setDeleteDialogOpen}
+                  onDelete={() => {
+                    if (node.fileIndex !== undefined) {
+                      onDeleteFile(node.fileIndex);
+                      setDeleteDialogOpen(false);
+                      // Visual clean-up, actual state managed by parent
+                      node.fileIndex = undefined;
+                    }
+                  }}
+                  defaultName={node.name}
+                />
+              </>
+            )}
+          </>
+        ) : (
+          // Folder display
+          <div
+            className="flex items-center h-8 font-semibold text-sm w-full"
+            style={{ paddingLeft: `${paddingLeft}px` }}
+          >
+            <span className="flex items-center">
+              📂 {node.name}/
+              {onCreateFile && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setCreateDialogOpen(true)}
+                    title="Create New File/Folder"
+                    className="ml-1"
+                  >
+                    <PlusIcon className="h-4 w-4" />
+                  </Button>
+                  <FileAlertDialog
+                    open={createDialogOpen}
+                    onOpenChange={setCreateDialogOpen}
+                    onCreate={(filename) =>
+                      onCreateFile(filename, node.fullPath)
+                    }
+                  />
+                </>
+              )}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Render children for folders (including the root) */}
+      {!isFile && node.children && (
+        <div className="flex flex-col">
+          {Object.values(node.children)
             .sort(sortNodes)
             .map((childNode) => (
               <FileTreeItem
@@ -124,9 +199,11 @@ function FileTreeItem({
                 activeFileIndex={activeFileIndex}
                 onFileChange={onFileChange}
                 onDeleteFile={onDeleteFile}
+                onCreateFile={onCreateFile}
               />
             ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -134,7 +211,7 @@ function FileTreeItem({
 interface FolderSystemProps {
   files: FileDef[];
   onFileChange: (index: number) => void;
-  onCreateFile?: () => void;
+  onCreateFile?: (filename: string, parentPath: string) => void;
   onDeleteFile?: (index: number) => void;
   activeFileIndex?: number;
 }
@@ -147,24 +224,14 @@ export function FolderSystem({
   activeFileIndex,
 }: FolderSystemProps) {
   const fileTree = buildFileTree(files);
+
+  // The root node itself is not rendered, only its children are directly
   const rootChildren = fileTree.children
     ? Object.values(fileTree.children).sort(sortNodes)
     : [];
 
   return (
-    <div className="flex flex-col h-full w-full">
-      <div className="flex items-center gap-2 p-2 border-b">
-        {onCreateFile && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onCreateFile}
-            title="Create New File/Folder"
-          >
-            <PlusIcon className="h-4 w-4" />
-          </Button>
-        )}
-      </div>
+    <div className="flex flex-col h-full w-full max-w-[50vw] min-w-[300px]">
       <div className="flex-1 overflow-y-auto py-2">
         {rootChildren.length === 0 ? (
           <p className="text-center text-muted-foreground text-sm pt-4">
@@ -175,10 +242,11 @@ export function FolderSystem({
             <FileTreeItem
               key={node.fullPath}
               node={node}
-              depth={0}
+              depth={0} // Initial depth for top-level files/folders
               activeFileIndex={activeFileIndex}
               onFileChange={onFileChange}
               onDeleteFile={onDeleteFile}
+              onCreateFile={onCreateFile}
             />
           ))
         )}

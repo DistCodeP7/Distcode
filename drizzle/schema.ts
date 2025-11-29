@@ -41,7 +41,7 @@ export const problems = pgTable(
     description: text("description").notNull(),
     difficulty: integer("difficulty").notNull(),
     problemMarkdown: text("problem_markdown").notNull(),
-    templateCode: json("template_code").$type<string[]>().notNull(),
+    studentCode: json("student_code").$type<string[]>().notNull(),
     solutionCode: text("solution_code").notNull(),
     protocolCode: text("protocol_code").notNull(),
     testCode: json("test_code").$type<string[]>().notNull(),

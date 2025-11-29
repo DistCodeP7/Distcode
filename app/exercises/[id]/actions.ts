@@ -144,7 +144,7 @@ export async function loadSavedCode({ params }: { params: { id: number } }) {
     return { error: "Submission not found.", status: 404 };
   }
 
-  return { success: true, code: problem.templateCode };
+  return { success: true, code: problem.studentCode };
 }
 
 export async function loadUserRating({ params }: { params: { id: number } }) {

@@ -98,7 +98,7 @@ export async function saveProblem(data: SaveProblemParams) {
           description: problemData.description,
           difficulty: problemData.difficulty,
           problemMarkdown: problemData.problemMarkdown,
-          templateCode: problemData.templateCode,
+          studentCode: problemData.templateCode,
           solutionCode: problemData.solutionCode,
           testCode: problemData.testCode,
           protocolCode:
@@ -112,7 +112,7 @@ export async function saveProblem(data: SaveProblemParams) {
         description: problemData.description,
         difficulty: problemData.difficulty,
         problemMarkdown: problemData.problemMarkdown,
-        templateCode: problemData.templateCode,
+        studentCode: problemData.templateCode,
         solutionCode: problemData.solutionCode,
         testCode: problemData.testCode,
         protocolCode: problemData.protocolCode ?? "",

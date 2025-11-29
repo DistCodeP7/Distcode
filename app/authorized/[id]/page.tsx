@@ -31,12 +31,12 @@ export default async function EditProblemPage({
 
   const files = [
     { name: "problem.md", fileType: "markdown" as const },
-    ...makeFiles("template", exercise.templateCode),
+    ...makeFiles("/student/main.go", exercise.studentCode),
     // single solution file
     ...(exercise.solutionCode
       ? [{ name: "solution.go", fileType: "go" as const }]
       : []),
-    ...makeFiles("test", exercise.testCode || []),
+    ...makeFiles("/test/test.go", exercise.testCode || []),
   ];
 
   const initialFilesContent: Record<string, string> = {
@@ -53,10 +53,18 @@ export default async function EditProblemPage({
     });
   }
 
-  assignFilesContent("template", exercise.templateCode, initialFilesContent);
+  assignFilesContent(
+    "/student/main.go",
+    exercise.studentCode,
+    initialFilesContent
+  );
   if (exercise.solutionCode)
     initialFilesContent["solution.go"] = exercise.solutionCode;
-  assignFilesContent("test", exercise.testCode || [], initialFilesContent);
+  assignFilesContent(
+    "/test/test.go",
+    exercise.testCode || [],
+    initialFilesContent
+  );
 
   return (
     <ProblemEditorClient
