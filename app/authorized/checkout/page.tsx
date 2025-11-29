@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import * as motion from "motion/react-client";
 import {
   Plus,
@@ -71,6 +71,7 @@ type SubmissionConfig = {
 };
 
 type FormState = {
+  step: number;
   title: string;
   description: string;
   difficulty: Difficulty | "";
@@ -78,37 +79,50 @@ type FormState = {
   submission: SubmissionConfig;
 };
 
+const initialFormState: FormState = {
+  step: 1,
+  title: "",
+  description: "",
+  difficulty: "",
+  testContainer: {
+    alias: "test-runner",
+    testFiles: [],
+    buildCommand: "npm run build",
+    entryCommand: "npm test",
+    envs: [{ key: "TEST_MODE", value: "true" }],
+  },
+  submission: {
+    buildCommand: "npm run build",
+    entryCommand: "npm start",
+    testFiles: [],
+    replicas: 1,
+    globalEnvs: [{ key: "PORT", value: "3000" }],
+    replicaConfigs: {
+      0: { alias: "user-service-1", envs: [] },
+    },
+  },
+};
+
 // --- Main Component ---
 export default function CreateChallenge() {
-  const [step, setStep] = useState(1);
-  const [form, setForm] = useState<FormState>({
-    title: "",
-    description: "",
-    difficulty: "",
-    testContainer: {
-      alias: "test-runner",
-      testFiles: [],
-      buildCommand: "npm run build",
-      entryCommand: "npm test",
-      envs: [{ key: "TEST_MODE", value: "true" }],
-    },
-    submission: {
-      buildCommand: "npm run build",
-      entryCommand: "npm start",
-      testFiles: [],
-      replicas: 1,
-      globalEnvs: [{ key: "PORT", value: "3000" }],
-      replicaConfigs: {
-        0: { alias: "user-service-1", envs: [] },
-      },
-    },
-  });
+  const [form, setForm] = useState<FormState>(initialFormState);
+
+  useLayoutEffect(() => {
+    const saved = localStorage.getItem("challengeForm");
+    setForm(saved ? JSON.parse(saved) : initialFormState);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("challengeForm", JSON.stringify(form));
+  }, [form]);
 
   const setCurrentStep = (step: number) => {
-    setStep(step);
+    setForm((prev) => ({ ...prev, step }));
   };
-  const nextStep = () => setStep((prev) => Math.min(prev + 1, 4));
-  const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
+  const nextStep = () =>
+    setForm((prev) => ({ ...prev, step: Math.min(prev.step + 1, 4) }));
+  const prevStep = () =>
+    setForm((prev) => ({ ...prev, step: Math.max(prev.step - 1, 1) }));
 
   // --- Updaters ---
   const updateDetails = (
@@ -140,30 +154,30 @@ export default function CreateChallenge() {
         <div className="absolute inset-0 -z-10 overflow-hidden">
           <NeonLines count={80} />
         </div>
-        <Header step={step} setCurrentStep={setCurrentStep} />
+        <Header step={form.step} setCurrentStep={setCurrentStep} />
 
         <Card className="min-h-[600px] flex flex-col ">
           <CardContent className="flex-1 p-0">
-            {step === 1 && (
+            {form.step === 1 && (
               <StepOneDetails form={form} updateField={updateDetails} />
             )}
-            {step === 2 && (
+            {form.step === 2 && (
               <StepTwoTestEnv
                 config={form.testContainer}
                 update={updateTestConfig}
               />
             )}
-            {step === 3 && (
+            {form.step === 3 && (
               <StepThreeSubmission
                 config={form.submission}
                 update={updateSubmission}
               />
             )}
-            {step === 4 && <StepFourSummary form={form} />}
+            {form.step === 4 && <StepFourSummary form={form} />}
           </CardContent>
 
           <FooterNav
-            step={step}
+            step={form.step}
             onNext={nextStep}
             onPrev={prevStep}
             onSubmit={() => console.log("Final Config:", form)}
@@ -510,24 +524,45 @@ const StepThreeSubmission = ({
     value: SubmissionConfig[keyof SubmissionConfig]
   ) => void;
 }) => {
-  const replicaConfigs = Array.from({ length: config.replicas }).map((_, i) => {
-    return (
-      config.replicaConfigs[i] || { alias: `user-service-${i + 1}`, envs: [] }
-    );
-  });
-
+  // Update a specific replica
   const updateReplica = (
     index: number,
     field: keyof ReplicaConfig,
-    value: ReplicaConfig[keyof ReplicaConfig]
+    value: any
   ) => {
-    const current = replicaConfigs[index];
+    const current = config.replicaConfigs[index] || {
+      alias: `user-service-${index + 1}`,
+      envs: [],
+    };
     update("replicaConfigs", {
       ...config.replicaConfigs,
       [index]: { ...current, [field]: value },
     });
   };
 
+  // Handle changing the number of replicas
+  const setReplicaCount = (newCount: number) => {
+    const newReplicaConfigs: Record<number, ReplicaConfig> = {
+      ...config.replicaConfigs,
+    };
+
+    // Add missing replicas
+    for (let i = 0; i < newCount; i++) {
+      if (!newReplicaConfigs[i]) {
+        newReplicaConfigs[i] = { alias: `user-service-${i + 1}`, envs: [] };
+      }
+    }
+
+    // Remove excess replicas
+    Object.keys(newReplicaConfigs).forEach((key) => {
+      if (Number(key) >= newCount) delete newReplicaConfigs[Number(key)];
+    });
+
+    update("replicas", newCount);
+    update("replicaConfigs", newReplicaConfigs);
+  };
+
+  // Toggle test files for submission
   const toggleFile = (file: string) => {
     const current = config.testFiles;
     if (current.includes(file))
@@ -544,11 +579,9 @@ const StepThreeSubmission = ({
       animate={{ opacity: 1, x: 0 }}
       className="p-8 space-y-8"
     >
-      {/* Top Section: Left = Commands + Env, Right = Files */}
+      {/* Submission Commands + Env */}
       <div className="grid md:grid-cols-2 gap-8">
-        {/* Left Side: Commands + Env */}
         <div className="space-y-6">
-          {/* Commands */}
           <CardHeader className="px-0 pt-0">
             <CardTitle className="flex gap-2">
               <Cpu className="text-primary" size={20} />
@@ -561,37 +594,24 @@ const StepThreeSubmission = ({
           <CardContent className="space-y-4 px-0">
             <div className="grid gap-2">
               <Label htmlFor="submissionBuildCommand">Build Command</Label>
-              <div className="relative">
-                <Terminal
-                  className="absolute left-3 top-3 text-muted-foreground"
-                  size={14}
-                />
-                <Input
-                  id="submissionBuildCommand"
-                  className="pl-9 font-mono text-sm"
-                  value={config.buildCommand}
-                  onChange={(e) => update("buildCommand", e.target.value)}
-                />
-              </div>
+              <Input
+                id="submissionBuildCommand"
+                className="pl-3 font-mono text-sm"
+                value={config.buildCommand}
+                onChange={(e) => update("buildCommand", e.target.value)}
+              />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="submissionEntryCommand">Entry Command</Label>
-              <div className="relative">
-                <Terminal
-                  className="absolute left-3 top-3 text-muted-foreground"
-                  size={14}
-                />
-                <Input
-                  id="submissionEntryCommand"
-                  className="pl-9 font-mono text-sm"
-                  value={config.entryCommand}
-                  onChange={(e) => update("entryCommand", e.target.value)}
-                />
-              </div>
+              <Input
+                id="submissionEntryCommand"
+                className="pl-3 font-mono text-sm"
+                value={config.entryCommand}
+                onChange={(e) => update("entryCommand", e.target.value)}
+              />
             </div>
           </CardContent>
 
-          {/* Environment Variables */}
           <Card>
             <CardHeader>
               <CardTitle className="text-sm">
@@ -604,11 +624,10 @@ const StepThreeSubmission = ({
                 onChange={(envs) => update("globalEnvs", envs)}
               />
             </CardContent>
-            <CardFooter />
           </Card>
         </div>
 
-        {/* Right Side: Files */}
+        {/* Files */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm">
@@ -631,24 +650,21 @@ const StepThreeSubmission = ({
                   key={file}
                   type="button"
                   onClick={() => toggleFile(file)}
-                  className={`flex items-center justify-between p-3 w-full text-left cursor-pointer text-sm transition-colors border-0 bg-transparent rounded-none ${
+                  className={`flex items-center justify-between p-3 w-full text-left text-sm transition-colors ${
                     config.testFiles.includes(file)
                       ? "bg-primary/5"
                       : "hover:bg-secondary/40"
                   }`}
                 >
-                  <span className="font-mono text-foreground ml-4">{file}</span>
-                  <div className="flex flex-row gap-4 mr-4">
-                    <SearchCode size={20} />
-                    {config.testFiles.includes(file) ? (
-                      <CheckCircle2 size={20} className="text-primary" />
-                    ) : (
-                      <CheckCircle2
-                        size={20}
-                        className="text-muted-foreground"
-                      />
-                    )}
-                  </div>
+                  <span className="font-mono ml-4">{file}</span>
+                  <CheckCircle2
+                    size={20}
+                    className={
+                      config.testFiles.includes(file)
+                        ? "text-primary"
+                        : "text-muted-foreground"
+                    }
+                  />
                 </button>
               ))}
             </div>
@@ -680,7 +696,7 @@ const StepThreeSubmission = ({
                 min={1}
                 max={5}
                 step={1}
-                onValueChange={(val) => update("replicas", val[0])}
+                onValueChange={(val) => setReplicaCount(val[0])}
                 className="w-32"
               />
             </div>
@@ -689,52 +705,44 @@ const StepThreeSubmission = ({
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: config.replicas }).map((_, i) => {
-            const replicaData = config.replicaConfigs[i] || {
+            const rep = config.replicaConfigs[i] || {
               alias: `user-service-${i + 1}`,
               envs: [],
             };
             return (
               <Card
-                key={replicaData.alias}
+                key={i}
                 className="hover:border-primary/50 transition-colors"
               >
                 <CardHeader>
-                  <div className="flex items-center gap-4">
-                    <Box size={20} className="text-muted-foreground" />
-                    <span className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                      Replica {i + 1}
-                    </span>
-                  </div>
+                  <CardTitle className="text-sm">
+                    <div className="flex items-center gap-2">
+                      <Box size={20} className="text-muted-foreground" />
+                      <p className="font-bold">{rep.alias}</p>
+                    </div>
+                  </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-1.5">
+                <CardContent>
+                  <div className="space-y-2">
                     <Label className="text-xs text-muted-foreground">
                       Container Alias
                     </Label>
-                    <div className="relative">
-                      <Globe
-                        className="absolute left-2.5 top-2.5 text-muted-foreground"
-                        size={12}
-                      />
-                      <Input
-                        value={replicaData.alias}
-                        onChange={(e) =>
-                          updateReplica(i, "alias", e.target.value)
-                        }
-                        className="h-8 text-xs pl-7 font-mono"
-                        placeholder="alias"
-                      />
-                    </div>
+                    <Input
+                      value={rep.alias}
+                      onChange={(e) =>
+                        updateReplica(i, "alias", e.target.value)
+                      }
+                      className="h-8 text-xs font-mono"
+                    />
                   </div>
-
                   <div className="space-y-2">
                     <Label className="text-xs text-muted-foreground">
                       Instance Environment Variables
                     </Label>
                     <EnvList
-                      compact
-                      envs={replicaData.envs}
+                      envs={rep.envs}
                       onChange={(envs) => updateReplica(i, "envs", envs)}
+                      compact
                     />
                   </div>
                 </CardContent>
