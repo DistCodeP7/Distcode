@@ -36,10 +36,13 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import NeonLines from "@/components/custom/NeonLine";
+import { Separator } from "@/components/ui/separator";
 
 // --- Types ---
 type Env = { key: string; value: string };
@@ -59,6 +62,7 @@ type ReplicaConfig = {
 };
 
 type SubmissionConfig = {
+  testFiles: string[];
   buildCommand: string;
   entryCommand: string;
   globalEnvs: Env[];
@@ -91,6 +95,7 @@ export default function CreateChallenge() {
     submission: {
       buildCommand: "npm run build",
       entryCommand: "npm start",
+      testFiles: [],
       replicas: 1,
       globalEnvs: [{ key: "PORT", value: "3000" }],
       replicaConfigs: {
@@ -132,6 +137,9 @@ export default function CreateChallenge() {
   return (
     <div className="min-h-screen bg-secondary/20 p-6 md:p-12 flex justify-center items-start">
       <div className="w-full max-w-5xl ">
+        <div className="absolute inset-0 -z-10 overflow-hidden">
+          <NeonLines count={80} />
+        </div>
         <Header step={step} setCurrentStep={setCurrentStep} />
 
         <Card className="min-h-[600px] flex flex-col ">
@@ -432,7 +440,7 @@ const StepTwoTestEnv = ({
         </div>
 
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader>
             <CardTitle className="text-sm">Environment Variables</CardTitle>
           </CardHeader>
           <CardContent>
@@ -441,6 +449,7 @@ const StepTwoTestEnv = ({
               onChange={(envs) => update("envs", envs)}
             />
           </CardContent>
+          <CardFooter />
         </Card>
       </div>
 
@@ -455,8 +464,8 @@ const StepTwoTestEnv = ({
             Selected files will be mounted into the test container
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="border rounded-md divide-y bg-card">
+        <CardContent className="p-0 mt-0">
+          <div className="rounded-md divide-y ">
             {[
               "test_suite.py",
               "validate_api.js",
@@ -473,8 +482,8 @@ const StepTwoTestEnv = ({
                     : "hover:bg-secondary/40"
                 }`}
               >
-                <span className="font-mono text-foreground">{file}</span>
-                <div className="flex flex-row gap-4">
+                <span className="font-mono text-foreground ml-4">{file}</span>
+                <div className="flex flex-row gap-4 mr-4">
                   <SearchCode size={20} />
                   {config.testFiles.includes(file) ? (
                     <CheckCircle2 size={20} className="text-primary" />
@@ -491,7 +500,6 @@ const StepTwoTestEnv = ({
   );
 };
 
-// 5. Step 3: Submission Config
 const StepThreeSubmission = ({
   config,
   update,
@@ -502,32 +510,32 @@ const StepThreeSubmission = ({
     value: SubmissionConfig[keyof SubmissionConfig]
   ) => void;
 }) => {
-  // Helper to ensure each replica has a config entry
-  useEffect(() => {
-    const newConfigs = { ...config.replicaConfigs };
-    let hasChanges = false;
-    for (let i = 0; i < config.replicas; i++) {
-      if (!newConfigs[i]) {
-        newConfigs[i] = {
-          alias: `user-service-${i + 1}`,
-          envs: [],
-        };
-        hasChanges = true;
-      }
-    }
-    if (hasChanges) update("replicaConfigs", newConfigs);
-  }, [config.replicas, config.replicaConfigs, update]);
+  const replicaConfigs = Array.from({ length: config.replicas }).map((_, i) => {
+    return (
+      config.replicaConfigs[i] || { alias: `user-service-${i + 1}`, envs: [] }
+    );
+  });
 
   const updateReplica = (
     index: number,
     field: keyof ReplicaConfig,
     value: ReplicaConfig[keyof ReplicaConfig]
   ) => {
-    const current = config.replicaConfigs[index] || { alias: "", envs: [] };
+    const current = replicaConfigs[index];
     update("replicaConfigs", {
       ...config.replicaConfigs,
       [index]: { ...current, [field]: value },
     });
+  };
+
+  const toggleFile = (file: string) => {
+    const current = config.testFiles;
+    if (current.includes(file))
+      update(
+        "testFiles",
+        current.filter((f) => f !== file)
+      );
+    else update("testFiles", [...current, file]);
   };
 
   return (
@@ -536,11 +544,13 @@ const StepThreeSubmission = ({
       animate={{ opacity: 1, x: 0 }}
       className="p-8 space-y-8"
     >
-      {/* Top Config */}
+      {/* Top Section: Left = Commands + Env, Right = Files */}
       <div className="grid md:grid-cols-2 gap-8">
+        {/* Left Side: Commands + Env */}
         <div className="space-y-6">
+          {/* Commands */}
           <CardHeader className="px-0 pt-0">
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex gap-2">
               <Cpu className="text-primary" size={20} />
               User Submission
             </CardTitle>
@@ -548,8 +558,7 @@ const StepThreeSubmission = ({
               Configuration for the container running the user's code.
             </CardDescription>
           </CardHeader>
-
-          <div className="space-y-4">
+          <CardContent className="space-y-4 px-0">
             <div className="grid gap-2">
               <Label htmlFor="submissionBuildCommand">Build Command</Label>
               <div className="relative">
@@ -580,30 +589,74 @@ const StepThreeSubmission = ({
                 />
               </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex justify-between items-center">
+          {/* Environment Variables */}
+          <Card>
+            <CardHeader>
               <CardTitle className="text-sm">
                 Global Environment Variables
               </CardTitle>
-              <Badge variant="outline" className="bg-background text-[10px]">
-                Applied to all
-              </Badge>
-            </div>
+            </CardHeader>
+            <CardContent>
+              <EnvList
+                envs={config.globalEnvs}
+                onChange={(envs) => update("globalEnvs", envs)}
+              />
+            </CardContent>
+            <CardFooter />
+          </Card>
+        </div>
+
+        {/* Right Side: Files */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <FileCode size={20} />
+              Select Test Files
+            </CardTitle>
+            <CardDescription>
+              Selected files will be mounted into each user submission container
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <EnvList
-              envs={config.globalEnvs}
-              onChange={(envs) => update("globalEnvs", envs)}
-            />
+          <CardContent className="p-0 mt-0">
+            <div className="rounded-md divide-y">
+              {[
+                "test_suite.py",
+                "validate_api.js",
+                "load_test.go",
+                "config.json",
+              ].map((file) => (
+                <button
+                  key={file}
+                  type="button"
+                  onClick={() => toggleFile(file)}
+                  className={`flex items-center justify-between p-3 w-full text-left cursor-pointer text-sm transition-colors border-0 bg-transparent rounded-none ${
+                    config.testFiles.includes(file)
+                      ? "bg-primary/5"
+                      : "hover:bg-secondary/40"
+                  }`}
+                >
+                  <span className="font-mono text-foreground ml-4">{file}</span>
+                  <div className="flex flex-row gap-4 mr-4">
+                    <SearchCode size={20} />
+                    {config.testFiles.includes(file) ? (
+                      <CheckCircle2 size={20} className="text-primary" />
+                    ) : (
+                      <CheckCircle2
+                        size={20}
+                        className="text-muted-foreground"
+                      />
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="h-px bg-border" />
+      <Separator />
 
       {/* Replica Orchestration */}
       <div className="space-y-6">
@@ -645,10 +698,10 @@ const StepThreeSubmission = ({
                 key={replicaData.alias}
                 className="hover:border-primary/50 transition-colors"
               >
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <Box size={14} className="text-muted-foreground" />
-                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <CardHeader>
+                  <div className="flex items-center gap-4">
+                    <Box size={20} className="text-muted-foreground" />
+                    <span className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
                       Replica {i + 1}
                     </span>
                   </div>
@@ -685,6 +738,7 @@ const StepThreeSubmission = ({
                     />
                   </div>
                 </CardContent>
+                <CardFooter />
               </Card>
             );
           })}
@@ -694,7 +748,6 @@ const StepThreeSubmission = ({
   );
 };
 
-// 6. Step 4: Summary
 const StepFourSummary = ({ form }: { form: FormState }) => (
   <motion.div
     initial={{ opacity: 0 }}
@@ -707,88 +760,146 @@ const StepFourSummary = ({ form }: { form: FormState }) => (
         Challenge Summary
       </CardTitle>
     </CardHeader>
+    <div className="font-semibold text-base">Challenge Details</div>
+    <div className="space-y-4 text-sm">
+      <div className="grid grid-cols-[140px_1fr] gap-2">
+        <span className="text-muted-foreground">Title:</span>
+        <span className="font-medium">{form.title || "N/A"}</span>
+      </div>
 
-    <div className="grid md:grid-cols-2 gap-6">
-      {/* Test Config Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Server className="text-muted-foreground" size={18} />
-            Test Configuration
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4 text-sm">
-          <div className="grid grid-cols-[100px_1fr] gap-2">
-            <span className="text-muted-foreground">Files:</span>
-            <span className="font-medium">
-              {form.testContainer.testFiles.join(", ") || "None"}
-            </span>
-          </div>
-          <div className="grid grid-cols-[100px_1fr] gap-2">
-            <span className="text-muted-foreground">Command:</span>
-            <code className="bg-secondary/50 px-1 py-0.5 rounded font-mono text-xs w-fit">
-              {form.testContainer.entryCommand}
-            </code>
-          </div>
-          <div>
-            <span className="text-muted-foreground block mb-1">
-              Environment:
-            </span>
-            {form.testContainer.envs.map((e) => (
-              <Badge
-                key={e.key}
-                variant="outline"
-                className="mr-1 mb-1 font-mono text-xs"
-              >
-                {e.key}={e.value}
-              </Badge>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-[140px_1fr] gap-2">
+        <span className="text-muted-foreground">Description:</span>
+        <span className="font-medium break-words">
+          {form.description || "N/A"}
+        </span>
+      </div>
 
-      {/* Submission Config Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Cpu className="text-muted-foreground" size={18} />
-            User Submission
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4 text-sm">
-          <div className="grid grid-cols-[100px_1fr] gap-2">
-            <span className="text-muted-foreground">Replicas:</span>
-            <span className="font-medium">
-              {form.submission.replicas} Instances
-            </span>
-          </div>
-          <div className="grid grid-cols-[100px_1fr] gap-2">
-            <span className="text-muted-foreground">Command:</span>
-            <code className="bg-secondary/50 px-1 py-0.5 rounded font-mono text-xs w-fit">
-              {form.submission.entryCommand}
-            </code>
-          </div>
-          <div>
-            <span className="text-muted-foreground block mb-1">
-              Defined Replicas:
-            </span>
-            <div className="flex flex-wrap gap-2">
-              {Array.from({ length: form.submission.replicas }).map((_, i) => {
-                const rep = form.submission.replicaConfigs[i];
-                return (
-                  <Badge
-                    key={rep.alias}
-                    variant="secondary"
-                    className="font-mono text-[10px]"
-                  >
-                    {rep?.alias || "pending..."}
-                  </Badge>
-                );
-              })}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-[140px_1fr] gap-2">
+        <span className="text-muted-foreground">Difficulty:</span>
+        <span className="font-medium">{form.difficulty || "N/A"}</span>
+      </div>
+
+      <Separator className="my-4" />
+
+      {/* Test Configuration */}
+      <div className="font-semibold text-base">Test Configuration</div>
+
+      <div className="grid grid-cols-[140px_1fr] gap-2">
+        <span className="text-muted-foreground">Alias:</span>
+        <span className="font-medium">{form.testContainer.alias}</span>
+      </div>
+
+      <div className="grid grid-cols-[140px_1fr] gap-2">
+        <span className="text-muted-foreground">Files:</span>
+        <span className="font-medium">
+          {form.testContainer.testFiles.join(", ") || "None"}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-[140px_1fr] gap-2">
+        <span className="text-muted-foreground">Build Command:</span>
+        <code className="bg-secondary/50 px-1 py-0.5 rounded font-mono text-xs w-fit">
+          {form.testContainer.buildCommand}
+        </code>
+      </div>
+
+      <div className="grid grid-cols-[140px_1fr] gap-2">
+        <span className="text-muted-foreground">Entry Command:</span>
+        <code className="bg-secondary/50 px-1 py-0.5 rounded font-mono text-xs w-fit">
+          {form.testContainer.entryCommand}
+        </code>
+      </div>
+
+      <div className="grid grid-cols-[140px_1fr] gap-2">
+        <span className="text-muted-foreground">Environment:</span>
+        <div className="flex flex-wrap">
+          {form.testContainer.envs.map((e) => (
+            <Badge
+              key={e.key}
+              variant="outline"
+              className="mr-1 mb-1 font-mono text-xs"
+            >
+              {e.key}={e.value}
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      <Separator className="my-4" />
+
+      {/* Submission Configuration */}
+      <div className="font-semibold text-base">Submission</div>
+
+      <div className="grid grid-cols-[140px_1fr] gap-2">
+        <span className="text-muted-foreground">Build Command:</span>
+        <code className="bg-secondary/50 px-1 py-0.5 rounded font-mono text-xs w-fit">
+          {form.submission.buildCommand}
+        </code>
+      </div>
+
+      <div className="grid grid-cols-[140px_1fr] gap-2">
+        <span className="text-muted-foreground">Entry Command:</span>
+        <code className="bg-secondary/50 px-1 py-0.5 rounded font-mono text-xs w-fit">
+          {form.submission.entryCommand}
+        </code>
+      </div>
+
+      <div className="grid grid-cols-[140px_1fr] gap-2">
+        <span className="text-muted-foreground">Global Envs:</span>
+        <div className="flex flex-wrap">
+          {form.submission.globalEnvs.map((e) => (
+            <Badge
+              key={e.key}
+              variant="outline"
+              className="mr-1 mb-1 font-mono text-xs"
+            >
+              {e.key}={e.value}
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <span className="text-muted-foreground block mb-4">
+          Replica Configs:
+        </span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {Object.values(form.submission.replicaConfigs).map((rep: any) => (
+            <Card key={rep.alias}>
+              <CardHeader>
+                <CardTitle className="text-sm">
+                  <div className="flex items-center gap-2">
+                    <Box size={20} className="text-muted-foreground" />
+                    <p className="font-bold">{rep.alias}</p>
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div>
+                  <span className="text-muted-foreground block mb-1">
+                    Environment Variables:
+                  </span>
+                  {rep.envs.length === 0 && (
+                    <span className="text-sm text-muted-foreground">
+                      No specific envs.
+                    </span>
+                  )}
+                  {rep.envs.map((e: Env) => (
+                    <Badge
+                      key={e.key}
+                      variant="outline"
+                      className="mr-1 mb-1 font-mono text-xs"
+                    >
+                      {e.key}={e.value}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+              <CardFooter />
+            </Card>
+          ))}
+        </div>
+      </div>
     </div>
   </motion.div>
 );
@@ -814,7 +925,7 @@ const EnvList = ({
   return (
     <div className="space-y-2">
       {envs.map((env, i) => (
-        <div key={env.key} className="flex gap-2 group">
+        <div key={i} className="flex gap-2 group">
           <Input
             placeholder="KEY"
             className={`font-mono uppercase ${compact ? "h-7 text-xs px-2" : "h-9 text-xs"}`}
@@ -837,6 +948,7 @@ const EnvList = ({
           </Button>
         </div>
       ))}
+
       <Button
         variant="outline"
         size="sm"
