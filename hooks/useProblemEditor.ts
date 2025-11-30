@@ -1,5 +1,9 @@
+"use client";
+
 import { type SetStateAction, useCallback, useState } from "react";
 import { saveProblem } from "@/app/authorized/[id]/problemActions";
+import type { CheckoutFormState } from "@/app/authorized/checkout/challenge";
+import { useRouter } from "next/navigation";
 
 type ProblemFile = {
   name: string;
@@ -32,7 +36,7 @@ const getInitialContent = (file: ProblemFile): string => {
 };
 
 type ActionResult =
-  | { success: true; message?: string; status?: number }
+  | { success: true; message?: string; status?: number; id?: number }
   | { success: false; error?: string; status?: number };
 
 type ProblemEditorState = {
@@ -54,6 +58,7 @@ export const useProblemEditor = (
     problemId?: number;
   }
 ) => {
+  const router = useRouter();
   const [state, setState] = useState<ProblemEditorState>(() => {
     const filesContent = files.reduce(
       (acc, file) => {
@@ -144,6 +149,10 @@ export const useProblemEditor = (
         if (!problemKey || !state.filesContent[problemKey]?.trim())
           missingFields.push("Problem markdown");
 
+        const problemMarkdown = problemKey
+          ? state.filesContent[problemKey]
+          : "";
+
         const templateFiles = files.filter((f) =>
           normalize(f.name).startsWith("student")
         );
@@ -180,32 +189,59 @@ export const useProblemEditor = (
           return;
         }
 
+        const createForm: CheckoutFormState = {
+          step: 1,
+          details: {
+            title: state.title,
+            description: state.description,
+            difficulty: state.difficulty as "Easy" | "Medium" | "Hard",
+          },
+          testContainer: {
+            alias: "test-container",
+            testFiles: testCode,
+            buildCommand: "go build -o /app/test /app/test/test.go",
+            entryCommand: "/app/test",
+            envs: [],
+          },
+          submission: {
+            buildCommand: "go build -o /app/student /app/student/main.go",
+            entryCommand: "/app/student",
+            replicas: 1,
+            globalEnvs: [],
+            replicaConfigs: {
+              0: { alias: "student-replica-1", envs: [] },
+            },
+          },
+        };
+
         const payload = {
           id: initial?.problemId,
           title: state.title,
           description: state.description,
           difficulty: parseInt(state.difficulty, 10),
-          problemMarkdown: state.filesContent["problem.md"],
+          problemMarkdown,
           templateCode,
           solutionCode,
           testCode,
           protocolCode,
           isPublished,
+          createForm,
         };
 
         const result: ActionResult = await saveProblem(payload);
-        alert(
-          result.success
-            ? result.message || "Success!"
-            : result.error || "Error."
-        );
+        if (result.success) {
+          const qs = `challengeForm=${encodeURIComponent(
+            JSON.stringify(createForm)
+          )}&id=${encodeURIComponent(String(result.id))}`;
+          router.push(`/authorized/checkout/?${qs}`);
+        }
       } catch (err) {
         alert(`An unexpected error occurred: ${err}`);
       } finally {
         setState((prev) => ({ ...prev, isSubmitting: false }));
       }
     },
-    [state, files, initial?.problemId]
+    [state, files, initial?.problemId, router]
   );
 
   const handleSubmit = useCallback(

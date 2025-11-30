@@ -1,4 +1,7 @@
+"use client";
+
 import { useState, useLayoutEffect, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import type {
   CheckoutFormState,
   TestContainerConfig,
@@ -33,11 +36,50 @@ const initialFormState: CheckoutFormState = {
 };
 
 const useCreateChallenge = () => {
-  const [form, setForm] = useState<CheckoutFormState>(initialFormState);
+  const searchParams = useSearchParams();
+  const challengeFormStr = searchParams
+    ? searchParams.get("challengeForm")
+    : null;
+  let challengeForm: CheckoutFormState = initialFormState;
+  if (challengeFormStr) {
+    try {
+      // Query params may be URL-encoded; attempt decode then parse
+      const decoded = decodeURIComponent(challengeFormStr);
+      challengeForm = JSON.parse(decoded) as CheckoutFormState;
+    } catch (err) {
+      console.warn(
+        "Invalid challengeForm query param, falling back to default:",
+        err
+      );
+      challengeForm = initialFormState;
+    }
+  }
+
+  const baseForm = challengeForm;
+
+  const idParam = searchParams
+    ? (searchParams.get("id") ?? searchParams.get("exerciseId"))
+    : null;
+  const exerciseId = idParam ? parseInt(idParam, 10) || undefined : undefined;
+
+  const [form, setForm] = useState<CheckoutFormState>(challengeForm);
 
   useLayoutEffect(() => {
     const saved = localStorage.getItem("challengeForm");
-    setForm(saved ? JSON.parse(saved) : initialFormState);
+    if (saved) {
+      try {
+        setForm(JSON.parse(saved));
+      } catch (err) {
+        console.warn(
+          "Invalid challengeForm in localStorage, clearing it:",
+          err
+        );
+        localStorage.removeItem("challengeForm");
+        setForm(initialFormState);
+      }
+    } else {
+      setForm(initialFormState);
+    }
   }, []);
 
   useEffect(() => {
@@ -81,6 +123,7 @@ const useCreateChallenge = () => {
     }));
 
   return {
+    baseForm,
     form,
     setForm,
     setCurrentStep,
@@ -89,6 +132,7 @@ const useCreateChallenge = () => {
     updateDetails,
     updateTestConfig,
     updateSubmission,
+    exerciseId,
   };
 };
 

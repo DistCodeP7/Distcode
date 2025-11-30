@@ -1,3 +1,4 @@
+import { CheckoutFormState } from "@/app/authorized/checkout/challenge";
 import {
   pgTable,
   serial,
@@ -46,6 +47,7 @@ export const problems = pgTable(
     protocolCode: text("protocol_code").notNull(),
     testCode: json("test_code").$type<string[]>().notNull(),
     isPublished: boolean("is_published").default(true).notNull(),
+    challengeForm: json("challenge_form").$type<CheckoutFormState>().notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (column) => [check("difficulty_check", sql`${column.difficulty} in (1, 2, 3)`)]

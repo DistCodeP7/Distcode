@@ -18,13 +18,15 @@ import {
   CheckCircle2,
   Server,
 } from "lucide-react";
-import { TestContainerConfig } from "../challenge";
+import type { TestContainerConfig } from "../challenge";
 import EnvList from "../components/EnvList";
 
 const StepTwoTestEnv = ({
+  base,
   config,
   update,
 }: {
+  base: TestContainerConfig;
   config: TestContainerConfig;
   update: (
     field: keyof TestContainerConfig,
@@ -134,12 +136,7 @@ const StepTwoTestEnv = ({
         </CardHeader>
         <CardContent className="p-0 mt-0">
           <div className="rounded-md divide-y ">
-            {[
-              "test_suite.py",
-              "validate_api.js",
-              "load_test.go",
-              "config.json",
-            ].map((file) => (
+            {base.testFiles.map((file) => (
               <button
                 key={file}
                 type="button"

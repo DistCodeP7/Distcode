@@ -1,0 +1,1 @@
+ALTER TABLE "problems" ADD COLUMN "challenge_form" json NOT NULL;

@@ -10,8 +10,17 @@ import StepOneDetails from "./steps/StepOneDetails";
 import StepFourSummary from "./steps/StepFourSummary";
 import StepThreeSubmission from "./steps/StepThreeSubmission";
 import StepTwoTestEnv from "./steps/StepTwoTest";
+import { updateChallengeForm } from "../[id]/problemActions";
+import { useRouter } from "next/navigation";
+
+type ActionResult =
+  | { success: true; message?: string; status?: number; id?: number }
+  | { success: false; error?: string; status?: number };
+
 export default function CreateChallenge() {
+  const router = useRouter();
   const {
+    baseForm,
     form,
     setCurrentStep,
     nextStep,
@@ -19,7 +28,18 @@ export default function CreateChallenge() {
     updateDetails,
     updateTestConfig,
     updateSubmission,
+    exerciseId,
   } = useCreateChallenge();
+  //Get ID from useParams
+
+  const onSubmit = async () => {
+    if (!exerciseId) return;
+    const result: ActionResult = await updateChallengeForm(exerciseId, form);
+    if (result.success) {
+      alert("Challenge form saved successfully!");
+      router.push(`/authorized/`);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-secondary/20 p-6 md:p-12 flex justify-center items-start">
@@ -36,6 +56,7 @@ export default function CreateChallenge() {
             )}
             {form.step === 2 && (
               <StepTwoTestEnv
+                base={baseForm.testContainer}
                 config={form.testContainer}
                 update={updateTestConfig}
               />
@@ -53,7 +74,7 @@ export default function CreateChallenge() {
             step={form.step}
             onNext={nextStep}
             onPrev={prevStep}
-            onSubmit={() => console.log("Final Config:", form)}
+            onSubmit={onSubmit}
           />
         </Card>
       </div>
