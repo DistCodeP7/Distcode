@@ -3,7 +3,6 @@
 import { and, desc, eq } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import type { nodeSpec } from "@/drizzle/schema";
 import { problems, ratings, userCode } from "@/drizzle/schema";
 import { db } from "@/lib/db";
 import { MQJobsSender } from "@/lib/mq";
@@ -54,7 +53,7 @@ export async function getExercise({ params }: { params: { id: number } }) {
 }
 
 export async function submitCode(
-  content: nodeSpec,
+  content: string[],
   { params }: { params: { id: number } }
 ) {
   const session = await getServerSession(authOptions);
@@ -67,16 +66,51 @@ export async function submitCode(
   if (Number.isNaN(ProblemId))
     return { error: "Invalid exercise id", status: 400 };
 
-  for (const key of Object.keys(content.Files)) {
-    if (key.includes("problem.md") || key.startsWith("/solution")) {
-      delete content.Files[key];
-    }
-  }
+  const exercise = await db.query.problems.findFirst({
+    where: (s, { eq }) => eq(s.id, ProblemId),
+  });
 
-  const contentArray = Object.entries(content.Files).map(([path, content]) => ({
-    path,
-    content,
-  }));
+  if (!exercise) {
+    return { error: "Exercise not found.", status: 404 };
+  }
+  const challengeForm = exercise.challengeForm;
+
+  //TODO: Need to add replication of nodes based on challenge form settings
+  //TODO: Find a good way to handle pathnames
+  const contentArray = [
+    {
+      Alias: "student_code",
+      Files: {
+        ...content.reduce((acc, code, index) => {
+          acc[`/student/main${index === 0 ? "" : index + 1}.go`] = code;
+          return acc;
+        }, {} as Filemap),
+        ...(exercise.protocolCode
+          ? { "/protocol.go": exercise.protocolCode }
+          : {}),
+      },
+      Envs: challengeForm.submission.globalEnvs || [],
+      BuildCommand: challengeForm.submission.buildCommand || "go build ./...",
+      EntryCommand: challengeForm.submission.entryCommand || "go run main.go",
+    },
+    {
+      Alias: "test_runner",
+      Files: challengeForm.testContainer.testFiles.reduce((acc, file) => {
+        acc[file] = file;
+        return acc;
+      }, {} as Filemap),
+      ...(exercise.protocolCode
+        ? { "/protocol.go": exercise.protocolCode }
+        : {}),
+      Envs: challengeForm.testContainer.envs.map(
+        (env) => `${env.key}=${env.value}`
+      ),
+      BuildCommand:
+        challengeForm.testContainer.buildCommand || "go build ./...",
+      EntryCommand:
+        challengeForm.testContainer.entryCommand || "go run main.go",
+    },
+  ];
 
   const payload = {
     JobUID: `${uuid()}`,
@@ -92,7 +126,7 @@ export async function submitCode(
 }
 
 export async function saveCode(
-  content: nodeSpec,
+  content: string[],
   { params }: { params: { id: number } }
 ) {
   const session = await getServerSession(authOptions);
@@ -158,7 +192,7 @@ export async function loadSavedCode({ params }: { params: { id: number } }) {
     return { error: "Submission not found.", status: 404 };
   }
 
-  return { success: true, code: problem.codeFolder };
+  return { success: true, code: problem.studentCode };
 }
 
 export async function loadUserRating({ params }: { params: { id: number } }) {
