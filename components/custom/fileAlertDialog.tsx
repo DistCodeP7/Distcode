@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { useRef } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,8 +28,7 @@ export function FileAlertDialog({
   onDelete,
   defaultName = "",
 }: FileAlertDialogProps) {
-  // Use an uncontrolled input to avoid useEffect usage.
-  const inputRef = React.useRef<HTMLInputElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   function handleCreate() {
     const value = (inputRef.current?.value || "").trim();

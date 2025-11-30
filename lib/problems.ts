@@ -11,37 +11,6 @@ export type ProblemWithRating = {
   rating: number | null;
 };
 
-export async function submitProblem(
-  userId: string,
-  title: string,
-  description: string,
-  difficulty: number,
-  problemMarkdown: string,
-  templateCode: string[],
-  solutionCode: string,
-  protocolCode: string,
-  testCode: string[],
-  isPublished = true
-) {
-  const result = await db
-    .insert(problems)
-    .values({
-      userId,
-      title,
-      description,
-      difficulty,
-      problemMarkdown,
-      templateCode,
-      solutionCode,
-      protocolCode,
-      testCode,
-      isPublished,
-    })
-    .returning();
-
-  return result[0];
-}
-
 export async function getProblemsByUserId(
   userId: string
 ): Promise<ProblemWithRating[]> {

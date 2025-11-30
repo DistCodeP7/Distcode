@@ -20,9 +20,8 @@ const getInitialContent = (file: ProblemFile): string => {
   }
 
   if (file.fileType === "go") {
-    // Normalize names so we accept both "test" and "/test" style prefixes
     const name = file.name.startsWith("/") ? file.name.slice(1) : file.name;
-    if (name.startsWith("student")) return "// Write your template code here\n";
+    if (name.startsWith("student")) return "// Write your code here\n";
 
     if (name.startsWith("test")) return "// Write your test cases here\n";
     if (name === "protocol.go")
@@ -140,7 +139,6 @@ export const useProblemEditor = (
 
         const normalize = (n: string) => (n.startsWith("/") ? n.slice(1) : n);
 
-        // Find the problem markdown key regardless of leading '/'
         const problemKey = Object.keys(state.filesContent).find((k) => {
           const nn = normalize(k);
           return nn === "problem.md" || nn.startsWith("problem");
@@ -153,13 +151,13 @@ export const useProblemEditor = (
           ? state.filesContent[problemKey]
           : "";
 
-        const templateFiles = files.filter((f) =>
+        const studentFiles = files.filter((f) =>
           normalize(f.name).startsWith("student")
         );
         const solutionFiles = files.filter((f) =>
           normalize(f.name).startsWith("solution")
         );
-        const templateCode = templateFiles.map(
+        const studentCode = studentFiles.map(
           (f) => state.filesContent[f.name] || ""
         );
         const solutionCode =
@@ -177,8 +175,8 @@ export const useProblemEditor = (
             .filter((f) => normalize(f.name) === "protocol.go")
             .map((f) => state.filesContent[f.name] || "")[0] || "";
 
-        if (!templateFiles.length || templateCode.some((c) => !c.trim()))
-          missingFields.push("Template code");
+        if (!studentFiles.length || studentCode.some((c) => !c.trim()))
+          missingFields.push("Student code");
         if (solutionFiles.length !== 1 || !solutionCode.trim())
           missingFields.push("Solution code");
         if (!testFiles.length || testCode.some((c) => !c.trim()))
@@ -220,7 +218,7 @@ export const useProblemEditor = (
           description: state.description,
           difficulty: parseInt(state.difficulty, 10),
           problemMarkdown,
-          templateCode,
+          studentCode,
           solutionCode,
           testCode,
           protocolCode,

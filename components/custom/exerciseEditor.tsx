@@ -10,6 +10,7 @@ import {
   rateExercise,
   resetCode,
   saveCode,
+  submitCode,
 } from "@/app/exercises/[id]/actions";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
@@ -27,7 +28,7 @@ import type { FileDef } from "./problemEditorClient";
 type ExerciseEditorProps = {
   exerciseId: number;
   problemMarkdown: string;
-  templateCode: string[];
+  studentCode: string[];
   solutionCode: string;
   protocalCode: string;
   testCasesCode: string[];
@@ -39,7 +40,7 @@ type ExerciseEditorProps = {
 export default function ExerciseEditor({
   exerciseId,
   problemMarkdown,
-  templateCode,
+  studentCode,
   testCasesCode,
   solutionCode,
   protocalCode,
@@ -49,9 +50,9 @@ export default function ExerciseEditor({
 }: ExerciseEditorProps) {
   const [activeFile, setActiveFile] = useState(0);
   const [fileContents, setFileContents] = useState<string[]>(
-    savedCode ?? templateCode
+    savedCode ?? studentCode
   );
-  // Maintain file metadata (name + type) separately so created files keep their names
+
   const [files, setFiles] = useState<FileDef[]>(() =>
     fileContents.map((_, index) => ({
       name: index === 0 ? "/student/main.go" : `/student/file${index + 1}.go`,
@@ -71,8 +72,6 @@ export default function ExerciseEditor({
   );
   const [canRate, setCanRate] = useState(initialCanRate);
   const [ratingLoading, startRatingTransition] = useTransition();
-
-  // (files state is defined above)
 
   const [leftPanelView, setLeftPanelView] = useState<"problem" | "solution">(
     "problem"
@@ -103,8 +102,8 @@ export default function ExerciseEditor({
     files.forEach((file, index) => {
       allFiles[file.name] = problemContent[index];
     });
-    console.log("Submitting code as nodes:", allFiles);
-    //await submitCode(problemContent, { params: { id: exerciseId } });
+
+    await submitCode(problemContent, { params: { id: exerciseId } });
   };
 
   const onCreateFile = async (filename: string) => {
@@ -135,7 +134,6 @@ export default function ExerciseEditor({
     setFiles((fPrev) => fPrev.filter((_, i) => i !== index));
     setFileContents((fcPrev) => fcPrev.filter((_, i) => i !== index));
 
-    // Adjust active file index if necessary
     setActiveFile((prevActive) => {
       if (prevActive === index) {
         return Math.max(0, prevActive - 1);
@@ -158,7 +156,7 @@ export default function ExerciseEditor({
       toast.error(`Error saving code: ${result.error}`);
     } else {
       toast.success("Code saved successfully!");
-      setCanRate(true); // once saved, enable rating if not already
+      setCanRate(true);
     }
   };
 
@@ -183,10 +181,9 @@ ${protoCode}
     try {
       const result = await resetCode({ params: { id: exerciseId } });
       if (result.success) {
-        setFileContents([...templateCode]);
-        // Reset file metadata to match template files
+        setFileContents([...studentCode]);
         setFiles(
-          templateCode.map((_, index) => ({
+          studentCode.map((_, index) => ({
             name: index === 0 ? "main.go" : `file${index + 1}.go`,
             fileType: "go",
           }))
@@ -233,7 +230,7 @@ ${protoCode}
   };
 
   function setEditorContent(value: React.SetStateAction<string>): void {
-    if (resetting) return; // disable editing while resetting
+    if (resetting) return;
     setFileContents((prev) => {
       const newContents = [...prev];
       newContents[activeFile] =

@@ -18,7 +18,7 @@ export type SaveProblemParams = {
   description: string;
   difficulty: number;
   problemMarkdown: string;
-  templateCode: string[];
+  studentCode: string[];
   solutionCode: string;
   testCode: string[];
   protocolCode?: string;
@@ -52,14 +52,14 @@ export async function saveProblem(data: SaveProblemParams) {
     { value: dataToValidate.title, name: "Title" },
     { value: dataToValidate.description, name: "Description" },
     { value: dataToValidate.problemMarkdown, name: "Problem markdown" },
-    { value: dataToValidate.templateCode, name: "Template code" },
+    { value: dataToValidate.studentCode, name: "Student code" },
     { value: dataToValidate.solutionCode, name: "Solution code" },
     { value: dataToValidate.testCode, name: "Test code" },
   ];
 
   for (const field of fieldsToValidate) {
     const isArrayField =
-      field.name.includes("Template") || field.name.includes("Test");
+      field.name.includes("Student") || field.name.includes("Test");
     if (!field.value) {
       return {
         success: false,
@@ -96,15 +96,7 @@ export async function saveProblem(data: SaveProblemParams) {
       await db
         .update(problems)
         .set({
-          title: problemData.title,
-          description: problemData.description,
-          difficulty: problemData.difficulty,
-          problemMarkdown: problemData.problemMarkdown,
-          studentCode: problemData.templateCode,
-          solutionCode: problemData.solutionCode,
-          testCode: problemData.testCode,
-          protocolCode:
-            problemData.protocolCode ?? existingProblem?.protocolCode ?? "",
+          ...problemData,
           isPublished,
         })
         .where(eq(problems.id, id));
@@ -112,17 +104,11 @@ export async function saveProblem(data: SaveProblemParams) {
       const result = await db
         .insert(problems)
         .values({
-          title: problemData.title,
-          description: problemData.description,
-          difficulty: problemData.difficulty,
-          problemMarkdown: problemData.problemMarkdown,
-          studentCode: problemData.templateCode,
-          solutionCode: problemData.solutionCode,
-          testCode: problemData.testCode,
-          protocolCode: problemData.protocolCode ?? "",
+          ...problemData,
           userId: session.user.id,
           isPublished,
           challengeForm: data.createForm,
+          protocolCode: problemData.protocolCode ?? "",
         })
         .returning();
       exerciseId = result[0].id;

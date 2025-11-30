@@ -13,12 +13,9 @@ interface FileTreeNode {
   fileIndex?: number;
 }
 
-// Helper to sort tree nodes consistently
 const sortNodes = (a: FileTreeNode, b: FileTreeNode) => {
-  // Folders before files
   if (a.type === "folder" && b.type === "file") return -1;
   if (a.type === "file" && b.type === "folder") return 1;
-  // Alphabetical sort
   return a.name.localeCompare(b.name);
 };
 
@@ -77,7 +74,6 @@ function FileTreeItem({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
-  // Do not render the root folder's own display, only its children
   if (node.name === "" && node.type === "folder") {
     return (
       <>
@@ -88,7 +84,7 @@ function FileTreeItem({
               <FileTreeItem
                 key={childNode.fullPath}
                 node={childNode}
-                depth={depth} // Start depth from 0 for top-level items
+                depth={depth}
                 activeFileIndex={activeFileIndex}
                 onFileChange={onFileChange}
                 onDeleteFile={onDeleteFile}
@@ -144,8 +140,6 @@ function FileTreeItem({
                     if (node.fileIndex !== undefined) {
                       onDeleteFile(node.fileIndex);
                       setDeleteDialogOpen(false);
-                      // Visual clean-up, actual state managed by parent
-                      node.fileIndex = undefined;
                     }
                   }}
                   defaultName={node.name}
@@ -154,7 +148,6 @@ function FileTreeItem({
             )}
           </>
         ) : (
-          // Folder display
           <div
             className="flex items-center h-8 font-semibold text-sm w-full"
             style={{ paddingLeft: `${paddingLeft}px` }}
@@ -167,7 +160,7 @@ function FileTreeItem({
                     variant="ghost"
                     size="icon"
                     onClick={() => setCreateDialogOpen(true)}
-                    title="Create New File/Folder"
+                    title="Create New File"
                     className="ml-1"
                   >
                     <PlusIcon className="h-4 w-4" />
@@ -225,7 +218,6 @@ export function FolderSystem({
 }: FolderSystemProps) {
   const fileTree = buildFileTree(files);
 
-  // The root node itself is not rendered, only its children are directly
   const rootChildren = fileTree.children
     ? Object.values(fileTree.children).sort(sortNodes)
     : [];
@@ -242,7 +234,7 @@ export function FolderSystem({
             <FileTreeItem
               key={node.fullPath}
               node={node}
-              depth={0} // Initial depth for top-level files/folders
+              depth={0}
               activeFileIndex={activeFileIndex}
               onFileChange={onFileChange}
               onDeleteFile={onDeleteFile}

@@ -32,7 +32,6 @@ export default async function EditProblemPage({
   const files = [
     { name: "problem.md", fileType: "markdown" as const },
     ...makeFiles("/student/main.go", exercise.studentCode),
-    // single solution file
     ...(exercise.solutionCode
       ? [{ name: "solution.go", fileType: "go" as const }]
       : []),

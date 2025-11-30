@@ -1,5 +1,5 @@
 {
-  "id": "5d53db1d-357d-46f7-a236-db157373ab23",
+  "id": "d75a2dfe-962d-4a71-aec5-9fa74ae1d9f3",
   "prevId": "061cc2e2-e091-4000-ab9f-dc00d513ddf9",
   "version": "7",
   "dialect": "postgresql",
@@ -44,8 +44,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "template_code": {
-          "name": "template_code",
+        "student_code": {
+          "name": "student_code",
           "type": "json",
           "primaryKey": false,
           "notNull": true
@@ -62,8 +62,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "test_cases_code": {
-          "name": "test_cases_code",
+        "test_code": {
+          "name": "test_code",
           "type": "json",
           "primaryKey": false,
           "notNull": true
@@ -74,6 +74,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": true
+        },
+        "challenge_form": {
+          "name": "challenge_form",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
         },
         "created_at": {
           "name": "created_at",
