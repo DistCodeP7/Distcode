@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { problems } from "@/drizzle/schema";
+import type { Paths } from "@/drizzle/schema";
 import { db } from "@/lib/db";
 import { getUserById } from "@/lib/user";
 import type { CheckoutFormState } from "../checkout/challenge";
@@ -18,9 +19,9 @@ export type SaveProblemParams = {
   description: string;
   difficulty: number;
   problemMarkdown: string;
-  studentCode: string[];
+  studentCode: Paths;
   solutionCode: string;
-  testCode: string[];
+  testCode: Paths;
   protocolCode?: string;
   isPublished?: boolean;
   createForm: CheckoutFormState;
@@ -58,7 +59,7 @@ export async function saveProblem(data: SaveProblemParams) {
   ];
 
   for (const field of fieldsToValidate) {
-    const isArrayField =
+    const isMapField =
       field.name.includes("Student") || field.name.includes("Test");
     if (!field.value) {
       return {
@@ -67,8 +68,12 @@ export async function saveProblem(data: SaveProblemParams) {
         status: 400,
       };
     }
-    if (isArrayField) {
-      if (!Array.isArray(field.value) || field.value.length === 0) {
+    if (isMapField) {
+      // Expect a map/object with at least one key
+      if (
+        typeof field.value !== "object" ||
+        Object.keys(field.value).length === 0
+      ) {
         return {
           success: false,
           error: `${field.name} is required (empty).`,

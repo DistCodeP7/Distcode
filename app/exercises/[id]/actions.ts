@@ -37,7 +37,7 @@ export async function getExercise({ params }: { params: { id: number } }) {
 }
 
 export async function submitCode(
-  content: string[],
+  content: Filemap,
   { params }: { params: { id: number } }
 ) {
   const session = await getServerSession(authOptions);
@@ -59,16 +59,14 @@ export async function submitCode(
   }
   const challengeForm = exercise.challengeForm;
 
-  //TODO: Need to add replication of nodes based on challenge form settings
-  //TODO: Find a good way to handle pathnames
+  // Treat `content` as a Filemap (path -> content). Use directly for student files.
+  // TODO: Need to add replication of nodes based on challenge form settings
+  // TODO: Find a good way to handle pathnames
   const contentArray = [
     {
       Alias: "student_code",
       Files: {
-        ...content.reduce((acc, code, index) => {
-          acc[`/student/main${index === 0 ? "" : index + 1}.go`] = code;
-          return acc;
-        }, {} as Filemap),
+        ...content,
         ...(exercise.protocolCode
           ? { "/protocol.go": exercise.protocolCode }
           : {}),
@@ -79,13 +77,13 @@ export async function submitCode(
     },
     {
       Alias: "test_runner",
-      Files: challengeForm.testContainer.testFiles.reduce((acc, file) => {
-        acc[file] = file;
-        return acc;
-      }, {} as Filemap),
-      ...(exercise.protocolCode
-        ? { "/protocol.go": exercise.protocolCode }
-        : {}),
+      // Use the stored testCode Filemap from the exercise (path -> content)
+      Files: {
+        ...(exercise.testCode || {}),
+        ...(exercise.protocolCode
+          ? { "/protocol.go": exercise.protocolCode }
+          : {}),
+      } as Filemap,
       Envs: challengeForm.testContainer.envs || [],
       BuildCommand:
         challengeForm.testContainer.buildCommand || "go build ./...",
@@ -108,7 +106,7 @@ export async function submitCode(
 }
 
 export async function saveCode(
-  content: string[],
+  content: Filemap,
   { params }: { params: { id: number } }
 ) {
   const session = await getServerSession(authOptions);

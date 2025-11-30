@@ -15,6 +15,8 @@ import { sql } from "drizzle-orm/sql/sql";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import * as zod from "zod";
 
+export type Paths = { [key: string]: string };
+
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: varchar("email", { length: 256 }).notNull().unique(),
@@ -42,10 +44,10 @@ export const problems = pgTable(
     description: text("description").notNull(),
     difficulty: integer("difficulty").notNull(),
     problemMarkdown: text("problem_markdown").notNull(),
-    studentCode: json("student_code").$type<string[]>().notNull(),
+    studentCode: json("student_code").$type<Paths>().notNull(),
     solutionCode: text("solution_code").notNull(),
     protocolCode: text("protocol_code").notNull(),
-    testCode: json("test_code").$type<string[]>().notNull(),
+    testCode: json("test_code").$type<Paths>().notNull(),
     isPublished: boolean("is_published").default(true).notNull(),
     challengeForm: json("challenge_form").$type<CheckoutFormState>().notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -68,7 +70,7 @@ export const userCode = pgTable("userCode", {
     problemId: integer("problem_id")
         .notNull()
         .references(() => problems.id, { onDelete: "cascade" }),
-    codeSubmitted: json("code_submitted").$type<string[]>().notNull(),
+    codeSubmitted: json("code_submitted").$type<Paths>().notNull(),
 });
 
 export const UserCodeSchema = createSelectSchema(userCode);

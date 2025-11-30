@@ -23,16 +23,16 @@ import {
 } from "@/components/ui/resizable";
 import { useSSE } from "@/hooks/useSSE";
 import { FolderSystem } from "./folderSystem";
-import type { FileDef } from "./problemEditorClient";
+import type { Paths } from "@/drizzle/schema";
 
 type ExerciseEditorProps = {
   exerciseId: number;
   problemMarkdown: string;
-  studentCode: string[];
+  studentCode: Paths;
   solutionCode: string;
   protocalCode: string;
-  testCasesCode: string[];
-  savedCode?: string[] | null;
+  testCasesCode: Paths;
+  savedCode?: Paths | null;
   userRating?: "up" | "down" | null;
   canRate?: boolean;
 };
@@ -48,22 +48,13 @@ export default function ExerciseEditor({
   userRating: initialUserRating = null,
   canRate: initialCanRate = false,
 }: ExerciseEditorProps) {
-  const [activeFile, setActiveFile] = useState(0);
-  const [fileContents, setFileContents] = useState<string[]>(
-    savedCode ?? studentCode
-  );
-
-  const [files, setFiles] = useState<FileDef[]>(() =>
-    fileContents.map((_, index) => ({
-      name: index === 0 ? "/student/main.go" : `/student/file${index + 1}.go`,
-      fileType: "go",
-    }))
-  );
+  const initialContents: Paths = savedCode ?? studentCode;
+  const initialOrder = Object.keys(initialContents);
+  const [fileContents, setFileContents] = useState<Paths>(initialContents);
+  const [fileOrder, setFileOrder] = useState<string[]>(initialOrder);
+  const [activeFile, setActiveFile] = useState<string>(initialOrder[0] || "");
   const allOtherFiles: Filemap = {
-    ...testCasesCode.reduce((acc, code, idx) => {
-      acc[`/testcases/testcase${idx + 1}.go`] = code;
-      return acc;
-    }, {} as Filemap),
+    ...testCasesCode,
     "/protocol/protocol.go": protocalCode,
   };
   const [resetting, setResetting] = useState(false);
@@ -95,60 +86,95 @@ export default function ExerciseEditor({
   const onSubmit = async () => {
     clearMessages();
     connect();
-    const problemContent = fileContents;
-    console.log("Submitting code:", problemContent);
+    // Build array in file order for the server API which expects string[]
+    const problemContentArray = fileOrder.map((p) => fileContents[p] ?? "");
+    console.log("Submitting code:", problemContentArray);
 
-    const allFiles: Filemap = allOtherFiles;
-    files.forEach((file, index) => {
-      allFiles[file.name] = problemContent[index];
+    const allFiles: Filemap = { ...allOtherFiles };
+    fileOrder.forEach((path) => {
+      allFiles[path] = fileContents[path];
     });
 
-    await submitCode(problemContent, { params: { id: exerciseId } });
+    // Submit a Filemap (path -> content) to the server
+    const problemContentMap: Record<string, string> = {};
+    fileOrder.forEach((p) => {
+      problemContentMap[p] = fileContents[p] ?? "";
+    });
+
+    await submitCode(problemContentMap, { params: { id: exerciseId } });
   };
 
-  const onCreateFile = async (filename: string) => {
-    const cleanFilename = filename.split(".").pop() || filename;
-    const newFile: FileDef = {
-      name: `/student/${cleanFilename}.go`,
-      fileType: "go",
-    };
-    setFileContents((fcPrev) => {
-      const newIndex = fcPrev.length;
-      const defaultContent = `// New file: ${filename}`;
-      setFiles((fPrev) => [...fPrev, newFile]);
-      setActiveFile(newIndex);
-      return [...fcPrev, defaultContent];
+  const onCreateFile = async (filename: string, parentPath = "/student") => {
+    // If filename ends with '/', treat as folder: create a placeholder file inside it
+    if (filename.endsWith("/")) {
+      const folderName = filename.replace(/^\/+|\/+$/g, "");
+      const placeholderPath = `${parentPath.replace(/\/+$/, "")}/${folderName}/${folderName}.go`;
+      const defaultContent = `// New file for ${folderName}`;
+      setFileContents((prev) => ({
+        ...prev,
+        [placeholderPath]: defaultContent,
+      }));
+      setFileOrder((prev) => {
+        const newOrder = [...prev, placeholderPath];
+        setActiveFile(placeholderPath);
+        return newOrder;
+      });
+      return;
+    }
+
+    // Create a file under parentPath
+    const namePart = filename.startsWith("/") ? filename.slice(1) : filename;
+    const withExt = namePart.includes(".") ? namePart : `${namePart}.go`;
+    const fullPath = `${parentPath.replace(/\/+$/, "")}/${withExt}`;
+    const defaultContent = `// New file: ${withExt}`;
+    setFileContents((prev) => ({ ...prev, [fullPath]: defaultContent }));
+    setFileOrder((prev) => {
+      const newOrder = [...prev, fullPath];
+      setActiveFile(fullPath);
+      return newOrder;
     });
   };
-
-  const onDeleteFile = async (index: number) => {
-    if (files.length <= 1) {
+  const onDeleteFile = async (path: string) => {
+    if (fileOrder.length <= 1) {
       toast.error("Cannot delete the last remaining file.");
       return;
     }
-    if (files[index].name === "/student/main.go") {
+    const index = fileOrder.indexOf(path);
+    if (index === -1) return;
+    const pathToDelete = fileOrder[index];
+    if (
+      pathToDelete.includes("/student/main.go") ||
+      pathToDelete.endsWith("/student/main.go") ||
+      (pathToDelete.endsWith("main.go") && pathToDelete.includes("/student"))
+    ) {
       toast.error("Cannot delete the main.go file.");
       return;
     }
 
-    setFiles((fPrev) => fPrev.filter((_, i) => i !== index));
-    setFileContents((fcPrev) => fcPrev.filter((_, i) => i !== index));
-
-    setActiveFile((prevActive) => {
-      if (prevActive === index) {
-        return Math.max(0, prevActive - 1);
-      } else if (prevActive > index) {
-        return prevActive - 1;
-      }
-      return prevActive;
+    const newOrder = fileOrder.filter((p) => p !== pathToDelete);
+    setFileOrder(newOrder);
+    setFileContents((prev) => {
+      const copy = { ...prev };
+      delete copy[pathToDelete];
+      return copy;
     });
+
+    // Update active file: if deleted file was active, pick previous file or first
+    if (activeFile === pathToDelete) {
+      const newIndex = Math.max(0, index - 1);
+      setActiveFile(newOrder[newIndex] || "");
+    }
   };
 
   const onSave = async () => {
     clearMessages();
 
-    const savedContent = fileContents[activeFile];
-    const result = await saveCode([savedContent], {
+    // Save full Filemap (path -> content)
+    const saveMap: Record<string, string> = {};
+    fileOrder.forEach((p) => {
+      saveMap[p] = fileContents[p] ?? "";
+    });
+    const result = await saveCode(saveMap, {
       params: { id: exerciseId },
     });
 
@@ -181,13 +207,8 @@ ${protoCode}
     try {
       const result = await resetCode({ params: { id: exerciseId } });
       if (result.success) {
-        setFileContents([...studentCode]);
-        setFiles(
-          studentCode.map((_, index) => ({
-            name: index === 0 ? "main.go" : `file${index + 1}.go`,
-            fileType: "go",
-          }))
-        );
+        setFileContents({ ...studentCode });
+        setFileOrder(Object.keys(studentCode));
         toast.success("Code reset successfully!", {
           description: "Template restored and saved code cleared.",
         });
@@ -232,10 +253,10 @@ ${protoCode}
   function setEditorContent(value: React.SetStateAction<string>): void {
     if (resetting) return;
     setFileContents((prev) => {
-      const newContents = [...prev];
-      newContents[activeFile] =
-        typeof value === "function" ? value(prev[activeFile]) : value;
-      return newContents;
+      const currentPath = activeFile;
+      const currentVal = prev[currentPath] ?? "";
+      const newVal = typeof value === "function" ? value(currentVal) : value;
+      return { ...prev, [currentPath]: newVal };
     });
   }
 
@@ -321,7 +342,7 @@ ${protoCode}
       <ResizablePanel minSize={2} className="w-1 bg-muted/50 cursor-col-resize">
         <ResizableHandle withHandle />
         <FolderSystem
-          files={files}
+          files={fileContents}
           onFileChange={setActiveFile}
           onCreateFile={onCreateFile}
           onDeleteFile={onDeleteFile}
@@ -369,7 +390,7 @@ ${protoCode}
             <Editor
               editorContent={fileContents[activeFile]}
               setEditorContent={setEditorContent}
-              language={files[activeFile]?.fileType}
+              language={activeFile?.endsWith(".go") ? "go" : "markdown"}
               options={{
                 readOnly: resetting,
                 minimap: { enabled: false },

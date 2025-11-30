@@ -55,7 +55,9 @@ const StepFourSummary = ({ form }: { form: CheckoutFormState }) => (
         <div className="grid grid-cols-[140px_1fr] gap-2">
           <span className="text-muted-foreground">Files:</span>
           <span className="font-medium">
-            {form.testContainer.testFiles.join(", ") || "None"}
+            {Object.keys(form.testContainer.testFiles || {}).length > 0
+              ? Object.keys(form.testContainer.testFiles).join(", ")
+              : "None"}
           </span>
         </div>
         <div className="grid grid-cols-[140px_1fr] gap-2">

@@ -34,13 +34,15 @@ const StepTwoTestEnv = ({
   ) => void;
 }) => {
   const toggleFile = (file: string) => {
-    const current = config.testFiles;
-    if (current.includes(file))
-      update(
-        "testFiles",
-        current.filter((f) => f !== file)
-      );
-    else update("testFiles", [...current, file]);
+    const current = config.testFiles || {};
+    if (current[file] !== undefined) {
+      // remove the key
+      const { [file]: _removed, ...rest } = current;
+      update("testFiles", rest);
+    } else {
+      // add the key with default content from base if available, else empty
+      update("testFiles", { ...current, [file]: base.testFiles[file] || "" });
+    }
   };
 
   return (
@@ -136,13 +138,13 @@ const StepTwoTestEnv = ({
         </CardHeader>
         <CardContent className="p-0 mt-0">
           <div className="rounded-md divide-y ">
-            {base.testFiles.map((file) => (
+            {Object.keys(base.testFiles).map((file) => (
               <button
                 key={file}
                 type="button"
                 onClick={() => toggleFile(file)}
                 className={`flex items-center justify-between p-3 w-full text-left cursor-pointer text-sm transition-colors border-0 bg-transparent rounded-none ${
-                  config.testFiles.includes(file)
+                  config.testFiles?.[file] !== undefined
                     ? "bg-primary/5"
                     : "hover:bg-secondary/40"
                 }`}
@@ -150,7 +152,7 @@ const StepTwoTestEnv = ({
                 <span className="font-mono text-foreground ml-4">{file}</span>
                 <div className="flex flex-row gap-4 mr-4">
                   <SearchCode size={20} />
-                  {config.testFiles.includes(file) ? (
+                  {config.testFiles?.[file] !== undefined ? (
                     <CheckCircle2 size={20} className="text-primary" />
                   ) : (
                     <CheckCircle2 size={20} className="text-muted-foreground" />

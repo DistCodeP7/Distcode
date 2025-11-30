@@ -1,8 +1,10 @@
+import { Paths } from "@/drizzle/schema";
+
 export type Env = { key: string; value: string; id: string };
 
 export type TestContainerConfig = {
   alias: string;
-  testFiles: string[];
+  testFiles: Paths;
   buildCommand: string;
   entryCommand: string;
   envs: Env[];

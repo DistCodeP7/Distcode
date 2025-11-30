@@ -3,14 +3,14 @@ import { useState } from "react";
 import { Button } from "../ui/button";
 import FileAlertDialog from "./fileAlertDialog";
 import { FileTypeIcon } from "./Icon";
-import type { FileDef } from "./problemEditorClient";
+import type { Paths } from "@/drizzle/schema";
 
 interface FileTreeNode {
   name: string;
   fullPath: string;
   type: "file" | "folder";
   children?: Record<string, FileTreeNode>;
-  fileIndex?: number;
+  fileKey?: string; // original key from Paths (may include leading slash)
 }
 
 const sortNodes = (a: FileTreeNode, b: FileTreeNode) => {
@@ -19,7 +19,7 @@ const sortNodes = (a: FileTreeNode, b: FileTreeNode) => {
   return a.name.localeCompare(b.name);
 };
 
-function buildFileTree(files: FileDef[]): FileTreeNode {
+function buildFileTree(filePaths: string[]): FileTreeNode {
   const root: FileTreeNode = {
     name: "",
     fullPath: "",
@@ -27,8 +27,10 @@ function buildFileTree(files: FileDef[]): FileTreeNode {
     children: {},
   };
 
-  files.forEach((file, index) => {
-    const parts = file.name.split("/");
+  filePaths.forEach((path) => {
+    // Keep the original key as `fileKey` so clicks map back to `Paths` keys
+    const normalizedPath = path.startsWith("/") ? path.slice(1) : path;
+    const parts = normalizedPath.split("/").filter(Boolean);
     let current = root;
     const currentPathParts: string[] = [];
 
@@ -44,7 +46,7 @@ function buildFileTree(files: FileDef[]): FileTreeNode {
           name: part,
           fullPath: partFullPath,
           type: isFile ? "file" : "folder",
-          ...(isFile ? { fileIndex: index } : { children: {} }),
+          ...(isFile ? { fileKey: path } : { children: {} }),
         };
       }
       current = current.children[part];
@@ -56,16 +58,16 @@ function buildFileTree(files: FileDef[]): FileTreeNode {
 interface FileTreeItemProps {
   node: FileTreeNode;
   depth: number;
-  activeFileIndex?: number;
-  onFileChange: (index: number) => void;
-  onDeleteFile?: (index: number) => void;
+  activeFilePath?: string;
+  onFileChange: (path: string) => void;
+  onDeleteFile?: (path: string) => void;
   onCreateFile?: (filename: string, parentPath: string) => void;
 }
 
 function FileTreeItem({
   node,
   depth,
-  activeFileIndex,
+  activeFilePath,
   onFileChange,
   onDeleteFile,
   onCreateFile,
@@ -85,7 +87,7 @@ function FileTreeItem({
                 key={childNode.fullPath}
                 node={childNode}
                 depth={depth}
-                activeFileIndex={activeFileIndex}
+                activeFilePath={activeFilePath}
                 onFileChange={onFileChange}
                 onDeleteFile={onDeleteFile}
                 onCreateFile={onCreateFile}
@@ -107,10 +109,10 @@ function FileTreeItem({
                 variant="ghost"
                 size="sm"
                 onClick={() =>
-                  node.fileIndex !== undefined && onFileChange(node.fileIndex)
+                  node.fileKey !== undefined && onFileChange(node.fileKey)
                 }
                 className={`w-full justify-start text-left gap-2 text-sm h-8 rounded-none ${
-                  node.fileIndex === activeFileIndex
+                  node.fileKey === activeFilePath
                     ? "bg-accent text-accent-foreground"
                     : ""
                 }`}
@@ -122,7 +124,7 @@ function FileTreeItem({
                 <span className="truncate flex-1">{node.name}</span>
               </Button>
             </div>
-            {onDeleteFile && node.fileIndex !== undefined && (
+            {onDeleteFile && node.fileKey !== undefined && (
               <>
                 <Button
                   variant="ghost"
@@ -137,8 +139,8 @@ function FileTreeItem({
                   open={deleteDialogOpen}
                   onOpenChange={setDeleteDialogOpen}
                   onDelete={() => {
-                    if (node.fileIndex !== undefined) {
-                      onDeleteFile(node.fileIndex);
+                    if (node.fileKey !== undefined) {
+                      onDeleteFile(node.fileKey);
                       setDeleteDialogOpen(false);
                     }
                   }}
@@ -189,7 +191,7 @@ function FileTreeItem({
                 key={childNode.fullPath}
                 node={childNode}
                 depth={depth + 1}
-                activeFileIndex={activeFileIndex}
+                activeFilePath={activeFilePath}
                 onFileChange={onFileChange}
                 onDeleteFile={onDeleteFile}
                 onCreateFile={onCreateFile}
@@ -202,11 +204,11 @@ function FileTreeItem({
 }
 
 interface FolderSystemProps {
-  files: FileDef[];
-  onFileChange: (index: number) => void;
+  files: Paths;
+  onFileChange: (path: string) => void;
   onCreateFile?: (filename: string, parentPath: string) => void;
-  onDeleteFile?: (index: number) => void;
-  activeFileIndex?: number;
+  onDeleteFile?: (path: string) => void;
+  activeFilePath?: string;
 }
 
 export function FolderSystem({
@@ -214,9 +216,10 @@ export function FolderSystem({
   onFileChange,
   onCreateFile,
   onDeleteFile,
-  activeFileIndex,
+  activeFilePath,
 }: FolderSystemProps) {
-  const fileTree = buildFileTree(files);
+  // Build the file tree from the keys of the `Paths` object
+  const fileTree = buildFileTree(Object.keys(files));
 
   const rootChildren = fileTree.children
     ? Object.values(fileTree.children).sort(sortNodes)
@@ -235,7 +238,7 @@ export function FolderSystem({
               key={node.fullPath}
               node={node}
               depth={0}
-              activeFileIndex={activeFileIndex}
+              activeFilePath={activeFilePath}
               onFileChange={onFileChange}
               onDeleteFile={onDeleteFile}
               onCreateFile={onCreateFile}

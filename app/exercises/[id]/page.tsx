@@ -8,6 +8,7 @@ import {
   loadSavedCode,
   loadUserRating,
 } from "./actions";
+import type { Paths } from "@/drizzle/schema";
 
 export default async function ExercisePage({
   params,
@@ -22,7 +23,7 @@ export default async function ExercisePage({
   }
 
   const session = await getServerSession(authOptions);
-  let savedCode: string[] | null = null;
+  let savedCode: Paths | null = null;
   let userRating: "up" | "down" | null = null;
   let canRate = false;
 

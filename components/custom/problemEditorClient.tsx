@@ -16,8 +16,8 @@ import {
 } from "@/components/ui/select";
 import { useProblemEditor } from "@/hooks/useProblemEditor";
 import { FolderSystem } from "./folderSystem";
-
-export type FileDef = { name: string; fileType: "go" | "markdown" };
+import type { Paths } from "@/drizzle/schema";
+import { a } from "motion/react-client";
 
 export default function ProblemEditorClient({
   files,
@@ -27,8 +27,8 @@ export default function ProblemEditorClient({
   initialDifficulty,
   problemId,
 }: {
-  files: FileDef[];
-  initialFilesContent?: Record<string, string>;
+  files: Paths;
+  initialFilesContent?: Paths;
   initialTitle?: string;
   initialDescription?: string;
   initialDifficulty?: string;
@@ -48,7 +48,7 @@ export default function ProblemEditorClient({
     handleSave,
     filesContent,
   } = useProblemEditor(files, {
-    filesContent: initialFilesContent,
+    filesContent: files ?? initialFilesContent,
     title: initialTitle,
     description: initialDescription,
     difficulty: initialDifficulty,
@@ -108,13 +108,27 @@ export default function ProblemEditorClient({
         className="flex-1 border h-full w-full min-w-0"
       >
         <ResizablePanel minSize={20} className="flex-1 min-w-0 overflow-auto">
-          <MarkdownPreview content={filesContent["problem.md"] || ""} />
+          {/* Show the problem markdown: try to find a problem.* key in filesContent */}
+          <MarkdownPreview
+            content={
+              filesContent[
+                Object.keys(filesContent).find((k) => {
+                  const kk = k.startsWith("/") ? k.slice(1) : k;
+                  return kk === "problem.md" || kk.startsWith("problem");
+                }) || Object.keys(filesContent)[0]
+              ] || ""
+            }
+          />
         </ResizablePanel>
         <ResizablePanel
           minSize={12}
           className="w-56 min-w-[12rem] bg-background border-r overflow-auto cursor-col-resize"
         >
-          <FolderSystem files={files} onFileChange={setActiveFile} />
+          <FolderSystem
+            files={files}
+            onFileChange={setActiveFile}
+            activeFilePath={activeFile}
+          />
         </ResizablePanel>
         <ResizableHandle withHandle />
 
@@ -129,13 +143,28 @@ export default function ProblemEditorClient({
           />
 
           <div className="flex-1 overflow-auto min-w-0">
-            <Editor
-              editorContent={filesContent[files[activeFile]?.name] || ""}
-              setEditorContent={handleEditorContentChange}
-              language={
-                files[activeFile]?.fileType === "markdown" ? "markdown" : "go"
-              }
-            />
+            {(() => {
+              const content = filesContent[activeFile] || "";
+              const name = activeFile
+                ? activeFile.startsWith("/")
+                  ? activeFile.slice(1)
+                  : activeFile
+                : "";
+              const language =
+                name.endsWith(".md") ||
+                name.startsWith("problem") ||
+                name.startsWith("solution")
+                  ? "markdown"
+                  : "go";
+
+              return (
+                <Editor
+                  editorContent={content}
+                  setEditorContent={handleEditorContentChange}
+                  language={language}
+                />
+              );
+            })()}
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>
