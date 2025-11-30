@@ -1,5 +1,5 @@
 const SECRET_KEY = "your_secret_key";
-
+//TODO : Move to env variable
 export function GenerateJWT(userid: string) {
   var jwt = require("jsonwebtoken");
   const payload = { userid };

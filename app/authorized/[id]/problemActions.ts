@@ -69,7 +69,6 @@ export async function saveProblem(data: SaveProblemParams) {
       };
     }
     if (isMapField) {
-      // Expect a map/object with at least one key
       if (
         typeof field.value !== "object" ||
         Object.keys(field.value).length === 0

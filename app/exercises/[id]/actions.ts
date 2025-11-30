@@ -75,7 +75,6 @@ export async function submitCode(
     },
     {
       Alias: "test_runner",
-      // Use the stored testCode Filemap from the exercise (path -> content)
       Files: {
         ...(exercise.testCode || {}),
         ...(exercise.protocolCode

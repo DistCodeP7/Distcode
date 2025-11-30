@@ -19,7 +19,7 @@ const initialFormState: CheckoutFormState = {
   },
   testContainer: {
     alias: "test-runner",
-    testFiles: [],
+    testFiles: {},
     buildCommand: "npm run build",
     entryCommand: "npm test",
     envs: [{ key: "TEST_MODE", value: "true", id: nanoid() }],
