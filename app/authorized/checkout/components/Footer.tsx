@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type FooterNavProps = {
   step: number;

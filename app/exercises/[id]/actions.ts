@@ -2,28 +2,12 @@
 
 import { and, desc, eq } from "drizzle-orm";
 import { getServerSession } from "next-auth";
+import { v4 as uuid } from "uuid"; // Example for a common UUID library in JS
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { problems, ratings, userCode } from "@/drizzle/schema";
 import { db } from "@/lib/db";
 import { MQJobsSender } from "@/lib/mq";
 import { getUserById } from "@/lib/user";
-import { v4 as uuid } from "uuid"; // Example for a common UUID library in JS
-
-type payload = {
-  JobUID: string;
-  ProblemId: number;
-  UserId: string;
-  Nodes: nodeSpec[];
-  Timeoutlimit: number;
-};
-
-export type nodeSpec = {
-  Alias: string;
-  Files: Filemap;
-  Envs: string[];
-  BuildCommand: string;
-  EntryCommand: string;
-};
 
 export type Filemap = {
   [key: string]: string;
@@ -102,9 +86,7 @@ export async function submitCode(
       ...(exercise.protocolCode
         ? { "/protocol.go": exercise.protocolCode }
         : {}),
-      Envs: challengeForm.testContainer.envs.map(
-        (env) => `${env.key}=${env.value}`
-      ),
+      Envs: challengeForm.testContainer.envs || [],
       BuildCommand:
         challengeForm.testContainer.buildCommand || "go build ./...",
       EntryCommand:

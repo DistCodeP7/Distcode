@@ -1,20 +1,21 @@
+import { Box, Cpu, Layers } from "lucide-react";
+import * as motion from "motion/react-client";
+import { useId } from "react";
 import {
-  CardHeader,
-  CardTitle,
-  CardDescription,
   Card,
   CardContent,
+  CardDescription,
   CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useId } from "react";
 import { Label } from "@/components/ui/label";
-import * as motion from "motion/react-client";
-import { Cpu, Box, Layers } from "lucide-react";
-import { ReplicaConfig, SubmissionConfig } from "../challenge";
-import EnvList from "../components/EnvList";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
+import type { ReplicaConfig, SubmissionConfig } from "../challenge";
+import EnvList from "../components/EnvList";
+
 const StepThreeSubmission = ({
   config,
   update,

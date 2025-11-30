@@ -1,14 +1,14 @@
+import { Box, FileText } from "lucide-react";
+import * as motion from "motion/react-client";
+import { Badge } from "@/components/ui/badge";
 import {
-  CardHeader,
-  CardTitle,
   Card,
   CardContent,
   CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
-import * as motion from "motion/react-client";
-import { Box, FileText } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { CheckoutFormState, Env } from "../challenge";
+import type { CheckoutFormState, Env } from "../challenge";
 
 const StepFourSummary = ({ form }: { form: CheckoutFormState }) => (
   <motion.div

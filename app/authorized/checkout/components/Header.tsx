@@ -1,6 +1,6 @@
+import * as motion from "motion/react-client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import * as motion from "motion/react-client";
 
 // 1. Header
 const Header = ({

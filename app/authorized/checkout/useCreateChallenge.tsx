@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useLayoutEffect, useEffect } from "react";
+import { nanoid } from "nanoid";
 import { useSearchParams } from "next/navigation";
+import { useEffect, useLayoutEffect, useState } from "react";
 import type {
   CheckoutFormState,
-  TestContainerConfig,
-  SubmissionConfig,
   DetailsConfig,
+  SubmissionConfig,
+  TestContainerConfig,
 } from "./challenge";
-import { nanoid } from "nanoid";
 
 const initialFormState: CheckoutFormState = {
   step: 1,

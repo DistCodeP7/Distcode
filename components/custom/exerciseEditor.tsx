@@ -12,7 +12,6 @@ import {
   saveCode,
 } from "@/app/exercises/[id]/actions";
 import Editor, { EditorHeader } from "@/components/custom/editor";
-import type { FileDef } from "./problemEditorClient";
 import MarkdownPreview from "@/components/custom/markdown-preview";
 import { TerminalOutput } from "@/components/custom/TerminalOutput";
 import { Button } from "@/components/ui/button";
@@ -23,6 +22,7 @@ import {
 } from "@/components/ui/resizable";
 import { useSSE } from "@/hooks/useSSE";
 import { FolderSystem } from "./folderSystem";
+import type { FileDef } from "./problemEditorClient";
 
 type ExerciseEditorProps = {
   exerciseId: number;

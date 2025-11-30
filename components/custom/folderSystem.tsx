@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import { PlusIcon, TrashIcon } from "lucide-react";
+import { useState } from "react";
+import { Button } from "../ui/button";
+import FileAlertDialog from "./fileAlertDialog";
 import { FileTypeIcon } from "./Icon";
 import type { FileDef } from "./problemEditorClient";
-import { Button } from "../ui/button";
-import { PlusIcon, TrashIcon } from "lucide-react";
-import FileAlertDialog from "./fileAlertDialog";
 
 interface FileTreeNode {
   name: string;

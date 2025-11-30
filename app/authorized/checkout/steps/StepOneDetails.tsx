@@ -1,17 +1,17 @@
-import { CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import * as motion from "motion/react-client";
 import { useId } from "react";
-import { DetailsConfig, Difficulty } from "../challenge";
+import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
-  SelectTrigger,
   SelectItem,
+  SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import * as motion from "motion/react-client";
+import { Textarea } from "@/components/ui/textarea";
+import type { DetailsConfig, Difficulty } from "../challenge";
 
 type StepOneDetailsProps = {
   form: DetailsConfig;

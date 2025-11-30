@@ -1,23 +1,23 @@
 import {
-  CardHeader,
-  CardTitle,
-  CardDescription,
+  CheckCircle2,
+  FileCode,
+  IdCard,
+  SearchCode,
+  Server,
+  Terminal,
+} from "lucide-react";
+import * as motion from "motion/react-client";
+import { useId } from "react";
+import {
   Card,
   CardContent,
+  CardDescription,
   CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useId } from "react";
 import { Label } from "@/components/ui/label";
-import * as motion from "motion/react-client";
-import {
-  IdCard,
-  Terminal,
-  FileCode,
-  SearchCode,
-  CheckCircle2,
-  Server,
-} from "lucide-react";
 import type { TestContainerConfig } from "../challenge";
 import EnvList from "../components/EnvList";
 
