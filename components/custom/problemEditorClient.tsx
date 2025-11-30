@@ -14,10 +14,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { Paths } from "@/drizzle/schema";
 import { useProblemEditor } from "@/hooks/useProblemEditor";
 import { FolderSystem } from "./folderSystem";
-import type { Paths } from "@/drizzle/schema";
-import { a } from "motion/react-client";
 
 export default function ProblemEditorClient({
   files,

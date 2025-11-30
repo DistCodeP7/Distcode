@@ -3,8 +3,8 @@
 import { eq } from "drizzle-orm";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { problems } from "@/drizzle/schema";
 import type { Paths } from "@/drizzle/schema";
+import { problems } from "@/drizzle/schema";
 import { db } from "@/lib/db";
 import { getUserById } from "@/lib/user";
 import type { CheckoutFormState } from "../checkout/challenge";

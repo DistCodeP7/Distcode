@@ -1,8 +1,7 @@
 "use client";
 
 import { BookOpen, Code, ThumbsDown, ThumbsUp } from "lucide-react";
-import type React from "react";
-import { useState, useTransition } from "react";
+import { type SetStateAction, useState, useTransition } from "react";
 import { toast } from "sonner";
 import type { StreamingJobResult } from "@/app/api/stream/route";
 import type { Filemap } from "@/app/exercises/[id]/actions";
@@ -21,9 +20,9 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import type { Paths } from "@/drizzle/schema";
 import { useSSE } from "@/hooks/useSSE";
 import { FolderSystem } from "./folderSystem";
-import type { Paths } from "@/drizzle/schema";
 
 type ExerciseEditorProps = {
   exerciseId: number;
@@ -86,17 +85,11 @@ export default function ExerciseEditor({
   const onSubmit = async () => {
     clearMessages();
     connect();
-    // Build array in file order for the server API which expects string[]
-    const problemContentArray = fileOrder.map((p) => fileContents[p] ?? "");
-    console.log("Submitting code:", problemContentArray);
-
     const allFiles: Filemap = { ...allOtherFiles };
     fileOrder.forEach((path) => {
       allFiles[path] = fileContents[path];
     });
-
-    // Submit a Filemap (path -> content) to the server
-    const problemContentMap: Record<string, string> = {};
+    const problemContentMap: Filemap = {};
     fileOrder.forEach((p) => {
       problemContentMap[p] = fileContents[p] ?? "";
     });
@@ -105,7 +98,6 @@ export default function ExerciseEditor({
   };
 
   const onCreateFile = async (filename: string, parentPath = "/student") => {
-    // If filename ends with '/', treat as folder: create a placeholder file inside it
     if (filename.endsWith("/")) {
       const folderName = filename.replace(/^\/+|\/+$/g, "");
       const placeholderPath = `${parentPath.replace(/\/+$/, "")}/${folderName}/${folderName}.go`;
@@ -121,8 +113,6 @@ export default function ExerciseEditor({
       });
       return;
     }
-
-    // Create a file under parentPath
     const namePart = filename.startsWith("/") ? filename.slice(1) : filename;
     const withExt = namePart.includes(".") ? namePart : `${namePart}.go`;
     const fullPath = `${parentPath.replace(/\/+$/, "")}/${withExt}`;
@@ -158,8 +148,6 @@ export default function ExerciseEditor({
       delete copy[pathToDelete];
       return copy;
     });
-
-    // Update active file: if deleted file was active, pick previous file or first
     if (activeFile === pathToDelete) {
       const newIndex = Math.max(0, index - 1);
       setActiveFile(newOrder[newIndex] || "");
@@ -169,8 +157,7 @@ export default function ExerciseEditor({
   const onSave = async () => {
     clearMessages();
 
-    // Save full Filemap (path -> content)
-    const saveMap: Record<string, string> = {};
+    const saveMap: Paths = {};
     fileOrder.forEach((p) => {
       saveMap[p] = fileContents[p] ?? "";
     });
@@ -250,7 +237,7 @@ ${protoCode}
     });
   };
 
-  function setEditorContent(value: React.SetStateAction<string>): void {
+  function setEditorContent(value: SetStateAction<string>): void {
     if (resetting) return;
     setFileContents((prev) => {
       const currentPath = activeFile;

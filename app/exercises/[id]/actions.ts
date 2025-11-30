@@ -59,9 +59,7 @@ export async function submitCode(
   }
   const challengeForm = exercise.challengeForm;
 
-  // Treat `content` as a Filemap (path -> content). Use directly for student files.
   // TODO: Need to add replication of nodes based on challenge form settings
-  // TODO: Find a good way to handle pathnames
   const contentArray = [
     {
       Alias: "student_code",

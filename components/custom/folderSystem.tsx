@@ -1,9 +1,9 @@
 import { PlusIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
+import type { Paths } from "@/drizzle/schema";
 import { Button } from "../ui/button";
 import FileAlertDialog from "./fileAlertDialog";
 import { FileTypeIcon } from "./Icon";
-import type { Paths } from "@/drizzle/schema";
 
 interface FileTreeNode {
   name: string;

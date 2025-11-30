@@ -36,11 +36,9 @@ const StepTwoTestEnv = ({
   const toggleFile = (file: string) => {
     const current = config.testFiles || {};
     if (current[file] !== undefined) {
-      // remove the key
       const { [file]: _removed, ...rest } = current;
       update("testFiles", rest);
     } else {
-      // add the key with default content from base if available, else empty
       update("testFiles", { ...current, [file]: base.testFiles[file] || "" });
     }
   };
