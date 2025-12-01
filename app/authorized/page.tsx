@@ -95,18 +95,14 @@ export default async function ProblemListPage() {
                     <span>Difficulty:</span>
                     <span
                       className={
-                        s.difficulty === 1
+                        s.difficulty === "Easy"
                           ? "text-chart-2"
-                          : s.difficulty === 2
+                          : s.difficulty === "Medium"
                             ? "text-chart-3"
                             : "text-primary"
                       }
                     >
-                      {s.difficulty === 1
-                        ? "Easy"
-                        : s.difficulty === 2
-                          ? "Medium"
-                          : "Hard"}
+                      {s.difficulty ?? "Easy"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">

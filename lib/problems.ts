@@ -1,10 +1,10 @@
 import { eq } from "drizzle-orm";
-import { problems, ratings } from "@/drizzle/schema";
-import { db } from "./db";
 import type {
   CheckoutFormState,
   Difficulty,
 } from "@/app/authorized/checkout/challenge";
+import { problems, ratings } from "@/drizzle/schema";
+import { db } from "./db";
 
 export type ProblemWithRating = {
   id: number;

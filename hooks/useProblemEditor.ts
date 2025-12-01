@@ -180,18 +180,6 @@ export const useProblemEditor = (
     });
   };
 
-  const setTitle = (title: string) => {
-    setState((prev) => ({ ...prev, title }));
-  };
-
-  const setDescription = (description: string) => {
-    setState((prev) => ({ ...prev, description }));
-  };
-
-  const setDifficulty = (difficulty: string) => {
-    setState((prev) => ({ ...prev, difficulty }));
-  };
-
   const setActiveFile = (activeFile: string) => {
     setState((prev) => ({ ...prev, activeFile }));
   };
@@ -305,9 +293,6 @@ export const useProblemEditor = (
 
   return {
     ...state,
-    setTitle,
-    setDescription,
-    setDifficulty,
     setActiveFile,
     handleEditorContentChange,
     handleSubmit,
