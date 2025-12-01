@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { type SetStateAction, useCallback, useState } from "react";
+import { type SetStateAction, useState } from "react";
 import { saveProblem } from "@/app/authorized/[id]/problemActions";
 import type { CheckoutFormState } from "@/app/authorized/checkout/challenge";
 import type { Paths } from "@/drizzle/schema";
@@ -81,7 +81,7 @@ export const useProblemEditor = (
     };
   });
 
-  const syncFilesContent = useCallback(() => {
+  const syncFilesContent = () => {
     setState((prev) => {
       const newFilesContent = Object.keys(files).reduce((acc, key) => {
         acc[key] =
@@ -90,27 +90,24 @@ export const useProblemEditor = (
       }, {} as Paths);
       return { ...prev, filesContent: newFilesContent };
     });
-  }, [files]);
+  };
 
-  const handleEditorContentChange = useCallback(
-    (value: SetStateAction<string>) => {
-      setState((prev) => {
-        const activeFileName = prev.activeFile;
-        if (!activeFileName) return prev;
-        const newContent =
-          typeof value === "function"
-            ? value(prev.filesContent[activeFileName])
-            : value;
-        return {
-          ...prev,
-          filesContent: { ...prev.filesContent, [activeFileName]: newContent },
-        };
-      });
-    },
-    []
-  );
+  const handleEditorContentChange = (value: SetStateAction<string>) => {
+    setState((prev) => {
+      const activeFileName = prev.activeFile;
+      if (!activeFileName) return prev;
+      const newContent =
+        typeof value === "function"
+          ? value(prev.filesContent[activeFileName])
+          : value;
+      return {
+        ...prev,
+        filesContent: { ...prev.filesContent, [activeFileName]: newContent },
+      };
+    });
+  };
 
-  const handleCreateFile = useCallback((filePath: string) => {
+  const handleCreateFile = (filePath: string) => {
     setState((prev) => {
       const parentPath = filePath.includes("/") ? filePath : "/student";
       if (filePath.endsWith("/")) {
@@ -126,7 +123,6 @@ export const useProblemEditor = (
           activeFile: placeholderPath,
         };
       }
-      console.log("Creating file at path:", filePath);
       const isFullPath =
         filePath.includes("/") &&
         !filePath.startsWith("./") &&
@@ -150,9 +146,9 @@ export const useProblemEditor = (
         activeFile: fullPath,
       };
     });
-  }, []);
+  };
 
-  const handleDeleteFile = useCallback((filePath: string) => {
+  const handleDeleteFile = (filePath: string) => {
     setState((prev) => {
       const keys = Object.keys(prev.filesContent);
       if (keys.length <= 1) {
@@ -185,150 +181,137 @@ export const useProblemEditor = (
 
       return { ...prev, filesContent: copy, activeFile: newActive };
     });
-  }, []);
+  };
 
-  const setTitle = useCallback((title: string) => {
+  const setTitle = (title: string) => {
     setState((prev) => ({ ...prev, title }));
-  }, []);
+  };
 
-  const setDescription = useCallback((description: string) => {
+  const setDescription = (description: string) => {
     setState((prev) => ({ ...prev, description }));
-  }, []);
+  };
 
-  const setDifficulty = useCallback((difficulty: string) => {
+  const setDifficulty = (difficulty: string) => {
     setState((prev) => ({ ...prev, difficulty }));
-  }, []);
+  };
 
-  const setActiveFile = useCallback((activeFile: string) => {
+  const setActiveFile = (activeFile: string) => {
     setState((prev) => ({ ...prev, activeFile }));
-  }, []);
+  };
 
-  const handleSaveOrSubmit = useCallback(
-    async (isPublished: boolean) => {
-      setState((prev) => ({ ...prev, isSubmitting: true }));
+  const handleSaveOrSubmit = async (isPublished: boolean) => {
+    setState((prev) => ({ ...prev, isSubmitting: true }));
 
-      try {
-        const missingFields: string[] = [];
-        if (!state.title.trim()) missingFields.push("Title");
-        if (!state.description.trim()) missingFields.push("Description");
-        if (!["1", "2", "3"].includes(state.difficulty))
-          missingFields.push("Difficulty");
+    try {
+      const missingFields: string[] = [];
+      if (!state.title.trim()) missingFields.push("Title");
+      if (!state.description.trim()) missingFields.push("Description");
+      if (!["1", "2", "3"].includes(state.difficulty))
+        missingFields.push("Difficulty");
 
-        const problemKey = Object.keys(state.filesContent).find((k) => {
-          const nn = k;
-          return nn === "problem.md" || nn.startsWith("problem");
-        });
+      const problemKey = Object.keys(state.filesContent).find((k) => {
+        const nn = k;
+        return nn === "problem.md" || nn.startsWith("problem");
+      });
 
-        if (!problemKey || !state.filesContent[problemKey]?.trim())
-          missingFields.push("Problem markdown");
+      if (!problemKey || !state.filesContent[problemKey]?.trim())
+        missingFields.push("Problem markdown");
 
-        const problemMarkdown = problemKey
-          ? state.filesContent[problemKey]
+      const problemMarkdown = problemKey ? state.filesContent[problemKey] : "";
+      const keys = Object.keys(state.filesContent);
+      const studentFiles = keys.filter((k) => k.startsWith("/student"));
+      const solutionFiles = keys.filter((k) => k.startsWith("solution"));
+      const studentCode = studentFiles.map((k) => state.filesContent[k] || "");
+      const studentFilesMap = studentFiles.reduce((acc, k) => {
+        acc[k] = state.filesContent[k] || "";
+        return acc;
+      }, {} as Paths);
+      const solutionCode =
+        solutionFiles.length > 0
+          ? state.filesContent[solutionFiles[0]] || ""
           : "";
-        const keys = Object.keys(state.filesContent);
-        const studentFiles = keys.filter((k) => k.startsWith("/student"));
-        const solutionFiles = keys.filter((k) => k.startsWith("solution"));
-        const studentCode = studentFiles.map(
-          (k) => state.filesContent[k] || ""
-        );
-        const studentFilesMap = studentFiles.reduce((acc, k) => {
-          acc[k] = state.filesContent[k] || "";
-          return acc;
-        }, {} as Paths);
-        const solutionCode =
-          solutionFiles.length > 0
-            ? state.filesContent[solutionFiles[0]] || ""
-            : "";
 
-        const testFiles = keys.filter(
-          (k) => k.startsWith("/test") || k.startsWith("test")
-        );
-        const testCode = testFiles.map((k) => state.filesContent[k] || "");
-        const testFilesMap = testFiles.reduce((acc, k) => {
-          acc[k] = state.filesContent[k] || "";
-          return acc;
-        }, {} as Paths);
+      const testFiles = keys.filter(
+        (k) => k.startsWith("/test") || k.startsWith("test")
+      );
+      const testCode = testFiles.map((k) => state.filesContent[k] || "");
+      const testFilesMap = testFiles.reduce((acc, k) => {
+        acc[k] = state.filesContent[k] || "";
+        return acc;
+      }, {} as Paths);
 
-        const protocolCode =
-          keys
-            .filter((k) => k === "protocol.go" || k.endsWith("/protocol.go"))
-            .map((k) => state.filesContent[k] || "")[0] || "";
+      const protocolCode =
+        keys
+          .filter((k) => k === "protocol.go" || k.endsWith("/protocol.go"))
+          .map((k) => state.filesContent[k] || "")[0] || "";
 
-        if (!studentFiles.length || studentCode.some((c) => !c.trim()))
-          missingFields.push("Student code");
-        if (solutionFiles.length !== 1 || !solutionCode.trim())
-          missingFields.push("Solution code");
-        if (!testFiles.length || testCode.some((c) => !c.trim()))
-          missingFields.push("Test code");
+      if (!studentFiles.length || studentCode.some((c) => !c.trim()))
+        missingFields.push("Student code");
+      if (solutionFiles.length !== 1 || !solutionCode.trim())
+        missingFields.push("Solution code");
+      if (!testFiles.length || testCode.some((c) => !c.trim()))
+        missingFields.push("Test code");
 
-        if (missingFields.length > 0) {
-          alert(`Missing or empty fields: ${missingFields.join(", ")}`);
-          return;
-        }
+      if (missingFields.length > 0) {
+        alert(`Missing or empty fields: ${missingFields.join(", ")}`);
+        return;
+      }
 
-        const createForm: CheckoutFormState = {
-          step: 1,
-          details: {
-            title: state.title,
-            description: state.description,
-            difficulty: state.difficulty as "Easy" | "Medium" | "Hard",
-          },
-          testContainer: {
-            alias: "test-container",
-            testFiles: testFilesMap,
-            buildCommand: "go build -o /app/test /app/test/test.go",
-            entryCommand: "/app/test",
-            envs: [],
-          },
-          submission: {
-            buildCommand: "go build -o /app/student /app/student/main.go",
-            entryCommand: "/app/student",
-            replicas: 1,
-            globalEnvs: [],
-            replicaConfigs: {
-              0: { alias: "student-replica-1", envs: [] },
-            },
-          },
-        };
-
-        const payload = {
-          id: initial?.problemId,
+      const createForm: CheckoutFormState = {
+        step: 1,
+        details: {
           title: state.title,
           description: state.description,
-          difficulty: parseInt(state.difficulty, 10),
-          problemMarkdown,
-          studentCode: studentFilesMap,
-          solutionCode,
-          testCode: testFilesMap,
-          protocolCode,
-          isPublished,
-          createForm,
-        };
+          difficulty: state.difficulty as "Easy" | "Medium" | "Hard",
+        },
+        testContainer: {
+          alias: "test-container",
+          testFiles: testFilesMap,
+          buildCommand: "go build -o /app/test /app/test/test.go",
+          entryCommand: "/app/test",
+          envs: [],
+        },
+        submission: {
+          buildCommand: "go build -o /app/student /app/student/main.go",
+          entryCommand: "/app/student",
+          replicas: 1,
+          globalEnvs: [],
+          replicaConfigs: {
+            0: { alias: "student-replica-1", envs: [] },
+          },
+        },
+      };
 
-        const result: ActionResult = await saveProblem(payload);
-        if (result.success) {
-          const qs = `challengeForm=${encodeURIComponent(
-            JSON.stringify(createForm)
-          )}&id=${encodeURIComponent(String(result.id))}`;
-          router.push(`/authorized/checkout/?${qs}`);
-        }
-      } catch (err) {
-        alert(`An unexpected error occurred: ${err}`);
-      } finally {
-        setState((prev) => ({ ...prev, isSubmitting: false }));
+      const payload = {
+        id: initial?.problemId,
+        title: state.title,
+        description: state.description,
+        difficulty: parseInt(state.difficulty, 10),
+        problemMarkdown,
+        studentCode: studentFilesMap,
+        solutionCode,
+        testCode: testFilesMap,
+        protocolCode,
+        isPublished,
+        createForm,
+      };
+
+      const result: ActionResult = await saveProblem(payload);
+      if (result.success) {
+        const qs = `challengeForm=${encodeURIComponent(
+          JSON.stringify(createForm)
+        )}&id=${encodeURIComponent(String(result.id))}`;
+        router.push(`/authorized/checkout/?${qs}`);
       }
-    },
-    [state, initial?.problemId, router]
-  );
+    } catch (err) {
+      alert(`An unexpected error occurred: ${err}`);
+    } finally {
+      setState((prev) => ({ ...prev, isSubmitting: false }));
+    }
+  };
 
-  const handleSubmit = useCallback(
-    () => handleSaveOrSubmit(true),
-    [handleSaveOrSubmit]
-  );
-  const handleSave = useCallback(
-    () => handleSaveOrSubmit(false),
-    [handleSaveOrSubmit]
-  );
+  const handleSubmit = () => handleSaveOrSubmit(true);
+  const handleSave = () => handleSaveOrSubmit(false);
 
   return {
     ...state,
