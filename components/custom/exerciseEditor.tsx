@@ -210,7 +210,6 @@ ${protoCode}
     });
   }
 
-  // Define the action buttons as a single block of JSX
   const editorActions = (
     <>
       <Button
