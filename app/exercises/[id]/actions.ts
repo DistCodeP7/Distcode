@@ -40,53 +40,6 @@ export async function submitCode(
   submissionCode: Filemap,
   { params }: { params: { id: number } }
 ) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) return { error: "Unauthorized", status: 401 };
-
-  const user = await getUserById(session.user.id);
-  if (!user) return { error: "User not found.", status: 404 };
-
-  const ProblemId = Number(params.id);
-  if (Number.isNaN(ProblemId))
-    return { error: "Invalid exercise id", status: 400 };
-
-  const exercise = await db.query.problems.findFirst({
-    where: (s, { eq }) => eq(s.id, ProblemId),
-  });
-
-  if (!exercise) {
-    return { error: "Exercise not found.", status: 404 };
-  }
-  const challengeForm = exercise.challengeForm;
-
-  type newEnv = { key: string; value: string };
-
-  const globalEnvs: newEnv[] = challengeForm.submission.globalEnvs.map(
-    (env) => {
-      return { key: env.key, value: env.value };
-    }
-  );
-
-  const envs: newEnv[] = challengeForm.testContainer.envs.map((env) => {
-    return { key: env.key, value: env.value };
-  });
-
-  type newReplicaConfig = {
-    alias: string;
-    envs: newEnv[];
-  };
-
-  const replicaConfigs: newReplicaConfig[] = Object.values(
-    challengeForm.submission.replicaConfigs
-  ).map((replica) => {
-    return {
-      alias: replica.alias,
-      envs: replica.envs.map((env) => {
-        return { key: env.key, value: env.value };
-      }),
-    };
-  });
-
   type fullPayload = {
     jobUid: string;
     nodes: ContainerConfigs;
@@ -115,6 +68,53 @@ export async function submitCode(
     envs: newEnv[];
   };
 
+  type newReplicaConfig = {
+    alias: string;
+    envs: newEnv[];
+  };
+
+  type newEnv = { key: string; value: string };
+
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { error: "Unauthorized", status: 401 };
+
+  const user = await getUserById(session.user.id);
+  if (!user) return { error: "User not found.", status: 404 };
+
+  const ProblemId = Number(params.id);
+  if (Number.isNaN(ProblemId))
+    return { error: "Invalid exercise id", status: 400 };
+
+  const exercise = await db.query.problems.findFirst({
+    where: (s, { eq }) => eq(s.id, ProblemId),
+  });
+
+  if (!exercise) {
+    return { error: "Exercise not found.", status: 404 };
+  }
+  const challengeForm = exercise.challengeForm;
+
+  const globalEnvs: newEnv[] = challengeForm.submission.globalEnvs.map(
+    (env) => {
+      return { key: env.key, value: env.value };
+    }
+  );
+
+  const envs: newEnv[] = challengeForm.testContainer.envs.map((env) => {
+    return { key: env.key, value: env.value };
+  });
+
+  const replicaConfigs: newReplicaConfig[] = Object.values(
+    challengeForm.submission.replicaConfigs
+  ).map((replica) => {
+    return {
+      alias: replica.alias,
+      envs: replica.envs.map((env) => {
+        return { key: env.key, value: env.value };
+      }),
+    };
+  });
+
   const submissionContatiner: SubmissionConfig = {
     submissionCode,
     globalEnvs,
@@ -142,6 +142,8 @@ export async function submitCode(
     userId: user.userid,
     timeout: 60,
   };
+
+  console.log("Submitting job with payload:", payload);
 
   MQJobsSender.sendMessage(payload);
 
