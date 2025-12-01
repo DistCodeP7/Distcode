@@ -98,6 +98,10 @@ export default function ExerciseEditor({
   };
 
   const onCreateFile = async (filename: string, parentPath = "/student") => {
+    if (filename.includes("main.go")) {
+      toast.error("Cannot create a file named main.go");
+      return;
+    }
     if (filename.endsWith("/")) {
       const folderName = filename.replace(/^\/+|\/+$/g, "");
       const placeholderPath = `${parentPath.replace(/\/+$/, "")}/${folderName}/${folderName}.go`;
@@ -132,11 +136,7 @@ export default function ExerciseEditor({
     const index = fileOrder.indexOf(path);
     if (index === -1) return;
     const pathToDelete = fileOrder[index];
-    if (
-      pathToDelete.includes("/student/main.go") ||
-      pathToDelete.endsWith("/student/main.go") ||
-      (pathToDelete.endsWith("main.go") && pathToDelete.includes("/student"))
-    ) {
+    if (pathToDelete.includes("/student/main.go")) {
       toast.error("Cannot delete the main.go file.");
       return;
     }
@@ -305,20 +305,8 @@ ${protoCode}
                   </div>
                 )}
                 <div className="flex-1">
-                  <Editor
-                    editorContent={
-                      solutionFiles[activeSolutionFile]?.content || ""
-                    }
-                    setEditorContent={() => {}}
-                    language="go"
-                    options={{
-                      readOnly: true,
-                      renderLineHighlight: "none",
-                      selectionHighlight: false,
-                      occurrencesHighlight: "off",
-                      cursorBlinking: "solid",
-                      cursorStyle: "line-thin",
-                    }}
+                  <MarkdownPreview
+                    content={solutionFiles[activeSolutionFile]?.content || ""}
                   />
                 </div>
               </div>
