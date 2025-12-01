@@ -60,7 +60,7 @@ const useCreateChallenge = () => {
   const idParam = searchParams
     ? (searchParams.get("id") ?? searchParams.get("exerciseId"))
     : null;
-  const exerciseId = idParam ? parseInt(idParam, 10) || undefined : undefined;
+  const exerciseId = idParam ? parseInt(idParam, 10) : undefined;
 
   const [form, setForm] = useState<CheckoutFormState>(challengeForm);
 

@@ -59,8 +59,6 @@ export async function submitCode(
   }
   const challengeForm = exercise.challengeForm;
 
-  // TODO: Need to add replication of nodes based on challenge form settings
-
   const SubmissionArray: Filemap[] = Object.entries(content).map(
     ([fileName, fileContent]) => ({
       [fileName]: fileContent,
@@ -78,20 +76,19 @@ export async function submitCode(
 
   const contentArray = [
     {
-      Alias: "student_code",
-      Files: SubmissionArray,
-      Envs: challengeForm.submission.globalEnvs || [],
-      BuildCommand: challengeForm.submission.buildCommand || "go build ./...",
-      EntryCommand: challengeForm.submission.entryCommand || "go run main.go",
+      submissionCode: SubmissionArray,
+      globalEnvs: challengeForm.submission.globalEnvs,
+      buildCommand: challengeForm.submission.buildCommand,
+      entryCommand: challengeForm.submission.entryCommand,
+      replicas: challengeForm.submission.replicas,
+      replicaConfigs: challengeForm.submission.replicaConfigs,
     },
     {
-      Alias: "test_runner",
-      Files: TestArray,
-      Envs: challengeForm.testContainer.envs || [],
-      BuildCommand:
-        challengeForm.testContainer.buildCommand || "go build ./...",
-      EntryCommand:
-        challengeForm.testContainer.entryCommand || "go run main.go",
+      alias: "test_runner",
+      testFiles: TestArray,
+      envs: challengeForm.testContainer.envs,
+      buildCommand: challengeForm.testContainer.buildCommand,
+      entryCommand: challengeForm.testContainer.entryCommand,
     },
   ];
 
