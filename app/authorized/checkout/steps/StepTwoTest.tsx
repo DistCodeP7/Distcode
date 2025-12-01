@@ -137,8 +137,7 @@ const StepTwoTestEnv = ({
         <CardContent className="p-0 mt-0">
           <div className="rounded-md divide-y ">
             {Object.keys(base.testFiles).map((file) => {
-              const isRequiredTest =
-                file === "/test/test.go" || file === "test/test.go";
+              const isRequiredTest = file === "/test/test.go";
               const selected =
                 config.testFiles?.[file] !== undefined || isRequiredTest;
 
