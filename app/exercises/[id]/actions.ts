@@ -87,28 +87,60 @@ export async function submitCode(
     };
   });
 
-  const contentArray = [
-    {
-      submissionCode,
-      globalEnvs,
-      buildCommand: challengeForm.submission.buildCommand,
-      entryCommand: challengeForm.submission.entryCommand,
-      replicaConfigs,
-    },
-    {
-      alias: "test_runner",
-      testFiles: challengeForm.testContainer.testFiles,
-      envs,
-      buildCommand: challengeForm.testContainer.buildCommand,
-      entryCommand: challengeForm.testContainer.entryCommand,
-    },
-  ];
+  type fullPayload = {
+    jobUid: string;
+    nodes: ContainerConfigs;
+    userId: string;
+    timeout: number;
+  };
 
-  const payload = {
-    JobUID: `${uuid()}`,
-    Nodes: contentArray,
-    UserId: user.userid,
-    Timeout: 60,
+  type ContainerConfigs = {
+    testContainer: TestContainerConfig;
+    submissionContainer: SubmissionConfig;
+  };
+
+  type SubmissionConfig = {
+    submissionCode: Filemap;
+    buildCommand: string;
+    entryCommand: string;
+    globalEnvs: newEnv[];
+    replicaConfigs: newReplicaConfig[];
+  };
+
+  type TestContainerConfig = {
+    alias: string;
+    testFiles: Filemap;
+    buildCommand: string;
+    entryCommand: string;
+    envs: newEnv[];
+  };
+
+  const submissionContatiner: SubmissionConfig = {
+    submissionCode,
+    globalEnvs,
+    buildCommand: challengeForm.submission.buildCommand,
+    entryCommand: challengeForm.submission.entryCommand,
+    replicaConfigs,
+  };
+
+  const testContainer: TestContainerConfig = {
+    alias: "test_runner",
+    testFiles: challengeForm.testContainer.testFiles,
+    envs,
+    buildCommand: challengeForm.testContainer.buildCommand,
+    entryCommand: challengeForm.testContainer.entryCommand,
+  };
+
+  const contentArray: ContainerConfigs = {
+    submissionContainer: submissionContatiner,
+    testContainer: testContainer,
+  };
+
+  const payload: fullPayload = {
+    jobUid: `${uuid()}`,
+    nodes: contentArray,
+    userId: user.userid,
+    timeout: 60,
   };
 
   MQJobsSender.sendMessage(payload);
