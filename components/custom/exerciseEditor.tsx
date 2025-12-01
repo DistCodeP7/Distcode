@@ -1,10 +1,10 @@
 "use client";
 
 import { BookOpen, Code, ThumbsDown, ThumbsUp } from "lucide-react";
-import type React from "react";
-import { useState, useTransition } from "react";
+import { type SetStateAction, useState, useTransition } from "react";
 import { toast } from "sonner";
 import type { StreamingJobResult } from "@/app/api/stream/route";
+import type { Filemap } from "@/app/exercises/[id]/actions";
 import {
   rateExercise,
   resetCode,
@@ -20,15 +20,18 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import type { Paths } from "@/drizzle/schema";
 import { useSSE } from "@/hooks/useSSE";
+import { FolderSystem } from "./folderSystem";
 
 type ExerciseEditorProps = {
   exerciseId: number;
   problemMarkdown: string;
-  templateCode: string[];
-  solutionCode?: string[];
-  testCasesCode?: string;
-  savedCode?: string[] | null;
+  studentCode: Paths;
+  solutionCode: string;
+  protocalCode: string;
+  testCasesCode: Paths;
+  savedCode?: Paths | null;
   userRating?: "up" | "down" | null;
   canRate?: boolean;
 };
@@ -36,16 +39,23 @@ type ExerciseEditorProps = {
 export default function ExerciseEditor({
   exerciseId,
   problemMarkdown,
-  templateCode,
+  studentCode,
+  testCasesCode,
   solutionCode,
+  protocalCode,
   savedCode,
   userRating: initialUserRating = null,
   canRate: initialCanRate = false,
 }: ExerciseEditorProps) {
-  const [activeFile, setActiveFile] = useState(0);
-  const [fileContents, setFileContents] = useState<string[]>(
-    savedCode ?? templateCode
-  );
+  const initialContents: Paths = savedCode ?? studentCode;
+  const initialOrder = Object.keys(initialContents);
+  const [fileContents, setFileContents] = useState<Paths>(initialContents);
+  const [fileOrder, setFileOrder] = useState<string[]>(initialOrder);
+  const [activeFile, setActiveFile] = useState<string>(initialOrder[0] || "");
+  const allOtherFiles: Filemap = {
+    ...testCasesCode,
+    "/protocol/protocol.go": protocalCode,
+  };
   const [resetting, setResetting] = useState(false);
   const [userRating, setUserRating] = useState<"up" | "down" | null>(
     initialUserRating
@@ -53,21 +63,14 @@ export default function ExerciseEditor({
   const [canRate, setCanRate] = useState(initialCanRate);
   const [ratingLoading, startRatingTransition] = useTransition();
 
-  const files = fileContents.map((content, index) => ({
-    name: index === 0 ? "main.go" : `file${index + 1}.go`,
-    content,
-    fileType: "go" as const,
-  }));
-
   const [leftPanelView, setLeftPanelView] = useState<"problem" | "solution">(
     "problem"
   );
   const [activeSolutionFile, setActiveSolutionFile] = useState(0);
 
-  const solutionFiles = (solutionCode || []).map((content, index) => ({
-    name: index === 0 ? "main.go" : `file${index + 1}.go`,
-    content,
-  }));
+  const solutionFiles = solutionCode
+    ? [{ name: "main.go", content: solutionCode }]
+    : [];
 
   const { messages, connect, clearMessages } =
     useSSE<StreamingJobResult>("/api/stream");
@@ -82,15 +85,83 @@ export default function ExerciseEditor({
   const onSubmit = async () => {
     clearMessages();
     connect();
-    const problemContent = fileContents;
-    await submitCode(problemContent, { params: { id: exerciseId } });
+    const allFiles: Filemap = { ...allOtherFiles };
+    fileOrder.forEach((path) => {
+      allFiles[path] = fileContents[path];
+    });
+    const problemContentMap: Filemap = {};
+    fileOrder.forEach((p) => {
+      problemContentMap[p] = fileContents[p] ?? "";
+    });
+
+    await submitCode(problemContentMap, { params: { id: exerciseId } });
+  };
+
+  const onCreateFile = async (filename: string, parentPath = "/student") => {
+    if (filename.endsWith("/")) {
+      const folderName = filename.replace(/^\/+|\/+$/g, "");
+      const placeholderPath = `${parentPath.replace(/\/+$/, "")}/${folderName}/${folderName}.go`;
+      const defaultContent = `// New file for ${folderName}`;
+      setFileContents((prev) => ({
+        ...prev,
+        [placeholderPath]: defaultContent,
+      }));
+      setFileOrder((prev) => {
+        const newOrder = [...prev, placeholderPath];
+        setActiveFile(placeholderPath);
+        return newOrder;
+      });
+      return;
+    }
+    const namePart = filename.startsWith("/") ? filename.slice(1) : filename;
+    const withExt = namePart.includes(".") ? namePart : `${namePart}.go`;
+    const fullPath = `${parentPath.replace(/\/+$/, "")}/${withExt}`;
+    const defaultContent = `// New file: ${withExt}`;
+    setFileContents((prev) => ({ ...prev, [fullPath]: defaultContent }));
+    setFileOrder((prev) => {
+      const newOrder = [...prev, fullPath];
+      setActiveFile(fullPath);
+      return newOrder;
+    });
+  };
+  const onDeleteFile = async (path: string) => {
+    if (fileOrder.length <= 1) {
+      toast.error("Cannot delete the last remaining file.");
+      return;
+    }
+    const index = fileOrder.indexOf(path);
+    if (index === -1) return;
+    const pathToDelete = fileOrder[index];
+    if (
+      pathToDelete.includes("/student/main.go") ||
+      pathToDelete.endsWith("/student/main.go") ||
+      (pathToDelete.endsWith("main.go") && pathToDelete.includes("/student"))
+    ) {
+      toast.error("Cannot delete the main.go file.");
+      return;
+    }
+
+    const newOrder = fileOrder.filter((p) => p !== pathToDelete);
+    setFileOrder(newOrder);
+    setFileContents((prev) => {
+      const copy = { ...prev };
+      delete copy[pathToDelete];
+      return copy;
+    });
+    if (activeFile === pathToDelete) {
+      const newIndex = Math.max(0, index - 1);
+      setActiveFile(newOrder[newIndex] || "");
+    }
   };
 
   const onSave = async () => {
     clearMessages();
 
-    const savedContent = fileContents[activeFile];
-    const result = await saveCode([savedContent], {
+    const saveMap: Paths = {};
+    fileOrder.forEach((p) => {
+      saveMap[p] = fileContents[p] ?? "";
+    });
+    const result = await saveCode(saveMap, {
       params: { id: exerciseId },
     });
 
@@ -98,8 +169,19 @@ export default function ExerciseEditor({
       toast.error(`Error saving code: ${result.error}`);
     } else {
       toast.success("Code saved successfully!");
-      setCanRate(true); // once saved, enable rating if not already
+      setCanRate(true);
     }
+  };
+
+  const appendProtoToMarkdown = (markdown: string, protoCode: string) => {
+    return `${markdown}
+
+## Protocol Definition
+
+\`\`\`go
+${protoCode}
+\`\`\`
+`;
   };
 
   const onReset = async () => {
@@ -112,7 +194,8 @@ export default function ExerciseEditor({
     try {
       const result = await resetCode({ params: { id: exerciseId } });
       if (result.success) {
-        setFileContents([...templateCode]);
+        setFileContents({ ...studentCode });
+        setFileOrder(Object.keys(studentCode));
         toast.success("Code reset successfully!", {
           description: "Template restored and saved code cleared.",
         });
@@ -154,13 +237,13 @@ export default function ExerciseEditor({
     });
   };
 
-  function setEditorContent(value: React.SetStateAction<string>): void {
-    if (resetting) return; // disable editing while resetting
+  function setEditorContent(value: SetStateAction<string>): void {
+    if (resetting) return;
     setFileContents((prev) => {
-      const newContents = [...prev];
-      newContents[activeFile] =
-        typeof value === "function" ? value(prev[activeFile]) : value;
-      return newContents;
+      const currentPath = activeFile;
+      const currentVal = prev[currentPath] ?? "";
+      const newVal = typeof value === "function" ? value(currentVal) : value;
+      return { ...prev, [currentPath]: newVal };
     });
   }
 
@@ -199,7 +282,9 @@ export default function ExerciseEditor({
           {/* Content area */}
           <div className="flex-1 overflow-y-auto">
             {leftPanelView === "problem" ? (
-              <MarkdownPreview content={problemMarkdown} />
+              <MarkdownPreview
+                content={appendProtoToMarkdown(problemMarkdown, protocalCode)}
+              />
             ) : (
               <div className="h-full flex flex-col">
                 {solutionFiles.length > 1 && (
@@ -241,20 +326,22 @@ export default function ExerciseEditor({
           </div>
         </div>
       </ResizablePanel>
-
-      <ResizableHandle withHandle />
+      <ResizablePanel minSize={2} className="w-1 bg-muted/50 cursor-col-resize">
+        <ResizableHandle withHandle />
+        <FolderSystem
+          files={fileContents}
+          onFileChange={setActiveFile}
+          onCreateFile={onCreateFile}
+          onDeleteFile={onDeleteFile}
+        />
+      </ResizablePanel>
 
       {/* Right panel: Editor + Terminal Output */}
-      <ResizablePanel minSize={20}>
+      <ResizablePanel minSize={30}>
+        <ResizableHandle withHandle />
         <ResizablePanelGroup direction="vertical">
           <ResizablePanel defaultSize={50}>
             <EditorHeader
-              files={files.map((file, x) => ({
-                ...file,
-                content: fileContents[x],
-              }))}
-              activeFile={activeFile}
-              onFileChange={setActiveFile}
               onSubmit={onSubmit}
               onSave={onSave}
               onReset={onReset}
@@ -290,7 +377,7 @@ export default function ExerciseEditor({
             <Editor
               editorContent={fileContents[activeFile]}
               setEditorContent={setEditorContent}
-              language={files[activeFile].fileType}
+              language={activeFile?.endsWith(".go") ? "go" : "markdown"}
               options={{
                 readOnly: resetting,
                 minimap: { enabled: false },

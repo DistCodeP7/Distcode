@@ -3,9 +3,11 @@
 import { eq } from "drizzle-orm";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import type { Paths } from "@/drizzle/schema";
 import { problems } from "@/drizzle/schema";
 import { db } from "@/lib/db";
 import { getUserById } from "@/lib/user";
+import type { CheckoutFormState } from "../checkout/challenge";
 
 export type ApiResult =
   | { success: true; message: string; status: number }
@@ -17,10 +19,12 @@ export type SaveProblemParams = {
   description: string;
   difficulty: number;
   problemMarkdown: string;
-  templateCode: string[];
-  solutionCode: string[];
-  testCasesCode: string;
+  studentCode: Paths;
+  solutionCode: string;
+  testCode: Paths;
+  protocolCode?: string;
   isPublished?: boolean;
+  createForm: CheckoutFormState;
 };
 
 export async function saveProblem(data: SaveProblemParams) {
@@ -49,13 +53,14 @@ export async function saveProblem(data: SaveProblemParams) {
     { value: dataToValidate.title, name: "Title" },
     { value: dataToValidate.description, name: "Description" },
     { value: dataToValidate.problemMarkdown, name: "Problem markdown" },
-    { value: dataToValidate.templateCode, name: "Template code" },
+    { value: dataToValidate.studentCode, name: "Student code" },
     { value: dataToValidate.solutionCode, name: "Solution code" },
-    { value: dataToValidate.testCasesCode, name: "Test cases code" },
+    { value: dataToValidate.testCode, name: "Test code" },
   ];
+
   for (const field of fieldsToValidate) {
-    const isArrayField =
-      field.name.includes("Template") || field.name.includes("Solution");
+    const isMapField =
+      field.name.includes("Student") || field.name.includes("Test");
     if (!field.value) {
       return {
         success: false,
@@ -63,8 +68,11 @@ export async function saveProblem(data: SaveProblemParams) {
         status: 400,
       };
     }
-    if (isArrayField) {
-      if (!Array.isArray(field.value) || field.value.length === 0) {
+    if (isMapField) {
+      if (
+        typeof field.value !== "object" ||
+        Object.keys(field.value).length === 0
+      ) {
         return {
           success: false,
           error: `${field.name} is required (empty).`,
@@ -86,17 +94,28 @@ export async function saveProblem(data: SaveProblemParams) {
       status: 400,
     };
   }
-
+  let exerciseId = id;
   try {
     if (id) {
       await db
         .update(problems)
-        .set({ ...problemData, isPublished })
+        .set({
+          ...problemData,
+          isPublished,
+        })
         .where(eq(problems.id, id));
     } else {
-      await db
+      const result = await db
         .insert(problems)
-        .values({ ...problemData, userId: session.user.id, isPublished });
+        .values({
+          ...problemData,
+          userId: session.user.id,
+          isPublished,
+          challengeForm: data.createForm,
+          protocolCode: problemData.protocolCode ?? "",
+        })
+        .returning();
+      exerciseId = result[0].id;
     }
 
     return {
@@ -105,11 +124,50 @@ export async function saveProblem(data: SaveProblemParams) {
         ? "Problem published successfully!"
         : "Draft saved successfully.",
       status: 200,
+      id: exerciseId,
     };
   } catch (err) {
     return {
       success: false,
       error: `An internal server error occurred.${err}`,
+      status: 500,
+    };
+  }
+}
+
+export async function updateChallengeForm(
+  problemId: number,
+  challengeForm: CheckoutFormState
+) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return { success: false, error: "Not authenticated", status: 401 };
+  }
+
+  const existingProblem = await db.query.problems.findFirst({
+    where: (s, { eq: _eq }) => _eq(s.id, problemId),
+  });
+  if (!existingProblem) {
+    return { success: false, error: "Problem not found", status: 404 };
+  }
+  if (existingProblem.userId !== session.user.id) {
+    return { success: false, error: "Forbidden", status: 403 };
+  }
+
+  try {
+    await db
+      .update(problems)
+      .set({ challengeForm })
+      .where(eq(problems.id, problemId));
+    return {
+      success: true,
+      message: "Challenge form updated successfully.",
+      status: 200,
+    };
+  } catch (err) {
+    return {
+      success: false,
+      error: `An internal server error occurred. ${String(err)}`,
       status: 500,
     };
   }

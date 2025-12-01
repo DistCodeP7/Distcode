@@ -2,11 +2,16 @@
 
 import { and, desc, eq } from "drizzle-orm";
 import { getServerSession } from "next-auth";
+import { v4 as uuid } from "uuid"; // Example for a common UUID library in JS
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { problems, ratings, userCode } from "@/drizzle/schema";
 import { db } from "@/lib/db";
 import { MQJobsSender } from "@/lib/mq";
 import { getUserById } from "@/lib/user";
+
+export type Filemap = {
+  [key: string]: string;
+};
 
 export async function getExercise({ params }: { params: { id: number } }) {
   const id = Number(params.id);
@@ -32,7 +37,7 @@ export async function getExercise({ params }: { params: { id: number } }) {
 }
 
 export async function submitCode(
-  content: string[],
+  content: Filemap,
   { params }: { params: { id: number } }
 ) {
   const session = await getServerSession(authOptions);
@@ -41,15 +46,41 @@ export async function submitCode(
   const user = await getUserById(session.user.id);
   if (!user) return { error: "User not found.", status: 404 };
 
-  const problemId = Number(params.id);
-  if (Number.isNaN(problemId))
+  const ProblemId = Number(params.id);
+  if (Number.isNaN(ProblemId))
     return { error: "Invalid exercise id", status: 400 };
 
+  const exercise = await db.query.problems.findFirst({
+    where: (s, { eq }) => eq(s.id, ProblemId),
+  });
+
+  if (!exercise) {
+    return { error: "Exercise not found.", status: 404 };
+  }
+  const challengeForm = exercise.challengeForm;
+
+  const contentArray = [
+    {
+      submissionCode: content,
+      globalEnvs: challengeForm.submission.globalEnvs,
+      buildCommand: challengeForm.submission.buildCommand,
+      entryCommand: challengeForm.submission.entryCommand,
+      replicaConfigs: challengeForm.submission.replicaConfigs,
+    },
+    {
+      alias: "test_runner",
+      testFiles: challengeForm.testContainer.testFiles,
+      envs: challengeForm.testContainer.envs,
+      buildCommand: challengeForm.testContainer.buildCommand,
+      entryCommand: challengeForm.testContainer.entryCommand,
+    },
+  ];
+
   const payload = {
-    ProblemId: problemId,
+    JobUID: `${uuid()}`,
+    Nodes: contentArray,
     UserId: user.userid,
-    Code: content,
-    Timeoutlimit: 60,
+    Timeout: 60,
   };
 
   MQJobsSender.sendMessage(payload);
@@ -58,7 +89,7 @@ export async function submitCode(
 }
 
 export async function saveCode(
-  content: string[],
+  content: Filemap,
   { params }: { params: { id: number } }
 ) {
   const session = await getServerSession(authOptions);
@@ -124,7 +155,7 @@ export async function loadSavedCode({ params }: { params: { id: number } }) {
     return { error: "Submission not found.", status: 404 };
   }
 
-  return { success: true, code: problem.templateCode };
+  return { success: true, code: problem.studentCode };
 }
 
 export async function loadUserRating({ params }: { params: { id: number } }) {

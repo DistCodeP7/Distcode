@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import ExerciseEditor from "@/components/custom/exerciseEditor";
+import type { Paths } from "@/drizzle/schema";
 import {
   getExercise,
   hasUserSubmitted,
@@ -22,7 +23,7 @@ export default async function ExercisePage({
   }
 
   const session = await getServerSession(authOptions);
-  let savedCode: string[] | null = null;
+  let savedCode: Paths | null = null;
   let userRating: "up" | "down" | null = null;
   let canRate = false;
 
@@ -48,9 +49,10 @@ export default async function ExercisePage({
       <ExerciseEditor
         exerciseId={exerciseParams.id}
         problemMarkdown={exercise.problemMarkdown}
-        templateCode={exercise.templateCode}
+        studentCode={exercise.studentCode}
         solutionCode={exercise.solutionCode}
-        testCasesCode={exercise.testCasesCode}
+        testCasesCode={exercise.testCode}
+        protocalCode={exercise.protocolCode}
         savedCode={savedCode}
         userRating={userRating}
         canRate={canRate}

@@ -1,3 +1,4 @@
+import { CheckoutFormState } from "@/app/authorized/checkout/challenge";
 import {
   pgTable,
   serial,
@@ -13,6 +14,8 @@ import {
 import { sql } from "drizzle-orm/sql/sql";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import * as zod from "zod";
+
+export type Paths = { [key: string]: string };
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -41,10 +44,12 @@ export const problems = pgTable(
     description: text("description").notNull(),
     difficulty: integer("difficulty").notNull(),
     problemMarkdown: text("problem_markdown").notNull(),
-    templateCode: json("template_code").$type<string[]>().notNull(),
-    solutionCode: json("solution_code").$type<string[]>().notNull(),
-    testCasesCode: text("test_cases_code").notNull(),
+    studentCode: json("student_code").$type<Paths>().notNull(),
+    solutionCode: text("solution_code").notNull(),
+    protocolCode: text("protocol_code").notNull(),
+    testCode: json("test_code").$type<Paths>().notNull(),
     isPublished: boolean("is_published").default(true).notNull(),
+    challengeForm: json("challenge_form").$type<CheckoutFormState>().notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (column) => [check("difficulty_check", sql`${column.difficulty} in (1, 2, 3)`)]
@@ -65,7 +70,7 @@ export const userCode = pgTable("userCode", {
     problemId: integer("problem_id")
         .notNull()
         .references(() => problems.id, { onDelete: "cascade" }),
-    codeSubmitted: json("code_submitted").$type<string[]>().notNull(),
+    codeSubmitted: json("code_submitted").$type<Paths>().notNull(),
 });
 
 export const UserCodeSchema = createSelectSchema(userCode);

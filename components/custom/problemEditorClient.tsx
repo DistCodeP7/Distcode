@@ -1,18 +1,6 @@
 "use client";
-
-import { Plus, X } from "lucide-react";
-import { useEffect, useState } from "react";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
   ResizableHandle,
@@ -26,9 +14,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { Paths } from "@/drizzle/schema";
 import { useProblemEditor } from "@/hooks/useProblemEditor";
-
-type FileDef = { name: string; fileType: "go" | "markdown" };
+import { FolderSystem } from "./folderSystem";
 
 export default function ProblemEditorClient({
   files,
@@ -38,16 +26,13 @@ export default function ProblemEditorClient({
   initialDifficulty,
   problemId,
 }: {
-  files: FileDef[];
-  initialFilesContent?: Record<string, string>;
+  files: Paths;
+  initialFilesContent?: Paths;
   initialTitle?: string;
   initialDescription?: string;
   initialDifficulty?: string;
   problemId?: number;
 }) {
-  const [currentFiles, setCurrentFiles] = useState<FileDef[]>([...files]);
-  const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
-
   const {
     title,
     description,
@@ -60,52 +45,16 @@ export default function ProblemEditorClient({
     handleEditorContentChange,
     handleSubmit,
     handleSave,
+    handleCreateFile,
+    handleDeleteFile,
     filesContent,
-  } = useProblemEditor(currentFiles, {
-    filesContent: initialFilesContent,
+  } = useProblemEditor(files, {
+    filesContent: files ?? initialFilesContent,
     title: initialTitle,
     description: initialDescription,
     difficulty: initialDifficulty,
     problemId,
   });
-
-  const pairCount = currentFiles.filter((f) =>
-    f.name.startsWith("template")
-  ).length;
-
-  const addFilesPair = () => {
-    const next = pairCount + 1;
-    const newFiles: FileDef[] = [
-      { name: `template${next === 1 ? "" : next}.go`, fileType: "go" },
-      { name: `solution${next === 1 ? "" : next}.go`, fileType: "go" },
-    ];
-
-    setCurrentFiles((prev) => {
-      const index = prev.findIndex((f) => f.name === "testCases.go");
-      if (index === -1) return [...prev, ...newFiles]; // Append if testCases.go not found
-      return [...prev.slice(0, index), ...newFiles, ...prev.slice(index)]; // Insert before testCases.go
-    });
-  };
-
-  const removeFilesPair = () => {
-    if (pairCount <= 1) return;
-    setCurrentFiles((prev) => {
-      const lastTemplate = [...prev]
-        .reverse()
-        .find((f) => f.name.startsWith("template"))?.name;
-      const lastSolution = [...prev]
-        .reverse()
-        .find((f) => f.name.startsWith("solution"))?.name;
-      return prev.filter(
-        (f) => f.name !== lastTemplate && f.name !== lastSolution
-      );
-    });
-  };
-
-  useEffect(() => {
-    if (activeFile >= currentFiles.length)
-      setActiveFile(Math.max(0, currentFiles.length - 1));
-  }, [currentFiles, activeFile, setActiveFile]);
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden">
@@ -160,9 +109,30 @@ export default function ProblemEditorClient({
         className="flex-1 border h-full w-full min-w-0"
       >
         <ResizablePanel minSize={20} className="flex-1 min-w-0 overflow-auto">
-          <MarkdownPreview content={filesContent["problem.md"] || ""} />
+          {/* Show the problem markdown: try to find a problem.* key in filesContent */}
+          <MarkdownPreview
+            content={
+              filesContent[
+                Object.keys(filesContent).find((k) => {
+                  const kk = k.startsWith("/") ? k.slice(1) : k;
+                  return kk === "problem.md" || kk.startsWith("problem");
+                }) || Object.keys(filesContent)[0]
+              ] || ""
+            }
+          />
         </ResizablePanel>
-
+        <ResizablePanel
+          minSize={12}
+          className="w-56 min-w-[12rem] bg-background border-r overflow-auto cursor-col-resize"
+        >
+          <FolderSystem
+            files={filesContent}
+            onFileChange={setActiveFile}
+            activeFilePath={activeFile}
+            onCreateFile={handleCreateFile}
+            onDeleteFile={handleDeleteFile}
+          />
+        </ResizablePanel>
         <ResizableHandle withHandle />
 
         <ResizablePanel
@@ -170,91 +140,34 @@ export default function ProblemEditorClient({
           className="flex-1 flex flex-col min-w-0 overflow-hidden"
         >
           <EditorHeader
-            files={currentFiles}
-            activeFile={activeFile}
-            onFileChange={setActiveFile}
             onSubmit={handleSubmit}
             onSave={handleSave}
             onReset={() => {}}
           />
 
-          <div className="flex-shrink-0 flex items-center justify-between gap-2 p-2 border-b bg-muted/30 flex-wrap">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-medium text-muted-foreground">
-                Go Files:
-              </span>
-              <Button
-                onClick={addFilesPair}
-                size="sm"
-                variant="outline"
-                className="flex items-center gap-1 px-2 py-1"
-              >
-                <Plus className="w-4 h-4" /> Add new file pair
-              </Button>
-
-              {pairCount > 1 && (
-                <>
-                  <Button
-                    onClick={() => setIsRemoveDialogOpen(true)}
-                    size="sm"
-                    variant="outline"
-                    className="flex items-center gap-1 px-2 py-1"
-                  >
-                    <X className="w-4 h-4" /> Remove latest file pair
-                  </Button>
-                  <Dialog
-                    open={isRemoveDialogOpen}
-                    onOpenChange={setIsRemoveDialogOpen}
-                  >
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Remove file pair</DialogTitle>
-                        <DialogDescription>
-                          Are you sure you want to remove the last
-                          template/solution pair? This cannot be undone.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <DialogFooter>
-                        <Button
-                          variant="outline"
-                          onClick={() => setIsRemoveDialogOpen(false)}
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          onClick={() => {
-                            removeFilesPair();
-                            setIsRemoveDialogOpen(false);
-                          }}
-                        >
-                          Remove
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </>
-              )}
-            </div>
-
-            <div className="text-xs text-muted-foreground whitespace-nowrap">
-              {pairCount} file pair{pairCount !== 1 ? "s" : ""}{" "}
-              <span className="ml-1 text-primary">
-                (Template + Solution each)
-              </span>
-            </div>
-          </div>
-
           <div className="flex-1 overflow-auto min-w-0">
-            <Editor
-              editorContent={filesContent[currentFiles[activeFile]?.name] || ""}
-              setEditorContent={handleEditorContentChange}
-              language={
-                currentFiles[activeFile]?.fileType === "markdown"
+            {(() => {
+              const content = filesContent[activeFile] || "";
+              const name = activeFile
+                ? activeFile.startsWith("/")
+                  ? activeFile.slice(1)
+                  : activeFile
+                : "";
+              const language =
+                name.endsWith(".md") ||
+                name.startsWith("problem") ||
+                name.startsWith("solution")
                   ? "markdown"
-                  : "go"
-              }
-            />
+                  : "go";
+
+              return (
+                <Editor
+                  editorContent={content}
+                  setEditorContent={handleEditorContentChange}
+                  language={language}
+                />
+              );
+            })()}
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>
