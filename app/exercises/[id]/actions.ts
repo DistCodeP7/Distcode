@@ -80,7 +80,6 @@ export async function submitCode(
       globalEnvs: challengeForm.submission.globalEnvs,
       buildCommand: challengeForm.submission.buildCommand,
       entryCommand: challengeForm.submission.entryCommand,
-      replicas: challengeForm.submission.replicas,
       replicaConfigs: challengeForm.submission.replicaConfigs,
     },
     {
@@ -94,7 +93,6 @@ export async function submitCode(
 
   const payload = {
     JobUID: `${uuid()}`,
-    ProblemId,
     Nodes: contentArray,
     UserId: user.userid,
     Timeout: 60,
