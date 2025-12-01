@@ -37,7 +37,7 @@ export async function getExercise({ params }: { params: { id: number } }) {
 }
 
 export async function submitCode(
-  content: Filemap,
+  submissionCode: Filemap,
   { params }: { params: { id: number } }
 ) {
   const session = await getServerSession(authOptions);
@@ -59,18 +59,46 @@ export async function submitCode(
   }
   const challengeForm = exercise.challengeForm;
 
+  type newEnv = { key: string; value: string };
+
+  const globalEnvs: newEnv[] = challengeForm.submission.globalEnvs.map(
+    (env) => {
+      return { key: env.key, value: env.value };
+    }
+  );
+
+  const envs: newEnv[] = challengeForm.testContainer.envs.map((env) => {
+    return { key: env.key, value: env.value };
+  });
+
+  type newReplicaConfig = {
+    alias: string;
+    envs: newEnv[];
+  };
+
+  const replicaConfigs: newReplicaConfig[] = Object.values(
+    challengeForm.submission.replicaConfigs
+  ).map((replica) => {
+    return {
+      alias: replica.alias,
+      envs: replica.envs.map((env) => {
+        return { key: env.key, value: env.value };
+      }),
+    };
+  });
+
   const contentArray = [
     {
-      submissionCode: content,
-      globalEnvs: challengeForm.submission.globalEnvs,
+      submissionCode,
+      globalEnvs,
       buildCommand: challengeForm.submission.buildCommand,
       entryCommand: challengeForm.submission.entryCommand,
-      replicaConfigs: challengeForm.submission.replicaConfigs,
+      replicaConfigs,
     },
     {
       alias: "test_runner",
       testFiles: challengeForm.testContainer.testFiles,
-      envs: challengeForm.testContainer.envs,
+      envs,
       buildCommand: challengeForm.testContainer.buildCommand,
       entryCommand: challengeForm.testContainer.entryCommand,
     },
