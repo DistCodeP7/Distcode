@@ -15,16 +15,10 @@ import { FolderSystem } from "./folderSystem";
 export default function ProblemEditorClient({
   files,
   initialFilesContent,
-  initialTitle,
-  initialDescription,
-  initialDifficulty,
   problemId,
 }: {
   files: Paths;
   initialFilesContent?: Paths;
-  initialTitle?: string;
-  initialDescription?: string;
-  initialDifficulty?: string;
   problemId?: number;
 }) {
   const {
@@ -37,9 +31,6 @@ export default function ProblemEditorClient({
     filesContent,
   } = useProblemEditor(files, {
     filesContent: files ?? initialFilesContent,
-    title: initialTitle,
-    description: initialDescription,
-    difficulty: initialDifficulty,
     problemId,
   });
 

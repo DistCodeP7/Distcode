@@ -89,7 +89,7 @@ export async function saveProblem(data: SaveProblemParams) {
         .update(problems)
         .set({
           ...problemData,
-          isPublished,
+          isPublished: false,
         })
         .where(eq(problems.id, id));
     } else {
@@ -98,7 +98,7 @@ export async function saveProblem(data: SaveProblemParams) {
         .values({
           ...problemData,
           userId: session.user.id,
-          isPublished,
+          isPublished: false,
           challengeForm: data.createForm,
           protocolCode: problemData.protocolCode ?? "",
         })
@@ -141,11 +141,32 @@ export async function updateChallengeForm(
   if (existingProblem.userId !== session.user.id) {
     return { success: false, error: "Forbidden", status: 403 };
   }
+  if (challengeForm.details.title.trim() === "") {
+    return {
+      success: false,
+      error: "Title in challenge form is required.",
+      status: 400,
+    };
+  }
+  if (challengeForm.details.description.trim() === "") {
+    return {
+      success: false,
+      error: "Description in challenge form is required.",
+      status: 400,
+    };
+  }
+  if (!["Easy", "Medium", "Hard"].includes(challengeForm.details.difficulty)) {
+    return {
+      success: false,
+      error: "Difficulty in challenge form is invalid.",
+      status: 400,
+    };
+  }
 
   try {
     await db
       .update(problems)
-      .set({ challengeForm })
+      .set({ challengeForm, isPublished: true })
       .where(eq(problems.id, problemId));
     return {
       success: true,

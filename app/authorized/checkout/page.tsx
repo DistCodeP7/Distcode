@@ -37,7 +37,12 @@ export default function CreateChallenge() {
     if (result.success) {
       toast.success("Challenge form saved successfully!");
       router.push(`/authorized/`);
-    }
+    } else
+      toast.error(
+        `Failed to save challenge form. ${
+          result.error ? `Error: ${result.error}` : ""
+        }`
+      );
   };
 
   return (
