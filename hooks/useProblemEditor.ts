@@ -5,6 +5,7 @@ import { type SetStateAction, useState } from "react";
 import { saveProblem } from "@/app/authorized/[id]/problemActions";
 import type { CheckoutFormState } from "@/app/authorized/checkout/challenge";
 import type { Paths } from "@/drizzle/schema";
+import { toast } from "sonner";
 
 const getInitialContent = (path: string): string => {
   if (
@@ -109,6 +110,10 @@ export const useProblemEditor = (
 
   const handleCreateFile = (filePath: string) => {
     setState((prev) => {
+      if (filePath.includes("main.go")) {
+        toast.error("Cannot create a file named main.go");
+        return prev;
+      }
       const parentPath = filePath.includes("/") ? filePath : "/student";
       if (filePath.endsWith("/")) {
         const folderName = filePath.replace(/^\/+|\/+$/g, "");
@@ -161,14 +166,12 @@ export const useProblemEditor = (
 
       if (
         filePath.includes("/student/main.go") ||
-        filePath.endsWith("/student/main.go") ||
-        (filePath.endsWith("main.go") && filePath.includes("/student")) ||
         filePath.includes("/test/test.go") ||
         filePath === "problem.md" ||
         filePath === "protocol.go" ||
         filePath === "solution.md"
       ) {
-        alert("Cannot delete the main.go file.");
+        alert("Cannot delete the originals files.");
         return prev;
       }
 
