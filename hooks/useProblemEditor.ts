@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { saveProblem } from "@/app/authorized/[id]/problemActions";
 import type { CheckoutFormState } from "@/app/authorized/checkout/challenge";
 import type { Paths } from "@/drizzle/schema";
-import { toast } from "sonner";
 
 const getInitialContent = (path: string): string => {
   if (
@@ -47,9 +46,6 @@ type ActionResult =
 type ProblemEditorState = {
   filesContent: Paths;
   activeFile: string;
-  title: string;
-  description: string;
-  difficulty: string;
   isSubmitting: boolean;
 };
 
@@ -57,9 +53,6 @@ export const useProblemEditor = (
   files: Paths,
   initial?: {
     filesContent?: Paths;
-    title?: string;
-    description?: string;
-    difficulty?: string;
     problemId?: number;
   }
 ) => {
@@ -76,9 +69,6 @@ export const useProblemEditor = (
     return {
       filesContent,
       activeFile: Object.keys(files)[0] || "",
-      title: initial?.title ?? "",
-      description: initial?.description ?? "",
-      difficulty: initial?.difficulty ?? "1",
       isSubmitting: false,
     };
   });
@@ -211,10 +201,6 @@ export const useProblemEditor = (
 
     try {
       const missingFields: string[] = [];
-      if (!state.title.trim()) missingFields.push("Title");
-      if (!state.description.trim()) missingFields.push("Description");
-      if (!["1", "2", "3"].includes(state.difficulty))
-        missingFields.push("Difficulty");
 
       const problemKey = Object.keys(state.filesContent).find((k) => {
         const nn = k;
@@ -267,9 +253,9 @@ export const useProblemEditor = (
       const createForm: CheckoutFormState = {
         step: 1,
         details: {
-          title: state.title,
-          description: state.description,
-          difficulty: state.difficulty as "Easy" | "Medium" | "Hard",
+          title: "",
+          description: "",
+          difficulty: "" as "Easy" | "Medium" | "Hard",
         },
         testContainer: {
           alias: "test-container",
@@ -291,9 +277,6 @@ export const useProblemEditor = (
 
       const payload = {
         id: initial?.problemId,
-        title: state.title,
-        description: state.description,
-        difficulty: parseInt(state.difficulty, 10),
         problemMarkdown,
         studentCode: studentFilesMap,
         solutionCode,

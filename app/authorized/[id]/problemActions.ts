@@ -15,9 +15,6 @@ export type ApiResult =
 
 export type SaveProblemParams = {
   id?: number;
-  title: string;
-  description: string;
-  difficulty: number;
   problemMarkdown: string;
   studentCode: Paths;
   solutionCode: string;
@@ -50,8 +47,6 @@ export async function saveProblem(data: SaveProblemParams) {
 
   const dataToValidate = { ...existingProblem, ...problemData };
   const fieldsToValidate = [
-    { value: dataToValidate.title, name: "Title" },
-    { value: dataToValidate.description, name: "Description" },
     { value: dataToValidate.problemMarkdown, name: "Problem markdown" },
     { value: dataToValidate.studentCode, name: "Student code" },
     { value: dataToValidate.solutionCode, name: "Solution code" },
@@ -86,13 +81,6 @@ export async function saveProblem(data: SaveProblemParams) {
         status: 400,
       };
     }
-  }
-  if (dataToValidate.difficulty < 1 || dataToValidate.difficulty > 3) {
-    return {
-      success: false,
-      error: "Difficulty must be selected.",
-      status: 400,
-    };
   }
   let exerciseId = id;
   try {

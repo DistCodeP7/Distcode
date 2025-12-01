@@ -40,9 +40,6 @@ export const problems = pgTable(
     userId: varchar("user_id")
       .notNull()
       .references(() => users.userid, { onDelete: "cascade" }),
-    title: varchar("title", { length: 256 }).notNull(),
-    description: text("description").notNull(),
-    difficulty: integer("difficulty").notNull(),
     problemMarkdown: text("problem_markdown").notNull(),
     studentCode: json("student_code").$type<Paths>().notNull(),
     solutionCode: text("solution_code").notNull(),
@@ -52,7 +49,6 @@ export const problems = pgTable(
     challengeForm: json("challenge_form").$type<CheckoutFormState>().notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
-  (column) => [check("difficulty_check", sql`${column.difficulty} in (1, 2, 3)`)]
 );
 
 export const ProblemsSchema = createSelectSchema(problems);
