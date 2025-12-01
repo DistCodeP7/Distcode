@@ -60,27 +60,33 @@ export async function submitCode(
   const challengeForm = exercise.challengeForm;
 
   // TODO: Need to add replication of nodes based on challenge form settings
+
+  const SubmissionArray: Filemap[] = Object.entries(content).map(
+    ([fileName, fileContent]) => ({
+      [fileName]: fileContent,
+    })
+  );
+  SubmissionArray.push({ "/protocol.go": exercise.protocolCode });
+
+  const TestArray: Filemap[] = Object.entries(exercise.testCode || {}).map(
+    ([fileName, fileContent]) => ({
+      [fileName]: fileContent as string,
+    })
+  );
+
+  TestArray.push({ "/protocol.go": exercise.protocolCode });
+
   const contentArray = [
     {
       Alias: "student_code",
-      Files: {
-        ...content,
-        ...(exercise.protocolCode
-          ? { "/protocol.go": exercise.protocolCode }
-          : {}),
-      },
+      Files: SubmissionArray,
       Envs: challengeForm.submission.globalEnvs || [],
       BuildCommand: challengeForm.submission.buildCommand || "go build ./...",
       EntryCommand: challengeForm.submission.entryCommand || "go run main.go",
     },
     {
       Alias: "test_runner",
-      Files: {
-        ...(exercise.testCode || {}),
-        ...(exercise.protocolCode
-          ? { "/protocol.go": exercise.protocolCode }
-          : {}),
-      } as Filemap,
+      Files: TestArray,
       Envs: challengeForm.testContainer.envs || [],
       BuildCommand:
         challengeForm.testContainer.buildCommand || "go build ./...",
