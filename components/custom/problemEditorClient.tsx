@@ -108,7 +108,12 @@ export default function ProblemEditorClient({
         direction="horizontal"
         className="flex-1 border h-full w-full min-w-0"
       >
-        <ResizablePanel minSize={20} className="flex-1 min-w-0 overflow-auto">
+        {/* Panel 1: Markdown Preview (Problem Description) */}
+        <ResizablePanel
+          minSize={20}
+          defaultSize={35}
+          className="flex-1 min-w-0 overflow-auto"
+        >
           {/* Show the problem markdown: try to find a problem.* key in filesContent */}
           <MarkdownPreview
             content={
@@ -121,9 +126,15 @@ export default function ProblemEditorClient({
             }
           />
         </ResizablePanel>
+
+        {/* Handle 1: Separates Panel 1 and Panel 2 */}
+        <ResizableHandle withHandle />
+
+        {/* Panel 2: Folder System */}
         <ResizablePanel
           minSize={12}
-          className="w-56 min-w-[12rem] bg-background border-r overflow-auto cursor-col-resize"
+          defaultSize={25}
+          className="bg-background border-r overflow-auto"
         >
           <FolderSystem
             files={filesContent}
@@ -133,10 +144,14 @@ export default function ProblemEditorClient({
             onDeleteFile={handleDeleteFile}
           />
         </ResizablePanel>
+
+        {/* Handle 2: Separates Panel 2 and Panel 3 */}
         <ResizableHandle withHandle />
 
+        {/* Panel 3: Code Editor */}
         <ResizablePanel
           minSize={20}
+          defaultSize={40}
           className="flex-1 flex flex-col min-w-0 overflow-hidden"
         >
           <EditorHeader

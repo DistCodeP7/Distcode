@@ -215,8 +215,8 @@ ${protoCode}
       direction="horizontal"
       className="flex-1 border md:min-w-[450px]"
     >
-      {/* Left panel: Problem Markdown or Solution View */}
-      <ResizablePanel minSize={20} className="overflow-y-auto">
+      {/* Panel 1: Left Panel (Problem Markdown or Solution View) */}
+      <ResizablePanel minSize={20} defaultSize={35} className="overflow-y-auto">
         <div className="flex flex-col h-full">
           {/* Toggle buttons for left panel */}
           <div className="flex border-b bg-background">
@@ -289,8 +289,12 @@ ${protoCode}
           </div>
         </div>
       </ResizablePanel>
-      <ResizablePanel minSize={2} className="w-1 bg-muted/50 cursor-col-resize">
-        <ResizableHandle withHandle />
+
+      {/* Handle 1: Separator between Panel 1 (Problem) and Panel 2 (File System) */}
+      <ResizableHandle withHandle />
+
+      {/* Panel 2: Folder System */}
+      <ResizablePanel minSize={10} defaultSize={15}>
         <FolderSystem
           files={fileContents}
           onFileChange={setActiveFile}
@@ -299,9 +303,11 @@ ${protoCode}
         />
       </ResizablePanel>
 
-      {/* Right panel: Editor + Terminal Output */}
-      <ResizablePanel minSize={30}>
-        <ResizableHandle withHandle />
+      {/* Handle 2: Separator between Panel 2 (File System) and Panel 3 (Editor/Terminal) */}
+      <ResizableHandle withHandle />
+
+      {/* Panel 3: Right Panel (Editor + Terminal Output) */}
+      <ResizablePanel minSize={30} defaultSize={50}>
         <ResizablePanelGroup direction="vertical">
           <ResizablePanel defaultSize={50}>
             <EditorHeader
