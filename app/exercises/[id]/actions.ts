@@ -59,24 +59,9 @@ export async function submitCode(
   }
   const challengeForm = exercise.challengeForm;
 
-  const SubmissionArray: Filemap[] = Object.entries(content).map(
-    ([fileName, fileContent]) => ({
-      [fileName]: fileContent,
-    })
-  );
-  SubmissionArray.push({ "/protocol.go": exercise.protocolCode });
-
-  const TestArray: Filemap[] = Object.entries(exercise.testCode || {}).map(
-    ([fileName, fileContent]) => ({
-      [fileName]: fileContent as string,
-    })
-  );
-
-  TestArray.push({ "/protocol.go": exercise.protocolCode });
-
   const contentArray = [
     {
-      submissionCode: SubmissionArray,
+      submissionCode: content,
       globalEnvs: challengeForm.submission.globalEnvs,
       buildCommand: challengeForm.submission.buildCommand,
       entryCommand: challengeForm.submission.entryCommand,
@@ -84,7 +69,7 @@ export async function submitCode(
     },
     {
       alias: "test_runner",
-      testFiles: TestArray,
+      testFiles: challengeForm.testContainer.testFiles,
       envs: challengeForm.testContainer.envs,
       buildCommand: challengeForm.testContainer.buildCommand,
       entryCommand: challengeForm.testContainer.entryCommand,
