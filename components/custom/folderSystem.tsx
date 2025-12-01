@@ -10,7 +10,7 @@ interface FileTreeNode {
   fullPath: string;
   type: "file" | "folder";
   children?: Record<string, FileTreeNode>;
-  fileKey?: string; // original key from Paths (may include leading slash)
+  fileKey?: string;
 }
 
 const sortNodes = (a: FileTreeNode, b: FileTreeNode) => {
@@ -28,7 +28,6 @@ function buildFileTree(filePaths: string[]): FileTreeNode {
   };
 
   filePaths.forEach((path) => {
-    // Keep the original key as `fileKey` so clicks map back to `Paths` keys
     const normalizedPath = path.startsWith("/") ? path.slice(1) : path;
     const parts = normalizedPath.split("/").filter(Boolean);
     let current = root;
@@ -218,7 +217,6 @@ export function FolderSystem({
   onDeleteFile,
   activeFilePath,
 }: FolderSystemProps) {
-  // Build the file tree from the keys of the `Paths` object
   const fileTree = buildFileTree(Object.keys(files));
 
   const rootChildren = fileTree.children

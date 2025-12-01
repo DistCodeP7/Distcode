@@ -6,31 +6,28 @@ import { saveProblem } from "@/app/authorized/[id]/problemActions";
 import type { CheckoutFormState } from "@/app/authorized/checkout/challenge";
 import type { Paths } from "@/drizzle/schema";
 
-const normalize = (n: string) => (n.startsWith("/") ? n.slice(1) : n);
-
 const getInitialContent = (path: string): string => {
-  const name = normalize(path);
   if (
-    name.endsWith(".md") ||
-    name.startsWith("problem") ||
-    name.startsWith("solution")
+    path.endsWith(".md") ||
+    path.startsWith("problem") ||
+    path.startsWith("solution")
   ) {
-    if (name.startsWith("problem"))
+    if (path.startsWith("problem"))
       return "# Problem Description\n\nDescribe the problem here.\n";
-    if (name.startsWith("solution"))
+    if (path.startsWith("solution"))
       return "# Solution Explanation\n\nDescribe the solution here.\n";
     return "";
   }
 
   if (
-    name.endsWith(".go") ||
-    name.startsWith("student") ||
-    name.startsWith("test") ||
-    name === "protocol.go"
+    path.endsWith(".go") ||
+    path.startsWith("/student") ||
+    path.startsWith("/test") ||
+    path === "protocol.go"
   ) {
-    if (name.startsWith("student")) return "// Write your code here\n";
-    if (name.startsWith("test")) return "// Write your test cases here\n";
-    if (name === "protocol.go")
+    if (path.startsWith("/student")) return "// Write your code here\n";
+    if (path.startsWith("/test")) return "// Write your test cases here\n";
+    if (path === "protocol.go")
       return `package main
 
 // Define any shared protocols or interfaces here
@@ -113,6 +110,83 @@ export const useProblemEditor = (
     []
   );
 
+  const handleCreateFile = useCallback((filePath: string) => {
+    setState((prev) => {
+      const parentPath = filePath.includes("/") ? filePath : "/student";
+      if (filePath.endsWith("/")) {
+        const folderName = filePath.replace(/^\/+|\/+$/g, "");
+        const placeholderPath = `${parentPath.replace(/\/+$/, "")}/${folderName}/placeholder.md`;
+        const defaultContent = `// placeholder for ${folderName}`;
+        return {
+          ...prev,
+          filesContent: {
+            ...prev.filesContent,
+            [placeholderPath]: defaultContent,
+          },
+          activeFile: placeholderPath,
+        };
+      }
+      console.log("Creating file at path:", filePath);
+      const isFullPath =
+        filePath.includes("/") &&
+        !filePath.startsWith("./") &&
+        !filePath.startsWith("../");
+      let fullPath = filePath;
+      if (!isFullPath) {
+        const namePart = filePath.startsWith("/")
+          ? filePath.slice(1)
+          : filePath;
+        const withExt = namePart.includes(".") ? namePart : `${namePart}.go`;
+        fullPath = `/${withExt}`;
+      }
+
+      const defaultContent = fullPath.endsWith(".md")
+        ? ""
+        : `// New file: ${fullPath.split("/").pop()}`;
+
+      return {
+        ...prev,
+        filesContent: { ...prev.filesContent, [fullPath]: defaultContent },
+        activeFile: fullPath,
+      };
+    });
+  }, []);
+
+  const handleDeleteFile = useCallback((filePath: string) => {
+    setState((prev) => {
+      const keys = Object.keys(prev.filesContent);
+      if (keys.length <= 1) {
+        alert("Cannot delete the last remaining file.");
+        return prev;
+      }
+
+      const index = keys.indexOf(filePath);
+      if (index === -1) return prev;
+
+      if (
+        filePath.includes("/student/main.go") ||
+        filePath.endsWith("/student/main.go") ||
+        (filePath.endsWith("main.go") && filePath.includes("/student")) ||
+        filePath.includes("/test/test.go")
+      ) {
+        alert("Cannot delete the main.go file.");
+        return prev;
+      }
+
+      const copy = { ...prev.filesContent };
+      delete copy[filePath];
+
+      let newActive = prev.activeFile;
+      if (prev.activeFile === filePath) {
+        const newKeys = Object.keys(copy);
+        const newIndex = Math.max(0, index - 1);
+        newActive = newKeys[newIndex] ?? newKeys[0] ?? "";
+      }
+
+      return { ...prev, filesContent: copy, activeFile: newActive };
+    });
+  }, []);
+
   const setTitle = useCallback((title: string) => {
     setState((prev) => ({ ...prev, title }));
   }, []);
@@ -141,7 +215,7 @@ export const useProblemEditor = (
           missingFields.push("Difficulty");
 
         const problemKey = Object.keys(state.filesContent).find((k) => {
-          const nn = normalize(k);
+          const nn = k;
           return nn === "problem.md" || nn.startsWith("problem");
         });
 
@@ -151,14 +225,9 @@ export const useProblemEditor = (
         const problemMarkdown = problemKey
           ? state.filesContent[problemKey]
           : "";
-
-        const keys = Object.keys(files);
-        const studentFiles = keys.filter((k) =>
-          normalize(k).startsWith("student")
-        );
-        const solutionFiles = keys.filter((k) =>
-          normalize(k).startsWith("solution")
-        );
+        const keys = Object.keys(state.filesContent);
+        const studentFiles = keys.filter((k) => k.startsWith("/student"));
+        const solutionFiles = keys.filter((k) => k.startsWith("solution"));
         const studentCode = studentFiles.map(
           (k) => state.filesContent[k] || ""
         );
@@ -171,7 +240,9 @@ export const useProblemEditor = (
             ? state.filesContent[solutionFiles[0]] || ""
             : "";
 
-        const testFiles = keys.filter((k) => normalize(k).startsWith("test"));
+        const testFiles = keys.filter(
+          (k) => k.startsWith("/test") || k.startsWith("test")
+        );
         const testCode = testFiles.map((k) => state.filesContent[k] || "");
         const testFilesMap = testFiles.reduce((acc, k) => {
           acc[k] = state.filesContent[k] || "";
@@ -180,7 +251,7 @@ export const useProblemEditor = (
 
         const protocolCode =
           keys
-            .filter((k) => normalize(k) === "protocol.go")
+            .filter((k) => k === "protocol.go" || k.endsWith("/protocol.go"))
             .map((k) => state.filesContent[k] || "")[0] || "";
 
         if (!studentFiles.length || studentCode.some((c) => !c.trim()))
@@ -247,7 +318,7 @@ export const useProblemEditor = (
         setState((prev) => ({ ...prev, isSubmitting: false }));
       }
     },
-    [state, files, initial?.problemId, router]
+    [state, initial?.problemId, router]
   );
 
   const handleSubmit = useCallback(
@@ -268,6 +339,8 @@ export const useProblemEditor = (
     handleEditorContentChange,
     handleSubmit,
     handleSave,
+    handleCreateFile,
+    handleDeleteFile,
     syncFilesContent,
   };
 };

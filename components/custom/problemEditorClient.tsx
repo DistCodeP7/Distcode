@@ -45,6 +45,8 @@ export default function ProblemEditorClient({
     handleEditorContentChange,
     handleSubmit,
     handleSave,
+    handleCreateFile,
+    handleDeleteFile,
     filesContent,
   } = useProblemEditor(files, {
     filesContent: files ?? initialFilesContent,
@@ -124,9 +126,11 @@ export default function ProblemEditorClient({
           className="w-56 min-w-[12rem] bg-background border-r overflow-auto cursor-col-resize"
         >
           <FolderSystem
-            files={files}
+            files={filesContent}
             onFileChange={setActiveFile}
             activeFilePath={activeFile}
+            onCreateFile={handleCreateFile}
+            onDeleteFile={handleDeleteFile}
           />
         </ResizablePanel>
         <ResizableHandle withHandle />

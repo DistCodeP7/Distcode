@@ -4,8 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Env } from "../challenge";
 
-// --- Shared Helpers ---
-
 const EnvList = ({
   envs,
   onChange,

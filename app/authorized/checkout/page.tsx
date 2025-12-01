@@ -30,7 +30,6 @@ export default function CreateChallenge() {
     updateSubmission,
     exerciseId,
   } = useCreateChallenge();
-  //Get ID from useParams
 
   const onSubmit = async () => {
     if (!exerciseId) return;

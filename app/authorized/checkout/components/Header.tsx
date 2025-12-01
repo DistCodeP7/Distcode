@@ -2,7 +2,6 @@ import * as motion from "motion/react-client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
-// 1. Header
 const Header = ({
   step,
   setCurrentStep,

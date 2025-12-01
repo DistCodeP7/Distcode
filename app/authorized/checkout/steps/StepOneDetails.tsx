@@ -21,7 +21,6 @@ type StepOneDetailsProps = {
   ) => void;
 };
 
-// 3. Step 1: Details
 const StepOneDetails = ({ form, updateField }: StepOneDetailsProps) => {
   return (
     <motion.div

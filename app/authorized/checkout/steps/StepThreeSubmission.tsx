@@ -26,7 +26,6 @@ const StepThreeSubmission = ({
     value: SubmissionConfig[keyof SubmissionConfig]
   ) => void;
 }) => {
-  // Update a specific replica
   const updateReplica = (
     index: number,
     field: keyof ReplicaConfig,
@@ -42,20 +41,17 @@ const StepThreeSubmission = ({
     });
   };
 
-  // Handle changing the number of replicas
   const setReplicaCount = (newCount: number) => {
     const newReplicaConfigs: Record<number, ReplicaConfig> = {
       ...config.replicaConfigs,
     };
 
-    // Add missing replicas
     for (let i = 0; i < newCount; i++) {
       if (!newReplicaConfigs[i]) {
         newReplicaConfigs[i] = { alias: `user-service-${i + 1}`, envs: [] };
       }
     }
 
-    // Remove excess replicas
     Object.keys(newReplicaConfigs).forEach((key) => {
       if (Number(key) >= newCount) delete newReplicaConfigs[Number(key)];
     });
