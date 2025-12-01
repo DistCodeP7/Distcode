@@ -126,7 +126,7 @@ describe("deleteProblem", () => {
     expect(hoisted.deleteWhere).toHaveBeenCalled();
     expect(res).toEqual({
       success: true,
-      message: "Problem deleted successfully",
+      message: "Problem deleted successfully.",
       status: 200,
     });
   });
