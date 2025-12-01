@@ -2,6 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { signOut } from "next-auth/react";
+import { toast } from "sonner";
 import useShortcut from "@/hooks/useShortcut";
 import {
   DropdownMenu,
@@ -13,7 +14,6 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { toast } from "sonner";
 
 export const AuthAvatar = ({ userAvatar }: { userAvatar: string }) => {
   const profileShortcut = useShortcut({

@@ -2,10 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { type SetStateAction, useState } from "react";
+import { toast } from "sonner";
 import { saveProblem } from "@/app/authorized/[id]/problemActions";
 import type { CheckoutFormState } from "@/app/authorized/checkout/challenge";
 import type { Paths } from "@/drizzle/schema";
-import { toast } from "sonner";
 
 const getInitialContent = (path: string): string => {
   if (
