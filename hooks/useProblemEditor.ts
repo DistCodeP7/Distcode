@@ -163,7 +163,10 @@ export const useProblemEditor = (
         filePath.includes("/student/main.go") ||
         filePath.endsWith("/student/main.go") ||
         (filePath.endsWith("main.go") && filePath.includes("/student")) ||
-        filePath.includes("/test/test.go")
+        filePath.includes("/test/test.go") ||
+        filePath === "problem.md" ||
+        filePath === "protocol.go" ||
+        filePath === "solution.md"
       ) {
         alert("Cannot delete the main.go file.");
         return prev;

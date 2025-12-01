@@ -305,20 +305,8 @@ ${protoCode}
                   </div>
                 )}
                 <div className="flex-1">
-                  <Editor
-                    editorContent={
-                      solutionFiles[activeSolutionFile]?.content || ""
-                    }
-                    setEditorContent={() => {}}
-                    language="go"
-                    options={{
-                      readOnly: true,
-                      renderLineHighlight: "none",
-                      selectionHighlight: false,
-                      occurrencesHighlight: "off",
-                      cursorBlinking: "solid",
-                      cursorStyle: "line-thin",
-                    }}
+                  <MarkdownPreview
+                    content={solutionFiles[activeSolutionFile]?.content || ""}
                   />
                 </div>
               </div>
