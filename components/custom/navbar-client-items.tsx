@@ -13,10 +13,11 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { toast } from "sonner";
 
 export const AuthAvatar = ({ userAvatar }: { userAvatar: string }) => {
   const profileShortcut = useShortcut({
-    callback: () => alert("Opening profile..."),
+    callback: () => toast.success("Opening profile..."),
     shortCutOS: {
       Windows: "⇧+Ctrl+U",
       MacOS: "⇧⌘U",

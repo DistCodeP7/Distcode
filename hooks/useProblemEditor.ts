@@ -5,6 +5,7 @@ import { type SetStateAction, useState } from "react";
 import { saveProblem } from "@/app/authorized/[id]/problemActions";
 import type { CheckoutFormState } from "@/app/authorized/checkout/challenge";
 import type { Paths } from "@/drizzle/schema";
+import { toast } from "sonner";
 
 const getInitialContent = (path: string): string => {
   if (
@@ -152,7 +153,7 @@ export const useProblemEditor = (
     setState((prev) => {
       const keys = Object.keys(prev.filesContent);
       if (keys.length <= 1) {
-        alert("Cannot delete the last remaining file.");
+        toast.error("Cannot delete the last remaining file.");
         return prev;
       }
 
@@ -165,7 +166,7 @@ export const useProblemEditor = (
         (filePath.endsWith("main.go") && filePath.includes("/student")) ||
         filePath.includes("/test/test.go")
       ) {
-        alert("Cannot delete the main.go file.");
+        toast.error("Cannot delete the main.go file.");
         return prev;
       }
 
@@ -253,7 +254,7 @@ export const useProblemEditor = (
         missingFields.push("Test code");
 
       if (missingFields.length > 0) {
-        alert(`Missing or empty fields: ${missingFields.join(", ")}`);
+        toast.error(`Missing or empty fields: ${missingFields.join(", ")}`);
         return;
       }
 
@@ -304,7 +305,7 @@ export const useProblemEditor = (
         router.push(`/authorized/checkout/?${qs}`);
       }
     } catch (err) {
-      alert(`An unexpected error occurred: ${err}`);
+      toast.error(`An unexpected error occurred: ${err}`);
     } finally {
       setState((prev) => ({ ...prev, isSubmitting: false }));
     }

@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { onRegister } from "./signin-functions";
+import { toast } from "sonner";
 
 const schema = z
   .object({
@@ -110,7 +111,7 @@ export default function RegisterClient() {
                   callbackUrl: callBackUrl,
                 });
               } else {
-                alert(res.error);
+                toast.error(res.error);
               }
             });
           }}

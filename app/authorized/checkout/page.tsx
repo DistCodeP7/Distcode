@@ -12,6 +12,7 @@ import StepOneDetails from "./steps/StepOneDetails";
 import StepThreeSubmission from "./steps/StepThreeSubmission";
 import StepTwoTestEnv from "./steps/StepTwoTest";
 import useCreateChallenge from "./useCreateChallenge";
+import { toast } from "sonner";
 
 type ActionResult =
   | { success: true; message?: string; status?: number; id?: number }
@@ -35,7 +36,7 @@ export default function CreateChallenge() {
     if (!exerciseId) return;
     const result: ActionResult = await updateChallengeForm(exerciseId, form);
     if (result.success) {
-      alert("Challenge form saved successfully!");
+      toast.success("Challenge form saved successfully!");
       router.push(`/authorized/`);
     }
   };

@@ -19,7 +19,7 @@ type useShortcutProps = {
  *
  * @example
  * useShortcut({
- * callback: () => alert('Shortcut triggered!'),
+ * callback: () => toast.success('Shortcut triggered!'),
  * shortCutOS: {
  * Windows: 'Ctrl+S',
  * MacOS: '⌘+S',

@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Code } from "lucide-react";
+import { BookOpen, Code, Save, Send } from "lucide-react";
 import { type SetStateAction, useState } from "react";
 import { toast } from "sonner";
 import type { StreamingJobResult } from "@/app/api/stream/route";
@@ -210,12 +210,51 @@ ${protoCode}
     });
   }
 
+  // Define the action buttons as a single block of JSX
+  const editorActions = (
+    <>
+      <Button
+        type="button"
+        variant="secondary"
+        className="flex items-center gap-1 px-2 py-1 text-base"
+        onClick={onSave}
+        disabled={resetting}
+      >
+        <Save className="w-4 h-4" />
+        Save
+      </Button>
+
+      <Button
+        onClick={onSubmit}
+        type="button"
+        variant="default" // Changed to default for primary action visibility
+        className="flex items-center gap-1 px-2 py-1 text-base"
+        disabled={resetting}
+      >
+        <Send className="w-4 h-4" />
+        Submit
+      </Button>
+
+      <Button
+        onClick={onReset}
+        type="button"
+        variant="outline"
+        className="flex items-center gap-1 px-2 py-1 text-base"
+        disabled={resetting}
+      >
+        <Send className="w-4 h-4" />
+        Reset To Starter Code
+      </Button>
+    </>
+  );
+
   return (
     <ResizablePanelGroup
       direction="horizontal"
       className="flex-1 border md:min-w-[450px]"
     >
       {/* Panel 1: Left Panel (Problem Markdown or Solution View) */}
+      {/* ... (Panel 1 content remains the same) ... */}
       <ResizablePanel minSize={20} defaultSize={35} className="overflow-y-auto">
         <div className="flex flex-col h-full">
           {/* Toggle buttons for left panel */}
@@ -310,12 +349,8 @@ ${protoCode}
       <ResizablePanel minSize={30} defaultSize={50}>
         <ResizablePanelGroup direction="vertical">
           <ResizablePanel defaultSize={50}>
-            <EditorHeader
-              onSubmit={onSubmit}
-              onSave={onSave}
-              onReset={onReset}
-              disabled={resetting}
-            />
+            {/* 💡 Use the refactored EditorHeader and pass the buttons */}
+            <EditorHeader actions={editorActions} />
 
             <Editor
               editorContent={fileContents[activeFile]}
