@@ -49,7 +49,7 @@ export async function submitCode(
 
   type ContainerConfigs = {
     testContainer: TestContainerConfig;
-    submissionContainer: SubmissionConfig;
+    submission: SubmissionConfig;
   };
 
   type SubmissionConfig = {
@@ -117,9 +117,9 @@ export async function submitCode(
 
   const submissionContatiner: SubmissionConfig = {
     submissionCode,
-    globalEnvs,
     buildCommand: challengeForm.submission.buildCommand,
     entryCommand: challengeForm.submission.entryCommand,
+    globalEnvs,
     replicaConfigs,
   };
 
@@ -132,7 +132,7 @@ export async function submitCode(
   };
 
   const contentArray: ContainerConfigs = {
-    submissionContainer: submissionContatiner,
+    submission: submissionContatiner,
     testContainer: testContainer,
   };
 
@@ -142,6 +142,8 @@ export async function submitCode(
     userId: user.userid,
     timeout: 60,
   };
+
+  console.log("Replicas Configs:", replicaConfigs);
 
   console.log("Submitting job with payload:", payload);
 
