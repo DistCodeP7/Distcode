@@ -5,6 +5,30 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import type { Paths } from "@/drizzle/schema";
 import { problems } from "@/drizzle/schema";
+
+type NewEnv = { key: string; value: string };
+type NewReplicaConfig = { alias: string; envs: NewEnv[] };
+type NewProblem = {
+  userId: string;
+  problemMarkdown: string;
+  studentCode: Paths;
+  solutionCode: string;
+  protocolCode: string;
+  testCode: Paths;
+  isPublished?: boolean;
+  title: string;
+  description: string;
+  difficulty: string;
+  testAlias: string;
+  selectedTestPath: string[];
+  testBuildCommand: string;
+  testEntryCommand: string;
+  testEnvs: NewEnv[];
+  submissionBuildCommand: string;
+  submissionEntryCommand: string;
+  globalEnvs: NewEnv[];
+  replicaConfigs: NewReplicaConfig[];
+};
 import { db } from "@/lib/db";
 import { getUserById } from "@/lib/user";
 import type { CheckoutFormState } from "../checkout/challenge";
@@ -21,7 +45,6 @@ export type SaveProblemParams = {
   testCode: Paths;
   protocolCode: string;
   isPublished?: boolean;
-  createForm: CheckoutFormState;
 };
 
 export async function saveProblem(data: SaveProblemParams) {
@@ -104,25 +127,19 @@ export async function saveProblem(data: SaveProblemParams) {
           protocolCode: problemData.protocolCode,
           testCode: problemData.testCode,
           isPublished: false,
-          title: problemData.createForm.details.title,
-          description: problemData.createForm.details.description,
-          difficulty: problemData.createForm.details.difficulty,
-          testAlias: problemData.createForm.testContainer.alias,
-          selectedTestPath: Object.keys(
-            problemData.createForm.testContainer.testFiles
-          ),
-          testBuildCommand: problemData.createForm.testContainer.buildCommand,
-          testEntryCommand: problemData.createForm.testContainer.entryCommand,
-          testEnvs: problemData.createForm.testContainer.envs,
-          submissionBuildCommand:
-            problemData.createForm.submission.buildCommand,
-          submissionEntryCommand:
-            problemData.createForm.submission.entryCommand,
-          globalEnvs: problemData.createForm.submission.globalEnvs,
-          replicaConfigs: Object.values(
-            problemData.createForm.submission.replicaConfigs
-          ),
-        })
+          title: "",
+          description: "",
+          difficulty: "",
+          testAlias: "",
+          selectedTestPath: [],
+          testBuildCommand: "",
+          testEntryCommand: "",
+          testEnvs: [],
+          submissionBuildCommand: "",
+          submissionEntryCommand: "",
+          globalEnvs: [],
+          replicaConfigs: [],
+        } as NewProblem)
         .returning();
       exerciseId = result[0].id;
     }
