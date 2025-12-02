@@ -13,6 +13,7 @@ import {
 
 import { sql } from "drizzle-orm/sql/sql";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { title } from "process";
 import * as zod from "zod";
 
 export type Paths = { [key: string]: string };
@@ -33,6 +34,13 @@ export const NewUserSchema = createInsertSchema(users).omit({ id: true });
 
 export type TUser = zod.infer<typeof UsersSchema>;
 
+  type newReplicaConfig = {
+    alias: string;
+    envs: newEnv[];
+  };
+
+   type newEnv = { key: string; value: string };
+
 export const problems = pgTable(
   "problems",
   {
@@ -46,7 +54,21 @@ export const problems = pgTable(
     protocolCode: text("protocol_code").notNull(),
     testCode: json("test_code").$type<Paths>().notNull(),
     isPublished: boolean("is_published").default(true).notNull(),
-    challengeForm: json("challenge_form").$type<CheckoutFormState>().notNull(),
+    title: varchar("title", { length: 255 }).notNull(),
+    description: text("description").notNull(),
+    difficulty: varchar("difficulty", { length: 50 }).notNull(),
+    testAlias: varchar("test_alias", { length: 100 }).notNull(),
+    testBuildCommand: text("test_build_command").notNull(),
+    testEntryCommand: text("test_entry_command").notNull(),
+    testEnvs: json("test_envs").$type<newEnv[]>().notNull(),
+    submissionBuildCommand: text("submission_build_command").notNull(),
+    submissionEntryCommand: text("submission_entry_command").notNull(),
+    globalEnvs: json("global_envs").$type<newEnv[]>().notNull(),
+    replicaConfigs: json("replica_configs")
+      .$type<newReplicaConfig[]>()
+      .notNull(),
+
+   
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
 );
