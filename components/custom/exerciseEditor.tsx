@@ -3,7 +3,7 @@
 import { BookOpen, Code, Save, Send } from "lucide-react";
 import { type SetStateAction, useState } from "react";
 import { toast } from "sonner";
-import type { StreamingJobResult } from "@/app/api/stream/route";
+
 import type { Filemap } from "@/app/exercises/[id]/actions";
 import { resetCode, saveCode, submitCode } from "@/app/exercises/[id]/actions";
 import Editor, { EditorHeader } from "@/components/custom/editor";
@@ -18,6 +18,7 @@ import {
 import type { Paths } from "@/drizzle/schema";
 import { useSSE } from "@/hooks/useSSE";
 import { FolderSystem } from "./folderSystem";
+import { StreamingJobMessage } from "@/types/streamingEvents";
 
 type ExerciseEditorProps = {
   exerciseId: number;
@@ -52,7 +53,7 @@ export default function ExerciseEditor({
   const [resetting, setResetting] = useState(false);
 
   const [leftPanelView, setLeftPanelView] = useState<"problem" | "solution">(
-    "problem"
+    "problem",
   );
   const [activeSolutionFile, setActiveSolutionFile] = useState(0);
 
@@ -61,11 +62,11 @@ export default function ExerciseEditor({
     : [];
 
   const { messages, connect, clearMessages } =
-    useSSE<StreamingJobResult>("/api/stream");
+    useSSE<StreamingJobMessage>("/api/stream");
 
   const handleSolutionClick = () => {
     const shouldViewSolution = window.confirm(
-      "Are you sure you want to view the solution? This will show you the complete answer to the problem."
+      "Are you sure you want to view the solution? This will show you the complete answer to the problem.",
     );
     if (shouldViewSolution) setLeftPanelView("solution");
   };
@@ -173,7 +174,7 @@ ${protoCode}
 
   const onReset = async () => {
     const confirmReset = window.confirm(
-      "Are you sure you want to reset your code? This will remove your saved progress and restore the original template."
+      "Are you sure you want to reset your code? This will remove your saved progress and restore the original template.",
     );
     if (!confirmReset) return;
 
