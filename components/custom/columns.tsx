@@ -3,13 +3,14 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Difficulty } from "@/app/authorized/checkout/challenge";
 
 export type exercises = {
   rating: number;
   id: number;
   name: string;
   description: string;
-  difficulty: "Easy" | "Medium" | "Hard";
+  difficulty: Difficulty;
 };
 export const columns: ColumnDef<exercises>[] = [
   {
@@ -73,18 +74,18 @@ export const columns: ColumnDef<exercises>[] = [
       </Button>
     ),
     sortingFn: (rowA, rowB, columnId) => {
-      const order: Record<"Easy" | "Medium" | "Hard", number> = {
+      const order: Record<Difficulty, number> = {
         Easy: 1,
         Medium: 2,
         Hard: 3,
       };
-      const a = rowA.getValue(columnId) as "Easy" | "Medium" | "Hard";
-      const b = rowB.getValue(columnId) as "Easy" | "Medium" | "Hard";
+      const a = rowA.getValue(columnId) as Difficulty;
+      const b = rowB.getValue(columnId) as Difficulty;
       return order[a] - order[b];
     },
     cell: ({ row }) => {
-      const value = row.getValue("difficulty") as "Easy" | "Medium" | "Hard";
-      const difficultyColors: Record<typeof value, string> = {
+      const value = row.getValue("difficulty") as Difficulty;
+      const difficultyColors: Record<Difficulty, string> = {
         Easy: "text-chart-2",
         Medium: "text-chart-3",
         Hard: "text-primary",

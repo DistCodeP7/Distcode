@@ -25,12 +25,12 @@ const getInitialContent = (path: string): string => {
 
   if (
     path.endsWith(".go") ||
-    path.startsWith("/student") ||
-    path.startsWith("/test") ||
+    path.startsWith("student") ||
+    path.startsWith("test") ||
     path === "protocol.go"
   ) {
-    if (path.startsWith("/student")) return "// Write your code here\n";
-    if (path.startsWith("/test")) return "// Write your test cases here\n";
+    if (path.startsWith("student")) return "// Write your code here\n";
+    if (path.startsWith("test")) return "// Write your test cases here\n";
     if (path === "protocol.go")
       return `package main
 
@@ -108,10 +108,10 @@ export const useProblemEditor = (
         toast.error("Cannot create a file named main.go");
         return prev;
       }
-      const parentPath = filePath.includes("/") ? filePath : "/student";
+      const parentPath = filePath.includes("/") ? filePath : "student";
       if (filePath.endsWith("/")) {
         const folderName = filePath.replace(/^\/+|\/+$/g, "");
-        const placeholderPath = `${parentPath.replace(/\/+$/, "")}/${folderName}/placeholder.md`;
+        const placeholderPath = `${parentPath}/${folderName}/placeholder.md`;
         const defaultContent = `// placeholder for ${folderName}`;
         return {
           ...prev,
@@ -122,10 +122,7 @@ export const useProblemEditor = (
           activeFile: placeholderPath,
         };
       }
-      const isFullPath =
-        filePath.includes("/") &&
-        !filePath.startsWith("./") &&
-        !filePath.startsWith("../");
+      const isFullPath = filePath.includes("/");
       let fullPath = filePath;
       if (!isFullPath) {
         const namePart = filePath.startsWith("/")

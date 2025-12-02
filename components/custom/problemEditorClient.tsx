@@ -64,8 +64,7 @@ export default function ProblemEditorClient({
             content={
               filesContent[
                 Object.keys(filesContent).find((k) => {
-                  const kk = k.startsWith("/") ? k.slice(1) : k;
-                  return kk === "problem.md" || kk.startsWith("problem");
+                  return k === "problem.md" || k.startsWith("problem");
                 }) || Object.keys(filesContent)[0]
               ] || ""
             }
@@ -104,11 +103,7 @@ export default function ProblemEditorClient({
           <div className="flex-1 overflow-auto min-w-0">
             {(() => {
               const content = filesContent[activeFile] || "";
-              const name = activeFile
-                ? activeFile.startsWith("/")
-                  ? activeFile.slice(1)
-                  : activeFile
-                : "";
+              const name = activeFile ?? "";
               const language =
                 name.endsWith(".md") ||
                 name.startsWith("problem") ||

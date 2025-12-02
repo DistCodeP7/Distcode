@@ -85,14 +85,14 @@ export default function ExerciseEditor({
     await submitCode(problemContentMap, { params: { id: exerciseId } });
   };
 
-  const onCreateFile = async (filename: string, parentPath = "/student") => {
+  const onCreateFile = async (filename: string, parentPath = "student") => {
     if (filename.includes("main.go")) {
       toast.error("Cannot create a file named main.go");
       return;
     }
     if (filename.endsWith("/")) {
       const folderName = filename.replace(/^\/+|\/+$/g, "");
-      const placeholderPath = `${parentPath.replace(/\/+$/, "")}/${folderName}/${folderName}.go`;
+      const placeholderPath = `${parentPath}/${folderName}/${folderName}.go`;
       const defaultContent = `// New file for ${folderName}`;
       setFileContents((prev) => ({
         ...prev,
@@ -107,7 +107,7 @@ export default function ExerciseEditor({
     }
     const namePart = filename.startsWith("/") ? filename.slice(1) : filename;
     const withExt = namePart.includes(".") ? namePart : `${namePart}.go`;
-    const fullPath = `${parentPath.replace(/\/+$/, "")}/${withExt}`;
+    const fullPath = `${parentPath}/${withExt}`;
     const defaultContent = `// New file: ${withExt}`;
     setFileContents((prev) => ({ ...prev, [fullPath]: defaultContent }));
     setFileOrder((prev) => {
