@@ -19,7 +19,7 @@ export type SaveProblemParams = {
   studentCode: Paths;
   solutionCode: string;
   testCode: Paths;
-  protocolCode?: string;
+  protocolCode: string;
   isPublished?: boolean;
   createForm: CheckoutFormState;
 };
@@ -98,9 +98,30 @@ export async function saveProblem(data: SaveProblemParams) {
         .values({
           ...problemData,
           userId: session.user.id,
+          problemMarkdown: problemData.problemMarkdown,
+          studentCode: problemData.studentCode,
+          solutionCode: problemData.solutionCode,
+          protocolCode: problemData.protocolCode,
+          testCode: problemData.testCode,
           isPublished: false,
-          challengeForm: data.createForm,
-          protocolCode: problemData.protocolCode ?? "",
+          title: problemData.createForm.details.title,
+          description: problemData.createForm.details.description,
+          difficulty: problemData.createForm.details.difficulty,
+          testAlias: problemData.createForm.testContainer.alias,
+          selectedTestPath: Object.keys(
+            problemData.createForm.testContainer.testFiles
+          ),
+          testBuildCommand: problemData.createForm.testContainer.buildCommand,
+          testEntryCommand: problemData.createForm.testContainer.entryCommand,
+          testEnvs: problemData.createForm.testContainer.envs,
+          submissionBuildCommand:
+            problemData.createForm.submission.buildCommand,
+          submissionEntryCommand:
+            problemData.createForm.submission.entryCommand,
+          globalEnvs: problemData.createForm.submission.globalEnvs,
+          replicaConfigs: Object.values(
+            problemData.createForm.submission.replicaConfigs
+          ),
         })
         .returning();
       exerciseId = result[0].id;
@@ -166,7 +187,21 @@ export async function updateChallengeForm(
   try {
     await db
       .update(problems)
-      .set({ challengeForm, isPublished: true })
+      .set({
+        title: challengeForm.details.title,
+        description: challengeForm.details.description,
+        difficulty: challengeForm.details.difficulty,
+        testAlias: challengeForm.testContainer.alias,
+        selectedTestPath: Object.keys(challengeForm.testContainer.testFiles),
+        testBuildCommand: challengeForm.testContainer.buildCommand,
+        testEntryCommand: challengeForm.testContainer.entryCommand,
+        testEnvs: challengeForm.testContainer.envs,
+        submissionBuildCommand: challengeForm.submission.buildCommand,
+        submissionEntryCommand: challengeForm.submission.entryCommand,
+        globalEnvs: challengeForm.submission.globalEnvs,
+        replicaConfigs: Object.values(challengeForm.submission.replicaConfigs),
+        isPublished: true,
+      })
       .where(eq(problems.id, problemId));
     return {
       success: true,
