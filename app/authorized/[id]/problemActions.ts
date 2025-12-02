@@ -130,15 +130,15 @@ export async function saveProblem(data: SaveProblemParams) {
           title: "",
           description: "",
           difficulty: "",
-          testAlias: "",
+          testAlias: "test-container",
           selectedTestPath: [],
-          testBuildCommand: "",
-          testEntryCommand: "",
+          testBuildCommand: "go build -o ./test ./test/test.go",
+          testEntryCommand: "./test",
           testEnvs: [],
-          submissionBuildCommand: "",
-          submissionEntryCommand: "",
+          submissionBuildCommand: "go build -o ./student ./student/main.go",
+          submissionEntryCommand: "./student",
           globalEnvs: [],
-          replicaConfigs: [],
+          replicaConfigs: [{ alias: "student-replica-1", envs: [] }],
         } as NewProblem)
         .returning();
       exerciseId = result[0].id;

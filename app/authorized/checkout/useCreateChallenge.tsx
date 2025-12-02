@@ -1,7 +1,6 @@
 "use client";
 
 import { nanoid } from "nanoid";
-import { useSearchParams } from "next/navigation";
 import { useEffect, useLayoutEffect, useState } from "react";
 import type {
   CheckoutFormState,
@@ -9,7 +8,6 @@ import type {
   SubmissionConfig,
   TestContainerConfig,
 } from "./challenge";
-
 const initialFormState: CheckoutFormState = {
   step: 1,
   details: {
@@ -35,34 +33,10 @@ const initialFormState: CheckoutFormState = {
   },
 };
 
-const useCreateChallenge = () => {
-  const searchParams = useSearchParams();
-  const challengeFormStr = searchParams
-    ? searchParams.get("challengeForm")
-    : null;
-  let challengeForm: CheckoutFormState = initialFormState;
-  if (challengeFormStr) {
-    try {
-      // Query params may be URL-encoded; attempt decode then parse
-      const decoded = decodeURIComponent(challengeFormStr);
-      challengeForm = JSON.parse(decoded) as CheckoutFormState;
-    } catch (err) {
-      console.warn(
-        "Invalid challengeForm query param, falling back to default:",
-        err
-      );
-      challengeForm = initialFormState;
-    }
-  }
+const useCreateChallenge = (baseFormParam?: CheckoutFormState) => {
+  const baseForm = baseFormParam ?? initialFormState;
 
-  const baseForm = challengeForm;
-
-  const idParam = searchParams
-    ? (searchParams.get("id") ?? searchParams.get("exerciseId"))
-    : null;
-  const exerciseId = idParam ? parseInt(idParam, 10) : undefined;
-
-  const [form, setForm] = useState<CheckoutFormState>(challengeForm);
+  const [form, setForm] = useState<CheckoutFormState>(baseForm);
 
   useLayoutEffect(() => {
     const saved = localStorage.getItem("challengeForm");
@@ -132,7 +106,6 @@ const useCreateChallenge = () => {
     updateDetails,
     updateTestConfig,
     updateSubmission,
-    exerciseId,
   };
 };
 

@@ -235,31 +235,6 @@ export const useProblemEditor = (
         return;
       }
 
-      const createForm: CheckoutFormState = {
-        step: 1,
-        details: {
-          title: "",
-          description: "",
-          difficulty: "" as Difficulty,
-        },
-        testContainer: {
-          alias: "test-container",
-          testFiles: testFilesMap,
-          buildCommand: "go build -o ./test ./test/test.go",
-          entryCommand: "./test",
-          envs: [],
-        },
-        submission: {
-          buildCommand: "go build -o ./student ./student/main.go",
-          entryCommand: "./student",
-          replicas: 1,
-          globalEnvs: [],
-          replicaConfigs: {
-            0: { alias: "student-replica-1", envs: [] },
-          },
-        },
-      };
-
       const payload = {
         id: initial?.problemId,
         problemMarkdown,
@@ -268,14 +243,11 @@ export const useProblemEditor = (
         testCode: testFilesMap,
         protocolCode,
         isPublished,
-        createForm,
       };
 
       const result: ActionResult = await saveProblem(payload);
       if (result.success) {
-        const qs = `challengeForm=${encodeURIComponent(
-          JSON.stringify(createForm)
-        )}&id=${encodeURIComponent(String(result.id))}`;
+        const qs = `id=${encodeURIComponent(String(result.id))}`;
         router.push(`/authorized/checkout/?${qs}`);
       }
     } catch (err) {
