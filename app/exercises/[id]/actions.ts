@@ -92,43 +92,28 @@ export async function submitCode(
   if (!exercise) {
     return { error: "Exercise not found.", status: 404 };
   }
-  const challengeForm = exercise.challengeForm;
 
-  const globalEnvs: newEnv[] = challengeForm.submission.globalEnvs.map(
-    (env) => {
-      return { key: env.key, value: env.value };
-    }
+  const testFiles: Filemap = Object.fromEntries(
+    exercise.selectedTestPath.map((path: string) => [
+      path,
+      exercise.testCode[path],
+    ])
   );
-
-  const envs: newEnv[] = challengeForm.testContainer.envs.map((env) => {
-    return { key: env.key, value: env.value };
-  });
-
-  const replicaConfigs: newReplicaConfig[] = Object.values(
-    challengeForm.submission.replicaConfigs
-  ).map((replica) => {
-    return {
-      alias: replica.alias,
-      envs: replica.envs.map((env) => {
-        return { key: env.key, value: env.value };
-      }),
-    };
-  });
 
   const submissionContatiner: SubmissionConfig = {
     submissionCode,
-    buildCommand: challengeForm.submission.buildCommand,
-    entryCommand: challengeForm.submission.entryCommand,
-    globalEnvs,
-    replicaConfigs,
+    buildCommand: exercise.submissionBuildCommand,
+    entryCommand: exercise.submissionEntryCommand,
+    globalEnvs: exercise.globalEnvs,
+    replicaConfigs: exercise.replicaConfigs,
   };
 
   const testContainer: TestContainerConfig = {
-    alias: "test_runner",
-    testFiles: challengeForm.testContainer.testFiles,
-    envs,
-    buildCommand: challengeForm.testContainer.buildCommand,
-    entryCommand: challengeForm.testContainer.entryCommand,
+    alias: exercise.testAlias,
+    testFiles: testFiles,
+    envs: exercise.testEnvs,
+    buildCommand: exercise.testBuildCommand,
+    entryCommand: exercise.testEntryCommand,
   };
 
   const contentArray: ContainerConfigs = {

@@ -4,10 +4,6 @@ import { useRouter } from "next/navigation";
 import { type SetStateAction, useState } from "react";
 import { toast } from "sonner";
 import { saveProblem } from "@/app/authorized/[id]/problemActions";
-import type {
-  CheckoutFormState,
-  Difficulty,
-} from "@/app/authorized/checkout/challenge";
 import type { Paths } from "@/drizzle/schema";
 
 const getInitialContent = (path: string): string => {
@@ -25,12 +21,12 @@ const getInitialContent = (path: string): string => {
 
   if (
     path.endsWith(".go") ||
-    path.startsWith("/student") ||
-    path.startsWith("/test") ||
+    path.startsWith("student") ||
+    path.startsWith("test") ||
     path === "protocol.go"
   ) {
-    if (path.startsWith("/student")) return "// Write your code here\n";
-    if (path.startsWith("/test")) return "// Write your test cases here\n";
+    if (path.startsWith("student")) return "// Write your code here\n";
+    if (path.startsWith("test")) return "// Write your test cases here\n";
     if (path === "protocol.go")
       return `package main
 
@@ -108,10 +104,10 @@ export const useProblemEditor = (
         toast.error("Cannot create a file named main.go");
         return prev;
       }
-      const parentPath = filePath.includes("/") ? filePath : "/student";
+      const parentPath = filePath.includes("/") ? filePath : "student";
       if (filePath.endsWith("/")) {
         const folderName = filePath.replace(/^\/+|\/+$/g, "");
-        const placeholderPath = `${parentPath.replace(/\/+$/, "")}/${folderName}/placeholder.md`;
+        const placeholderPath = `${parentPath}/${folderName}/placeholder.md`;
         const defaultContent = `// placeholder for ${folderName}`;
         return {
           ...prev,
@@ -122,10 +118,7 @@ export const useProblemEditor = (
           activeFile: placeholderPath,
         };
       }
-      const isFullPath =
-        filePath.includes("/") &&
-        !filePath.startsWith("./") &&
-        !filePath.startsWith("../");
+      const isFullPath = filePath.includes("/");
       let fullPath = filePath;
       if (!isFullPath) {
         const namePart = filePath.startsWith("/")
@@ -159,8 +152,8 @@ export const useProblemEditor = (
       if (index === -1) return prev;
 
       if (
-        filePath.includes("/student/main.go") ||
-        filePath.includes("/test/test.go") ||
+        filePath.includes("student/main.go") ||
+        filePath.includes("test/test.go") ||
         filePath === "problem.md" ||
         filePath === "protocol.go" ||
         filePath === "solution.md"
@@ -194,8 +187,7 @@ export const useProblemEditor = (
       const missingFields: string[] = [];
 
       const problemKey = Object.keys(state.filesContent).find((k) => {
-        const nn = k;
-        return nn === "problem.md" || nn.startsWith("problem");
+        return k === "problem.md";
       });
 
       if (!problemKey || !state.filesContent[problemKey]?.trim())
@@ -203,7 +195,7 @@ export const useProblemEditor = (
 
       const problemMarkdown = problemKey ? state.filesContent[problemKey] : "";
       const keys = Object.keys(state.filesContent);
-      const studentFiles = keys.filter((k) => k.startsWith("/student"));
+      const studentFiles = keys.filter((k) => k.startsWith("student"));
       const solutionFiles = keys.filter((k) => k.startsWith("solution"));
       const studentCode = studentFiles.map((k) => state.filesContent[k] || "");
       const studentFilesMap = studentFiles.reduce((acc, k) => {
@@ -215,9 +207,7 @@ export const useProblemEditor = (
           ? state.filesContent[solutionFiles[0]] || ""
           : "";
 
-      const testFiles = keys.filter(
-        (k) => k.startsWith("/test") || k.startsWith("test")
-      );
+      const testFiles = keys.filter((k) => k.startsWith("test"));
       const testCode = testFiles.map((k) => state.filesContent[k] || "");
       const testFilesMap = testFiles.reduce((acc, k) => {
         acc[k] = state.filesContent[k] || "";
@@ -226,7 +216,7 @@ export const useProblemEditor = (
 
       const protocolCode =
         keys
-          .filter((k) => k === "protocol.go" || k.endsWith("/protocol.go"))
+          .filter((k) => k === "protocol.go")
           .map((k) => state.filesContent[k] || "")[0] || "";
 
       if (!studentFiles.length || studentCode.some((c) => !c.trim()))
@@ -241,31 +231,6 @@ export const useProblemEditor = (
         return;
       }
 
-      const createForm: CheckoutFormState = {
-        step: 1,
-        details: {
-          title: "",
-          description: "",
-          difficulty: "" as Difficulty,
-        },
-        testContainer: {
-          alias: "test-container",
-          testFiles: testFilesMap,
-          buildCommand: "go build -o /app/test /app/test/test.go",
-          entryCommand: "/app/test",
-          envs: [],
-        },
-        submission: {
-          buildCommand: "go build -o /app/student /app/student/main.go",
-          entryCommand: "/app/student",
-          replicas: 1,
-          globalEnvs: [],
-          replicaConfigs: {
-            0: { alias: "student-replica-1", envs: [] },
-          },
-        },
-      };
-
       const payload = {
         id: initial?.problemId,
         problemMarkdown,
@@ -274,14 +239,11 @@ export const useProblemEditor = (
         testCode: testFilesMap,
         protocolCode,
         isPublished,
-        createForm,
       };
 
       const result: ActionResult = await saveProblem(payload);
       if (result.success) {
-        const qs = `challengeForm=${encodeURIComponent(
-          JSON.stringify(createForm)
-        )}&id=${encodeURIComponent(String(result.id))}`;
+        const qs = `id=${encodeURIComponent(String(result.id))}`;
         router.push(`/authorized/checkout/?${qs}`);
       }
     } catch (err) {

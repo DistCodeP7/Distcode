@@ -1,8 +1,5 @@
 import { eq } from "drizzle-orm";
-import type {
-  CheckoutFormState,
-  Difficulty,
-} from "@/app/authorized/checkout/challenge";
+import type { Difficulty } from "@/app/authorized/checkout/challenge";
 import { problems, ratings } from "@/drizzle/schema";
 import { db } from "@/lib/db";
 
@@ -17,7 +14,12 @@ export type ExerciseRow = {
 export async function fetchExercises(): Promise<ExerciseRow[]> {
   // Select the full challengeForm JSON and extract fields in JS
   const dbExercises = await db
-    .select({ id: problems.id, challengeForm: problems.challengeForm })
+    .select({
+      id: problems.id,
+      title: problems.title,
+      description: problems.description,
+      difficulty: problems.difficulty,
+    })
     .from(problems)
     .where(eq(problems.isPublished, true));
 
@@ -28,20 +30,12 @@ export async function fetchExercises(): Promise<ExerciseRow[]> {
       .where(eq(ratings.problemId, ex.id));
     const rating = sum.reduce((acc, curr) => acc + (curr.liked ? 1 : -1), 0);
 
-    const cf = ex.challengeForm as CheckoutFormState as {
-      details?: {
-        title?: string;
-        description?: string;
-        difficulty?: Difficulty;
-      };
-    };
-
     return {
       id: ex.id,
       rating,
-      name: cf?.details?.title ?? "",
-      description: cf?.details?.description ?? "",
-      difficulty: cf?.details?.difficulty ?? "Easy",
+      name: ex.title,
+      description: ex.description,
+      difficulty: ex.difficulty as Difficulty,
     };
   });
 

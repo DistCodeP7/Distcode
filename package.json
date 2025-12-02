@@ -12,9 +12,7 @@
     "start": "next start",
     "drizzle:generate": "drizzle-kit generate:pg",
     "drizzle:push": "drizzle-kit push:pg",
-    "lint": "biome check",
-    "lint:fix": "biome check --write",
-    "format": "biome format --write"
+    "biome": "biome check --write && biome format --write && biome lint --write"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

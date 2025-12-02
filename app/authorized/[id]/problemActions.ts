@@ -5,6 +5,31 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import type { Paths } from "@/drizzle/schema";
 import { problems } from "@/drizzle/schema";
+
+type NewEnv = { key: string; value: string };
+type NewReplicaConfig = { alias: string; envs: NewEnv[] };
+type NewProblem = {
+  userId: string;
+  problemMarkdown: string;
+  studentCode: Paths;
+  solutionCode: string;
+  protocolCode: string;
+  testCode: Paths;
+  isPublished?: boolean;
+  title: string;
+  description: string;
+  difficulty: string;
+  testAlias: string;
+  selectedTestPath: string[];
+  testBuildCommand: string;
+  testEntryCommand: string;
+  testEnvs: NewEnv[];
+  submissionBuildCommand: string;
+  submissionEntryCommand: string;
+  globalEnvs: NewEnv[];
+  replicaConfigs: NewReplicaConfig[];
+};
+
 import { db } from "@/lib/db";
 import { getUserById } from "@/lib/user";
 import type { CheckoutFormState } from "../checkout/challenge";
@@ -19,9 +44,8 @@ export type SaveProblemParams = {
   studentCode: Paths;
   solutionCode: string;
   testCode: Paths;
-  protocolCode?: string;
+  protocolCode: string;
   isPublished?: boolean;
-  createForm: CheckoutFormState;
 };
 
 export async function saveProblem(data: SaveProblemParams) {
@@ -89,7 +113,6 @@ export async function saveProblem(data: SaveProblemParams) {
         .update(problems)
         .set({
           ...problemData,
-          isPublished: false,
         })
         .where(eq(problems.id, id));
     } else {
@@ -98,10 +121,25 @@ export async function saveProblem(data: SaveProblemParams) {
         .values({
           ...problemData,
           userId: session.user.id,
+          problemMarkdown: problemData.problemMarkdown,
+          studentCode: problemData.studentCode,
+          solutionCode: problemData.solutionCode,
+          protocolCode: problemData.protocolCode,
+          testCode: problemData.testCode,
           isPublished: false,
-          challengeForm: data.createForm,
-          protocolCode: problemData.protocolCode ?? "",
-        })
+          title: "",
+          description: "",
+          difficulty: "",
+          testAlias: "test-container",
+          selectedTestPath: [],
+          testBuildCommand: "go build -o ./test ./test/test.go",
+          testEntryCommand: "./test",
+          testEnvs: [],
+          submissionBuildCommand: "go build -o ./student ./student/main.go",
+          submissionEntryCommand: "./student",
+          globalEnvs: [],
+          replicaConfigs: [{ alias: "student-replica-1", envs: [] }],
+        } as NewProblem)
         .returning();
       exerciseId = result[0].id;
     }
@@ -166,7 +204,21 @@ export async function updateChallengeForm(
   try {
     await db
       .update(problems)
-      .set({ challengeForm, isPublished: true })
+      .set({
+        title: challengeForm.details.title,
+        description: challengeForm.details.description,
+        difficulty: challengeForm.details.difficulty,
+        testAlias: challengeForm.testContainer.alias,
+        selectedTestPath: Object.keys(challengeForm.testContainer.testFiles),
+        testBuildCommand: challengeForm.testContainer.buildCommand,
+        testEntryCommand: challengeForm.testContainer.entryCommand,
+        testEnvs: challengeForm.testContainer.envs,
+        submissionBuildCommand: challengeForm.submission.buildCommand,
+        submissionEntryCommand: challengeForm.submission.entryCommand,
+        globalEnvs: challengeForm.submission.globalEnvs,
+        replicaConfigs: Object.values(challengeForm.submission.replicaConfigs),
+        isPublished: true,
+      })
       .where(eq(problems.id, problemId));
     return {
       success: true,
