@@ -3,7 +3,6 @@
 import { BookOpen, Code, ThumbsDown, ThumbsUp } from "lucide-react";
 import { type SetStateAction, useState, useTransition } from "react";
 import { toast } from "sonner";
-import type { StreamingJobResult } from "@/app/api/stream/route";
 import type { Filemap } from "@/app/exercises/[id]/actions";
 import {
   rateExercise,
@@ -23,6 +22,7 @@ import {
 import type { Paths } from "@/drizzle/schema";
 import { useSSE } from "@/hooks/useSSE";
 import { FolderSystem } from "./folderSystem";
+import { StreamingJobMessage } from "@/types/streamingEvents";
 
 type ExerciseEditorProps = {
   exerciseId: number;
@@ -58,13 +58,13 @@ export default function ExerciseEditor({
   };
   const [resetting, setResetting] = useState(false);
   const [userRating, setUserRating] = useState<"up" | "down" | null>(
-    initialUserRating
+    initialUserRating,
   );
   const [canRate, setCanRate] = useState(initialCanRate);
   const [ratingLoading, startRatingTransition] = useTransition();
 
   const [leftPanelView, setLeftPanelView] = useState<"problem" | "solution">(
-    "problem"
+    "problem",
   );
   const [activeSolutionFile, setActiveSolutionFile] = useState(0);
 
@@ -73,11 +73,11 @@ export default function ExerciseEditor({
     : [];
 
   const { messages, connect, clearMessages } =
-    useSSE<StreamingJobResult>("/api/stream");
+    useSSE<StreamingJobMessage>("/api/stream");
 
   const handleSolutionClick = () => {
     const shouldViewSolution = window.confirm(
-      "Are you sure you want to view the solution? This will show you the complete answer to the problem."
+      "Are you sure you want to view the solution? This will show you the complete answer to the problem.",
     );
     if (shouldViewSolution) setLeftPanelView("solution");
   };
@@ -124,6 +124,7 @@ export default function ExerciseEditor({
       return newOrder;
     });
   };
+
   const onDeleteFile = async (path: string) => {
     if (fileOrder.length <= 1) {
       toast.error("Cannot delete the last remaining file.");
@@ -186,7 +187,7 @@ ${protoCode}
 
   const onReset = async () => {
     const confirmReset = window.confirm(
-      "Are you sure you want to reset your code? This will remove your saved progress and restore the original template."
+      "Are you sure you want to reset your code? This will remove your saved progress and restore the original template.",
     );
     if (!confirmReset) return;
 
@@ -223,7 +224,7 @@ ${protoCode}
       try {
         const result = await rateExercise(
           { params: { id: exerciseId } },
-          liked
+          liked,
         );
         if (result.success) {
           setUserRating(liked ? "up" : "down");
@@ -252,10 +253,8 @@ ${protoCode}
       direction="horizontal"
       className="flex-1 border md:min-w-[450px]"
     >
-      {/* Left panel: Problem Markdown or Solution View */}
       <ResizablePanel minSize={20} className="overflow-y-auto">
         <div className="flex flex-col h-full">
-          {/* Toggle buttons for left panel */}
           <div className="flex border-b bg-background">
             <Button
               variant={leftPanelView === "problem" ? "default" : "ghost"}
@@ -279,7 +278,6 @@ ${protoCode}
             )}
           </div>
 
-          {/* Content area */}
           <div className="flex-1 overflow-y-auto">
             {leftPanelView === "problem" ? (
               <MarkdownPreview
@@ -326,6 +324,7 @@ ${protoCode}
           </div>
         </div>
       </ResizablePanel>
+
       <ResizablePanel minSize={2} className="w-1 bg-muted/50 cursor-col-resize">
         <ResizableHandle withHandle />
         <FolderSystem
@@ -336,7 +335,6 @@ ${protoCode}
         />
       </ResizablePanel>
 
-      {/* Right panel: Editor + Terminal Output */}
       <ResizablePanel minSize={30}>
         <ResizableHandle withHandle />
         <ResizablePanelGroup direction="vertical">

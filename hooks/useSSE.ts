@@ -7,7 +7,7 @@ export const useSSE = <T>(url: string) => {
   const [messages, setMessages] = useState<T[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const lastMsgRef = useRef<T>(null);
+  const lastMsgRef = useRef<T | null>(null);
   const eventSourceRef = useRef<EventSource | null>(null);
 
   const clearMessages = () => setMessages([]);
@@ -25,9 +25,14 @@ export const useSSE = <T>(url: string) => {
     };
 
     eventSource.onmessage = (event: MessageEvent) => {
-      const data: T = JSON.parse(event.data);
-      setMessages((prev) => [...prev, data]);
-      lastMsgRef.current = data;
+      try {
+        const data: T = JSON.parse(event.data);
+        console.log("[SSE] incoming message:", data);
+        setMessages((prev) => [...prev, data]);
+        lastMsgRef.current = data;
+      } catch (e) {
+        console.error("[SSE] failed to parse message:", event.data, e);
+      }
     };
 
     eventSource.onerror = () => {
