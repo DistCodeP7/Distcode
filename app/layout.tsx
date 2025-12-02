@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+// @ts-expect-error: TypeScript may not recognize CSS imports
 import "@/app/globals.css";
 import { AppProviders } from "@/components/custom/app-provider";
 import { Toaster } from "@/components/ui/sonner";

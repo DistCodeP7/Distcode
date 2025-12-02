@@ -1,6 +1,5 @@
 "use client";
 
-import { nanoid } from "nanoid";
 import { useEffect, useLayoutEffect, useState } from "react";
 import type {
   CheckoutFormState,
@@ -8,33 +7,9 @@ import type {
   SubmissionConfig,
   TestContainerConfig,
 } from "./challenge";
-const initialFormState: CheckoutFormState = {
-  step: 1,
-  details: {
-    title: "",
-    description: "",
-    difficulty: "",
-  },
-  testContainer: {
-    alias: "test-runner",
-    testFiles: {},
-    buildCommand: "npm run build",
-    entryCommand: "npm test",
-    envs: [{ key: "TEST_MODE", value: "true", id: nanoid() }],
-  },
-  submission: {
-    buildCommand: "npm run build",
-    entryCommand: "npm start",
-    replicas: 1,
-    globalEnvs: [{ key: "PORT", value: "3000", id: nanoid() }],
-    replicaConfigs: {
-      0: { alias: "user-service-1", envs: [] },
-    },
-  },
-};
 
-const useCreateChallenge = (baseFormParam?: CheckoutFormState) => {
-  const baseForm = baseFormParam ?? initialFormState;
+const useCreateChallenge = (baseFormParam: CheckoutFormState) => {
+  const baseForm = baseFormParam;
 
   const [form, setForm] = useState<CheckoutFormState>(baseForm);
 
@@ -49,12 +24,12 @@ const useCreateChallenge = (baseFormParam?: CheckoutFormState) => {
           err
         );
         localStorage.removeItem("challengeForm");
-        setForm(initialFormState);
+        setForm(baseForm);
       }
     } else {
-      setForm(initialFormState);
+      setForm(baseForm);
     }
-  }, []);
+  }, [baseForm]);
 
   useEffect(() => {
     localStorage.setItem("challengeForm", JSON.stringify(form));
@@ -68,7 +43,6 @@ const useCreateChallenge = (baseFormParam?: CheckoutFormState) => {
   const prevStep = () =>
     setForm((prev) => ({ ...prev, step: Math.max(prev.step - 1, 1) }));
 
-  // --- Updaters ---
   const updateDetails = (
     field: keyof DetailsConfig,
     value: DetailsConfig[keyof DetailsConfig]
@@ -97,7 +71,6 @@ const useCreateChallenge = (baseFormParam?: CheckoutFormState) => {
     }));
 
   return {
-    baseForm,
     form,
     setForm,
     setCurrentStep,

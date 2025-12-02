@@ -27,7 +27,6 @@ export default function ClientCreateChallenge({
 }) {
   const router = useRouter();
   const {
-    baseForm: returnedBase,
     form,
     setCurrentStep,
     nextStep,
@@ -66,7 +65,7 @@ export default function ClientCreateChallenge({
             )}
             {form.step === 2 && (
               <StepTwoTestEnv
-                base={returnedBase.testContainer}
+                base={baseForm.testContainer}
                 config={form.testContainer}
                 update={updateTestConfig}
               />
