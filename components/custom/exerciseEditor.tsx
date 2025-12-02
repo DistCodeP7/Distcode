@@ -251,7 +251,7 @@ ${protoCode}
   return (
     <ResizablePanelGroup
       direction="horizontal"
-      className="flex-1 border md:min-w-[450px]"
+      className="flex-1 border md:min-w-[450px] overflow-x-hidden"
     >
       {/* Panel 1: Left Panel (Problem Markdown or Solution View) */}
       <ResizablePanel minSize={20} defaultSize={35} className="overflow-y-auto">
@@ -334,7 +334,8 @@ ${protoCode}
 
       {/* Panel 3: Right Panel (Editor + Terminal Output) */}
       <ResizablePanel minSize={30} defaultSize={50}>
-        <ResizablePanelGroup direction="vertical">
+        {/* The vertical panel group must be constrained to the height of Panel 3. */}
+        <ResizablePanelGroup direction="vertical" className="h-full min-h-0">
           <ResizablePanel defaultSize={50}>
             <EditorHeader actions={editorActions} />
 
@@ -361,7 +362,10 @@ ${protoCode}
           <ResizableHandle withHandle />
 
           <ResizablePanel defaultSize={50}>
-            <TerminalOutput messages={messages} />
+            {/* Ensures TerminalOutput's flex-1 root correctly calculates height. */}
+            <div className="h-full flex">
+              <TerminalOutput messages={messages} />
+            </div>
           </ResizablePanel>
         </ResizablePanelGroup>
       </ResizablePanel>

@@ -47,7 +47,7 @@ export default function ProblemEditorClient({
   );
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden">
+    <div className="flex flex-col h-full w-full overflow-hidden">
       {/* Editor + Preview */}
       <ResizablePanelGroup
         direction="horizontal"
