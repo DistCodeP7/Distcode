@@ -115,8 +115,24 @@ export async function submitCode(
     };
   });
 
+  const testWithoutFirstDash: Filemap = Object.fromEntries(
+    Object.entries(challengeForm.testContainer.testFiles).map(
+      ([key, value]) => {
+        const newKey = key.startsWith("/") ? key.slice(1) : key;
+        return [newKey, value];
+      }
+    )
+  );
+
+  const submissionCodeWithoutFirstDash: Filemap = Object.fromEntries(
+    Object.entries(submissionCode).map(([key, value]) => {
+      const newKey = key.startsWith("/") ? key.slice(1) : key;
+      return [newKey, value];
+    })
+  );
+
   const submissionContatiner: SubmissionConfig = {
-    submissionCode,
+    submissionCode: submissionCodeWithoutFirstDash,
     buildCommand: challengeForm.submission.buildCommand,
     entryCommand: challengeForm.submission.entryCommand,
     globalEnvs,
@@ -125,7 +141,7 @@ export async function submitCode(
 
   const testContainer: TestContainerConfig = {
     alias: "test_runner",
-    testFiles: challengeForm.testContainer.testFiles,
+    testFiles: testWithoutFirstDash,
     envs,
     buildCommand: challengeForm.testContainer.buildCommand,
     entryCommand: challengeForm.testContainer.entryCommand,
