@@ -2,8 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { type SetStateAction, useState } from "react";
+import { toast } from "sonner";
 import { saveProblem } from "@/app/authorized/[id]/problemActions";
-import type { CheckoutFormState } from "@/app/authorized/checkout/challenge";
+import type {
+  CheckoutFormState,
+  Difficulty,
+} from "@/app/authorized/checkout/challenge";
 import type { Paths } from "@/drizzle/schema";
 
 const getInitialContent = (path: string): string => {
@@ -45,9 +49,6 @@ type ActionResult =
 type ProblemEditorState = {
   filesContent: Paths;
   activeFile: string;
-  title: string;
-  description: string;
-  difficulty: string;
   isSubmitting: boolean;
 };
 
@@ -55,9 +56,6 @@ export const useProblemEditor = (
   files: Paths,
   initial?: {
     filesContent?: Paths;
-    title?: string;
-    description?: string;
-    difficulty?: string;
     problemId?: number;
   }
 ) => {
@@ -74,9 +72,6 @@ export const useProblemEditor = (
     return {
       filesContent,
       activeFile: Object.keys(files)[0] || "",
-      title: initial?.title ?? "",
-      description: initial?.description ?? "",
-      difficulty: initial?.difficulty ?? "1",
       isSubmitting: false,
     };
   });
@@ -109,6 +104,10 @@ export const useProblemEditor = (
 
   const handleCreateFile = (filePath: string) => {
     setState((prev) => {
+      if (filePath.includes("main.go")) {
+        toast.error("Cannot create a file named main.go");
+        return prev;
+      }
       const parentPath = filePath.includes("/") ? filePath : "/student";
       if (filePath.endsWith("/")) {
         const folderName = filePath.replace(/^\/+|\/+$/g, "");
@@ -152,7 +151,7 @@ export const useProblemEditor = (
     setState((prev) => {
       const keys = Object.keys(prev.filesContent);
       if (keys.length <= 1) {
-        alert("Cannot delete the last remaining file.");
+        toast.error("Cannot delete the last remaining file.");
         return prev;
       }
 
@@ -161,11 +160,12 @@ export const useProblemEditor = (
 
       if (
         filePath.includes("/student/main.go") ||
-        filePath.endsWith("/student/main.go") ||
-        (filePath.endsWith("main.go") && filePath.includes("/student")) ||
-        filePath.includes("/test/test.go")
+        filePath.includes("/test/test.go") ||
+        filePath === "problem.md" ||
+        filePath === "protocol.go" ||
+        filePath === "solution.md"
       ) {
-        alert("Cannot delete the main.go file.");
+        toast.error("Cannot delete the main.go file.");
         return prev;
       }
 
@@ -183,18 +183,6 @@ export const useProblemEditor = (
     });
   };
 
-  const setTitle = (title: string) => {
-    setState((prev) => ({ ...prev, title }));
-  };
-
-  const setDescription = (description: string) => {
-    setState((prev) => ({ ...prev, description }));
-  };
-
-  const setDifficulty = (difficulty: string) => {
-    setState((prev) => ({ ...prev, difficulty }));
-  };
-
   const setActiveFile = (activeFile: string) => {
     setState((prev) => ({ ...prev, activeFile }));
   };
@@ -204,10 +192,6 @@ export const useProblemEditor = (
 
     try {
       const missingFields: string[] = [];
-      if (!state.title.trim()) missingFields.push("Title");
-      if (!state.description.trim()) missingFields.push("Description");
-      if (!["1", "2", "3"].includes(state.difficulty))
-        missingFields.push("Difficulty");
 
       const problemKey = Object.keys(state.filesContent).find((k) => {
         const nn = k;
@@ -253,16 +237,16 @@ export const useProblemEditor = (
         missingFields.push("Test code");
 
       if (missingFields.length > 0) {
-        alert(`Missing or empty fields: ${missingFields.join(", ")}`);
+        toast.error(`Missing or empty fields: ${missingFields.join(", ")}`);
         return;
       }
 
       const createForm: CheckoutFormState = {
         step: 1,
         details: {
-          title: state.title,
-          description: state.description,
-          difficulty: state.difficulty as "Easy" | "Medium" | "Hard",
+          title: "",
+          description: "",
+          difficulty: "" as Difficulty,
         },
         testContainer: {
           alias: "test-container",
@@ -284,9 +268,6 @@ export const useProblemEditor = (
 
       const payload = {
         id: initial?.problemId,
-        title: state.title,
-        description: state.description,
-        difficulty: parseInt(state.difficulty, 10),
         problemMarkdown,
         studentCode: studentFilesMap,
         solutionCode,
@@ -304,7 +285,7 @@ export const useProblemEditor = (
         router.push(`/authorized/checkout/?${qs}`);
       }
     } catch (err) {
-      alert(`An unexpected error occurred: ${err}`);
+      toast.error(`An unexpected error occurred: ${err}`);
     } finally {
       setState((prev) => ({ ...prev, isSubmitting: false }));
     }
@@ -315,9 +296,6 @@ export const useProblemEditor = (
 
   return {
     ...state,
-    setTitle,
-    setDescription,
-    setDifficulty,
     setActiveFile,
     handleEditorContentChange,
     handleSubmit,

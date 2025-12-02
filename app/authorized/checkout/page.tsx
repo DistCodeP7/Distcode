@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import NeonLines from "@/components/custom/NeonLine";
-// UI Components
 import { Card, CardContent } from "@/components/ui/card";
 import { updateChallengeForm } from "../[id]/problemActions";
 import FooterNav from "./components/Footer";
@@ -35,9 +35,14 @@ export default function CreateChallenge() {
     if (!exerciseId) return;
     const result: ActionResult = await updateChallengeForm(exerciseId, form);
     if (result.success) {
-      alert("Challenge form saved successfully!");
+      toast.success("Challenge form saved successfully!");
       router.push(`/authorized/`);
-    }
+    } else
+      toast.error(
+        `Failed to save challenge form. ${
+          result.error ? `Error: ${result.error}` : ""
+        }`
+      );
   };
 
   return (

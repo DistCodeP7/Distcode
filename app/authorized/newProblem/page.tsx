@@ -10,13 +10,5 @@ export default function NewProblemPage() {
     "protocol.go": "// protocol definitions\n",
   };
 
-  return (
-    <ProblemEditorClient
-      files={files}
-      initialFilesContent={{}}
-      initialTitle=""
-      initialDescription=""
-      initialDifficulty=""
-    />
-  );
+  return <ProblemEditorClient files={files} initialFilesContent={{}} />;
 }

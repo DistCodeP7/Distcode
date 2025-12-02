@@ -136,28 +136,52 @@ const StepTwoTestEnv = ({
         </CardHeader>
         <CardContent className="p-0 mt-0">
           <div className="rounded-md divide-y ">
-            {Object.keys(base.testFiles).map((file) => (
-              <button
-                key={file}
-                type="button"
-                onClick={() => toggleFile(file)}
-                className={`flex items-center justify-between p-3 w-full text-left cursor-pointer text-sm transition-colors border-0 bg-transparent rounded-none ${
-                  config.testFiles?.[file] !== undefined
-                    ? "bg-primary/5"
-                    : "hover:bg-secondary/40"
-                }`}
-              >
-                <span className="font-mono text-foreground ml-4">{file}</span>
-                <div className="flex flex-row gap-4 mr-4">
-                  <SearchCode size={20} />
-                  {config.testFiles?.[file] !== undefined ? (
-                    <CheckCircle2 size={20} className="text-primary" />
-                  ) : (
-                    <CheckCircle2 size={20} className="text-muted-foreground" />
-                  )}
-                </div>
-              </button>
-            ))}
+            {Object.keys(base.testFiles).map((file) => {
+              const isRequiredTest = file === "/test/test.go";
+              const selected =
+                config.testFiles?.[file] !== undefined || isRequiredTest;
+
+              if (isRequiredTest) {
+                return (
+                  <div
+                    key={file}
+                    className={`flex items-center justify-between p-3 w-full text-left text-sm bg-primary/5 rounded-none border-0`}
+                  >
+                    <span className="font-mono text-foreground ml-4">
+                      {file}
+                    </span>
+                    <div className="flex flex-row gap-4 mr-4">
+                      <SearchCode size={20} />
+                      <CheckCircle2 size={20} className="text-primary" />
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <button
+                  key={file}
+                  type="button"
+                  onClick={() => toggleFile(file)}
+                  className={`flex items-center justify-between p-3 w-full text-left cursor-pointer text-sm transition-colors border-0 bg-transparent rounded-none ${
+                    selected ? "bg-primary/5" : "hover:bg-secondary/40"
+                  }`}
+                >
+                  <span className="font-mono text-foreground ml-4">{file}</span>
+                  <div className="flex flex-row gap-4 mr-4">
+                    <SearchCode size={20} />
+                    {selected ? (
+                      <CheckCircle2 size={20} className="text-primary" />
+                    ) : (
+                      <CheckCircle2
+                        size={20}
+                        className="text-muted-foreground"
+                      />
+                    )}
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </CardContent>
       </Card>

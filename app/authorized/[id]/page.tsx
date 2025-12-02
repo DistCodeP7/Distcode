@@ -37,7 +37,7 @@ export default async function EditProblemPage({
 
   assignFilesContent(exercise.studentCode, initialFilesContent);
   if (exercise.solutionCode)
-    initialFilesContent["solution.go"] = exercise.solutionCode;
+    initialFilesContent["solution.md"] = exercise.solutionCode;
   assignFilesContent(exercise.testCode, initialFilesContent);
 
   return (
@@ -45,9 +45,6 @@ export default async function EditProblemPage({
       files={initialFilesContent}
       initialFilesContent={initialFilesContent}
       problemId={exercise.id}
-      initialTitle={exercise.title}
-      initialDescription={exercise.description}
-      initialDifficulty={String(exercise.difficulty)}
     />
   );
 }

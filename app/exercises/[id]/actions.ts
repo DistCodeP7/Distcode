@@ -37,9 +37,44 @@ export async function getExercise({ params }: { params: { id: number } }) {
 }
 
 export async function submitCode(
-  content: Filemap,
+  submissionCode: Filemap,
   { params }: { params: { id: number } }
 ) {
+  type fullPayload = {
+    jobUid: string;
+    nodes: ContainerConfigs;
+    userId: string;
+    timeout: number;
+  };
+
+  type ContainerConfigs = {
+    testContainer: TestContainerConfig;
+    submission: SubmissionConfig;
+  };
+
+  type SubmissionConfig = {
+    submissionCode: Filemap;
+    buildCommand: string;
+    entryCommand: string;
+    globalEnvs: newEnv[];
+    replicaConfigs: newReplicaConfig[];
+  };
+
+  type TestContainerConfig = {
+    alias: string;
+    testFiles: Filemap;
+    buildCommand: string;
+    entryCommand: string;
+    envs: newEnv[];
+  };
+
+  type newReplicaConfig = {
+    alias: string;
+    envs: newEnv[];
+  };
+
+  type newEnv = { key: string; value: string };
+
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { error: "Unauthorized", status: 401 };
 
@@ -59,28 +94,53 @@ export async function submitCode(
   }
   const challengeForm = exercise.challengeForm;
 
-  const contentArray = [
-    {
-      submissionCode: content,
-      globalEnvs: challengeForm.submission.globalEnvs,
-      buildCommand: challengeForm.submission.buildCommand,
-      entryCommand: challengeForm.submission.entryCommand,
-      replicaConfigs: challengeForm.submission.replicaConfigs,
-    },
-    {
-      alias: "test_runner",
-      testFiles: challengeForm.testContainer.testFiles,
-      envs: challengeForm.testContainer.envs,
-      buildCommand: challengeForm.testContainer.buildCommand,
-      entryCommand: challengeForm.testContainer.entryCommand,
-    },
-  ];
+  const globalEnvs: newEnv[] = challengeForm.submission.globalEnvs.map(
+    (env) => {
+      return { key: env.key, value: env.value };
+    }
+  );
 
-  const payload = {
-    JobUID: `${uuid()}`,
-    Nodes: contentArray,
-    UserId: user.userid,
-    Timeout: 60,
+  const envs: newEnv[] = challengeForm.testContainer.envs.map((env) => {
+    return { key: env.key, value: env.value };
+  });
+
+  const replicaConfigs: newReplicaConfig[] = Object.values(
+    challengeForm.submission.replicaConfigs
+  ).map((replica) => {
+    return {
+      alias: replica.alias,
+      envs: replica.envs.map((env) => {
+        return { key: env.key, value: env.value };
+      }),
+    };
+  });
+
+  const submissionContatiner: SubmissionConfig = {
+    submissionCode,
+    buildCommand: challengeForm.submission.buildCommand,
+    entryCommand: challengeForm.submission.entryCommand,
+    globalEnvs,
+    replicaConfigs,
+  };
+
+  const testContainer: TestContainerConfig = {
+    alias: "test_runner",
+    testFiles: challengeForm.testContainer.testFiles,
+    envs,
+    buildCommand: challengeForm.testContainer.buildCommand,
+    entryCommand: challengeForm.testContainer.entryCommand,
+  };
+
+  const contentArray: ContainerConfigs = {
+    submission: submissionContatiner,
+    testContainer: testContainer,
+  };
+
+  const payload: fullPayload = {
+    jobUid: `${uuid()}`,
+    nodes: contentArray,
+    userId: user.userid,
+    timeout: 60,
   };
 
   MQJobsSender.sendMessage(payload);
