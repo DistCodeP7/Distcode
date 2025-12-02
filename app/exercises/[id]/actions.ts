@@ -143,10 +143,6 @@ export async function submitCode(
     timeout: 60,
   };
 
-  console.log("Replicas Configs:", replicaConfigs);
-
-  console.log("Submitting job with payload:", payload);
-
   MQJobsSender.sendMessage(payload);
 
   return { success: true, message: "Code submitted successfully" };
