@@ -15,9 +15,6 @@ export type ApiResult =
 
 export type SaveProblemParams = {
   id?: number;
-  title: string;
-  description: string;
-  difficulty: number;
   problemMarkdown: string;
   studentCode: Paths;
   solutionCode: string;
@@ -50,8 +47,6 @@ export async function saveProblem(data: SaveProblemParams) {
 
   const dataToValidate = { ...existingProblem, ...problemData };
   const fieldsToValidate = [
-    { value: dataToValidate.title, name: "Title" },
-    { value: dataToValidate.description, name: "Description" },
     { value: dataToValidate.problemMarkdown, name: "Problem markdown" },
     { value: dataToValidate.studentCode, name: "Student code" },
     { value: dataToValidate.solutionCode, name: "Solution code" },
@@ -87,13 +82,6 @@ export async function saveProblem(data: SaveProblemParams) {
       };
     }
   }
-  if (dataToValidate.difficulty < 1 || dataToValidate.difficulty > 3) {
-    return {
-      success: false,
-      error: "Difficulty must be selected.",
-      status: 400,
-    };
-  }
   let exerciseId = id;
   try {
     if (id) {
@@ -101,7 +89,7 @@ export async function saveProblem(data: SaveProblemParams) {
         .update(problems)
         .set({
           ...problemData,
-          isPublished,
+          isPublished: false,
         })
         .where(eq(problems.id, id));
     } else {
@@ -110,7 +98,7 @@ export async function saveProblem(data: SaveProblemParams) {
         .values({
           ...problemData,
           userId: session.user.id,
-          isPublished,
+          isPublished: false,
           challengeForm: data.createForm,
           protocolCode: problemData.protocolCode ?? "",
         })
@@ -153,11 +141,32 @@ export async function updateChallengeForm(
   if (existingProblem.userId !== session.user.id) {
     return { success: false, error: "Forbidden", status: 403 };
   }
+  if (challengeForm.details.title.trim() === "") {
+    return {
+      success: false,
+      error: "Title in challenge form is required.",
+      status: 400,
+    };
+  }
+  if (challengeForm.details.description.trim() === "") {
+    return {
+      success: false,
+      error: "Description in challenge form is required.",
+      status: 400,
+    };
+  }
+  if (!["Easy", "Medium", "Hard"].includes(challengeForm.details.difficulty)) {
+    return {
+      success: false,
+      error: "Difficulty in challenge form is invalid.",
+      status: 400,
+    };
+  }
 
   try {
     await db
       .update(problems)
-      .set({ challengeForm })
+      .set({ challengeForm, isPublished: true })
       .where(eq(problems.id, problemId));
     return {
       success: true,

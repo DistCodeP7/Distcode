@@ -1,4 +1,8 @@
 import { eq } from "drizzle-orm";
+import type {
+  CheckoutFormState,
+  Difficulty,
+} from "@/app/authorized/checkout/challenge";
 import { problems, ratings } from "@/drizzle/schema";
 import { db } from "./db";
 
@@ -6,7 +10,7 @@ export type ProblemWithRating = {
   id: number;
   title: string;
   description: string;
-  difficulty: number;
+  difficulty: Difficulty;
   isPublished: boolean;
   rating: number | null;
 };
@@ -17,15 +21,11 @@ export async function getProblemsByUserId(
   const result = await db
     .select({
       id: problems.id,
-      title: problems.title,
-      description: problems.description,
-      difficulty: problems.difficulty,
+      challengeForm: problems.challengeForm,
       isPublished: problems.isPublished,
     })
     .from(problems)
-    .leftJoin(ratings, eq(problems.id, ratings.problemId))
-    .where(eq(problems.userId, userId))
-    .groupBy(problems.id);
+    .where(eq(problems.userId, userId));
 
   const problemRows = result.map(async (ex) => {
     const sum = await db
@@ -33,13 +33,22 @@ export async function getProblemsByUserId(
       .from(ratings)
       .where(eq(ratings.problemId, ex.id));
     const rating = sum.reduce((acc, curr) => acc + (curr.liked ? 1 : -1), 0);
+
+    const cf = ex.challengeForm as CheckoutFormState as {
+      details?: {
+        title?: string;
+        description?: string;
+        difficulty?: Difficulty;
+      };
+    };
+
     return {
       isPublished: ex.isPublished,
       id: ex.id,
-      title: ex.title,
-      description: ex.description,
+      title: cf?.details?.title ?? "",
+      description: cf?.details?.description ?? "",
       rating,
-      difficulty: ex.difficulty,
+      difficulty: cf?.details?.difficulty ?? "Easy",
     };
   });
 

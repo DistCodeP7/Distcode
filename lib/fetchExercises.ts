@@ -1,4 +1,8 @@
 import { eq } from "drizzle-orm";
+import type {
+  CheckoutFormState,
+  Difficulty,
+} from "@/app/authorized/checkout/challenge";
 import { problems, ratings } from "@/drizzle/schema";
 import { db } from "@/lib/db";
 
@@ -7,23 +11,15 @@ export type ExerciseRow = {
   rating: number;
   name: string;
   description: string;
-  difficulty: "Easy" | "Medium" | "Hard";
+  difficulty: Difficulty;
 };
 
-const difficultyMap = { 1: "Easy", 2: "Medium", 3: "Hard" } as const;
-
 export async function fetchExercises(): Promise<ExerciseRow[]> {
+  // Select the full challengeForm JSON and extract fields in JS
   const dbExercises = await db
-    .select({
-      id: problems.id,
-      name: problems.title,
-      description: problems.description,
-      difficulty: problems.difficulty,
-    })
+    .select({ id: problems.id, challengeForm: problems.challengeForm })
     .from(problems)
-    .leftJoin(ratings, eq(ratings.problemId, problems.id))
-    .where(eq(problems.isPublished, true))
-    .groupBy(problems.id);
+    .where(eq(problems.isPublished, true));
 
   const exerciseRows = dbExercises.map(async (ex) => {
     const sum = await db
@@ -31,12 +27,21 @@ export async function fetchExercises(): Promise<ExerciseRow[]> {
       .from(ratings)
       .where(eq(ratings.problemId, ex.id));
     const rating = sum.reduce((acc, curr) => acc + (curr.liked ? 1 : -1), 0);
+
+    const cf = ex.challengeForm as CheckoutFormState as {
+      details?: {
+        title?: string;
+        description?: string;
+        difficulty?: Difficulty;
+      };
+    };
+
     return {
       id: ex.id,
       rating,
-      name: ex.name,
-      description: ex.description,
-      difficulty: difficultyMap[ex.difficulty as 1 | 2 | 3],
+      name: cf?.details?.title ?? "",
+      description: cf?.details?.description ?? "",
+      difficulty: cf?.details?.difficulty ?? "Easy",
     };
   });
 

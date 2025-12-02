@@ -45,9 +45,6 @@ export default async function EditProblemPage({
       files={initialFilesContent}
       initialFilesContent={initialFilesContent}
       problemId={exercise.id}
-      initialTitle={exercise.title}
-      initialDescription={exercise.description}
-      initialDifficulty={String(exercise.difficulty)}
     />
   );
 }

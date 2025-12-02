@@ -1,9 +1,7 @@
 "use client";
 
 import Editor, { type EditorProps, type OnMount } from "@monaco-editor/react";
-import { Save, Send } from "lucide-react";
 import type React from "react";
-import { Button } from "@/components/ui/button";
 import { labToHex } from "@/utils/labToHex";
 
 type CustomEditorProps = EditorProps & {
@@ -65,55 +63,16 @@ export default function CustomEditor({
 }
 
 type EditorHeaderProps = {
-  onSubmit: () => void;
-  onSave: () => void;
-  onReset: () => void;
-  disabled?: boolean;
+  actions: React.ReactNode;
 };
 
-export function EditorHeader({
-  onSubmit,
-  onSave,
-  onReset,
-  disabled = false,
-}: EditorHeaderProps) {
+export function EditorHeader({ actions }: EditorHeaderProps) {
   return (
     <div className="border-b bg-background flex flex-col">
-      <div className="flex items-center justify-between px-2 py-1">
-        {/* Right side: Save / Submit / Reset */}
+      <div className="flex items-center justify-end px-2 py-1">
+        {/* Render the actions passed from the parent */}
         <div className="flex items-center gap-2 flex-shrink-0 ml-2 relative z-10">
-          <Button
-            type="button"
-            variant="secondary"
-            className="flex items-center gap-1 px-2 py-1 text-base"
-            onClick={onSave}
-            disabled={disabled}
-          >
-            <Save className="w-4 h-4" />
-            Save
-          </Button>
-
-          <Button
-            onClick={onSubmit}
-            type="button"
-            variant="outline"
-            className="flex items-center gap-1 px-2 py-1 text-base"
-            disabled={disabled}
-          >
-            <Send className="w-4 h-4" />
-            Submit
-          </Button>
-
-          <Button
-            onClick={onReset}
-            type="button"
-            variant="outline"
-            className="flex items-center gap-1 px-2 py-1 text-base"
-            disabled={disabled}
-          >
-            <Send className="w-4 h-4" />
-            Reset To Starter Code
-          </Button>
+          {actions}
         </div>
       </div>
     </div>

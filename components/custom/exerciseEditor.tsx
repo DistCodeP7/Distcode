@@ -1,16 +1,11 @@
 "use client";
 
-import { BookOpen, Code, ThumbsDown, ThumbsUp } from "lucide-react";
-import { type SetStateAction, useState, useTransition } from "react";
+import { BookOpen, Code, Save, Send } from "lucide-react";
+import { type SetStateAction, useState } from "react";
 import { toast } from "sonner";
 import type { StreamingJobResult } from "@/app/api/stream/route";
 import type { Filemap } from "@/app/exercises/[id]/actions";
-import {
-  rateExercise,
-  resetCode,
-  saveCode,
-  submitCode,
-} from "@/app/exercises/[id]/actions";
+import { resetCode, saveCode, submitCode } from "@/app/exercises/[id]/actions";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
 import { TerminalOutput } from "@/components/custom/TerminalOutput";
@@ -44,8 +39,6 @@ export default function ExerciseEditor({
   solutionCode,
   protocalCode,
   savedCode,
-  userRating: initialUserRating = null,
-  canRate: initialCanRate = false,
 }: ExerciseEditorProps) {
   const initialContents: Paths = savedCode ?? studentCode;
   const initialOrder = Object.keys(initialContents);
@@ -57,11 +50,6 @@ export default function ExerciseEditor({
     "/protocol/protocol.go": protocalCode,
   };
   const [resetting, setResetting] = useState(false);
-  const [userRating, setUserRating] = useState<"up" | "down" | null>(
-    initialUserRating
-  );
-  const [canRate, setCanRate] = useState(initialCanRate);
-  const [ratingLoading, startRatingTransition] = useTransition();
 
   const [leftPanelView, setLeftPanelView] = useState<"problem" | "solution">(
     "problem"
@@ -169,7 +157,6 @@ export default function ExerciseEditor({
       toast.error(`Error saving code: ${result.error}`);
     } else {
       toast.success("Code saved successfully!");
-      setCanRate(true);
     }
   };
 
@@ -213,30 +200,6 @@ ${protoCode}
     }
   };
 
-  const handleRating = (liked: boolean) => {
-    if (!canRate) {
-      toast.error("You must submit at least once before rating this exercise.");
-      return;
-    }
-
-    startRatingTransition(async () => {
-      try {
-        const result = await rateExercise(
-          { params: { id: exerciseId } },
-          liked
-        );
-        if (result.success) {
-          setUserRating(liked ? "up" : "down");
-          toast.success(`You rated this exercise ${liked ? "👍" : "👎"}`);
-        } else {
-          toast.error(result.error || "Failed to rate exercise");
-        }
-      } catch (_) {
-        toast.error("Error submitting rating");
-      }
-    });
-  };
-
   function setEditorContent(value: SetStateAction<string>): void {
     if (resetting) return;
     setFileContents((prev) => {
@@ -247,13 +210,50 @@ ${protoCode}
     });
   }
 
+  const editorActions = (
+    <>
+      <Button
+        type="button"
+        variant="secondary"
+        className="flex items-center gap-1 px-2 py-1 text-base"
+        onClick={onSave}
+        disabled={resetting}
+      >
+        <Save className="w-4 h-4" />
+        Save
+      </Button>
+
+      <Button
+        onClick={onSubmit}
+        type="button"
+        variant="default"
+        className="flex items-center gap-1 px-2 py-1 text-base"
+        disabled={resetting}
+      >
+        <Send className="w-4 h-4" />
+        Submit
+      </Button>
+
+      <Button
+        onClick={onReset}
+        type="button"
+        variant="outline"
+        className="flex items-center gap-1 px-2 py-1 text-base"
+        disabled={resetting}
+      >
+        <Send className="w-4 h-4" />
+        Reset To Starter Code
+      </Button>
+    </>
+  );
+
   return (
     <ResizablePanelGroup
       direction="horizontal"
       className="flex-1 border md:min-w-[450px]"
     >
-      {/* Left panel: Problem Markdown or Solution View */}
-      <ResizablePanel minSize={20} className="overflow-y-auto">
+      {/* Panel 1: Left Panel (Problem Markdown or Solution View) */}
+      <ResizablePanel minSize={20} defaultSize={35} className="overflow-y-auto">
         <div className="flex flex-col h-full">
           {/* Toggle buttons for left panel */}
           <div className="flex border-b bg-background">
@@ -314,8 +314,12 @@ ${protoCode}
           </div>
         </div>
       </ResizablePanel>
-      <ResizablePanel minSize={2} className="w-1 bg-muted/50 cursor-col-resize">
-        <ResizableHandle withHandle />
+
+      {/* Handle 1: Separator between Panel 1 (Problem) and Panel 2 (File System) */}
+      <ResizableHandle withHandle />
+
+      {/* Panel 2: Folder System */}
+      <ResizablePanel minSize={10} defaultSize={15}>
         <FolderSystem
           files={fileContents}
           onFileChange={setActiveFile}
@@ -324,43 +328,14 @@ ${protoCode}
         />
       </ResizablePanel>
 
-      {/* Right panel: Editor + Terminal Output */}
-      <ResizablePanel minSize={30}>
-        <ResizableHandle withHandle />
+      {/* Handle 2: Separator between Panel 2 (File System) and Panel 3 (Editor/Terminal) */}
+      <ResizableHandle withHandle />
+
+      {/* Panel 3: Right Panel (Editor + Terminal Output) */}
+      <ResizablePanel minSize={30} defaultSize={50}>
         <ResizablePanelGroup direction="vertical">
           <ResizablePanel defaultSize={50}>
-            <EditorHeader
-              onSubmit={onSubmit}
-              onSave={onSave}
-              onReset={onReset}
-              disabled={resetting}
-            />
-
-            <div className="flex items-center justify-end gap-3 p-2 border-t bg-muted/40">
-              <span className="text-sm text-muted-foreground">
-                Rate this exercise:
-              </span>
-
-              <Button
-                variant={userRating === "up" ? "default" : "outline"}
-                size="icon"
-                disabled={ratingLoading || !canRate}
-                onClick={() => handleRating(true)}
-                className="w-8 h-8"
-              >
-                <ThumbsUp className="w-4 h-4" />
-              </Button>
-
-              <Button
-                variant={userRating === "down" ? "default" : "outline"}
-                size="icon"
-                disabled={ratingLoading || !canRate}
-                onClick={() => handleRating(false)}
-                className="w-8 h-8"
-              >
-                <ThumbsDown className="w-4 h-4" />
-              </Button>
-            </div>
+            <EditorHeader actions={editorActions} />
 
             <Editor
               editorContent={fileContents[activeFile]}
