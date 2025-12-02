@@ -3,7 +3,7 @@
 import { BookOpen, Code, Save, Send } from "lucide-react";
 import { type SetStateAction, useState } from "react";
 import { toast } from "sonner";
-import type { StreamingJobResult } from "@/app/api/stream/route";
+
 import type { Filemap } from "@/app/exercises/[id]/actions";
 import { resetCode, saveCode, submitCode } from "@/app/exercises/[id]/actions";
 import Editor, { EditorHeader } from "@/components/custom/editor";
@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/resizable";
 import type { Paths } from "@/drizzle/schema";
 import { useSSE } from "@/hooks/useSSE";
+import type { StreamingJobMessage } from "@/types/streamingEvents";
 import { FolderSystem } from "./folderSystem";
 
 type ExerciseEditorProps = {
@@ -61,7 +62,7 @@ export default function ExerciseEditor({
     : [];
 
   const { messages, connect, clearMessages } =
-    useSSE<StreamingJobResult>("/api/stream");
+    useSSE<StreamingJobMessage>("/api/stream");
 
   const handleSolutionClick = () => {
     const shouldViewSolution = window.confirm(

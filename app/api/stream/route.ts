@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { RabbitMQReceiver } from "@/app/mq/RabbitMQReceiver";
+import type {
+  StreamingEvent,
+  StreamingJobMessage,
+} from "@/types/streamingEvents";
 import { authOptions } from "../auth/[...nextauth]/route";
 
 type Client = {
@@ -8,32 +12,21 @@ type Client = {
   encoder: TextEncoder;
 };
 
-export type StreamingJobResultEvent = {
-  Kind: "stdout" | "stderr" | "error";
-  Message: string;
-};
-
-export type StreamingJobResult = {
-  JobId: number;
-  Events: StreamingJobResultEvent[];
-  UserId: string;
-  SequenceIndex: number;
-};
-
 class JobResultQueueListener {
   private mqReceiver: RabbitMQReceiver;
-  private isRunning: boolean = false;
+  private isRunning = false;
 
   constructor(mqReceiver = new RabbitMQReceiver({ queue: "results" })) {
     this.mqReceiver = mqReceiver;
-    this.isRunning = false;
   }
 
-  start<T extends object>(messageCallback: (msg: T) => void) {
+  start(messageCallback: (msg: StreamingJobMessage) => void) {
     if (this.isRunning) return;
     this.isRunning = true;
     this.mqReceiver.connect().then(() => {
-      this.mqReceiver.consumeMessages(messageCallback);
+      this.mqReceiver.consumeMessages(
+        messageCallback as (msg: Record<string, unknown>) => void
+      );
     });
   }
 
@@ -49,10 +42,14 @@ class ClientManager {
   private heartBeatId: NodeJS.Timeout | undefined = undefined;
 
   addClient(userId: string, client: Client) {
-    if (!this.clients.has(userId)) {
-      this.clients.set(userId, new Set());
+    let userClients = this.clients.get(userId);
+
+    if (!userClients) {
+      userClients = new Set<Client>();
+      this.clients.set(userId, userClients);
     }
-    this.clients.get(userId)?.add(client);
+
+    userClients.add(client);
 
     if (this.clients.size === 1 && !this.heartBeatId) {
       this.heartBeatId = setInterval(() => this.heartbeat(), 15000);
@@ -86,18 +83,20 @@ class ClientManager {
     }
   }
 
-  dispatchJobResultToClients(msg: StreamingJobResult) {
+  dispatchJobResultToClients(msg: StreamingJobMessage) {
     console.log("Dispatching job result to clients:", msg);
-    const userId = msg.UserId;
+
+    const userId = msg.user_id;
     if (!userId) return;
+
     const userClients = this.clients.get(userId);
     if (!userClients) return;
 
+    const payload = `data: ${JSON.stringify(msg)}\n\n`;
+
     for (const client of userClients) {
       try {
-        client.controller.enqueue(
-          client.encoder.encode(`data: ${JSON.stringify(msg)}\n\n`)
-        );
+        client.controller.enqueue(client.encoder.encode(payload));
       } catch {
         this.removeClient(userId, client);
       }
@@ -126,12 +125,21 @@ export async function GET() {
       const client: Client = { controller, encoder };
       clientRef = client;
       clientManager.addClient(session.user.id, client);
-      clientManager.dispatchJobResultToClients({
-        JobId: 0,
-        SequenceIndex: 0,
-        Events: [{ Kind: "stdout", Message: "Connected to stream." }],
-        UserId: session.user.id,
-      });
+
+      // Optional: send a "connected" log using the *new* shape
+      const initial: StreamingJobMessage = {
+        job_uid: "initial-" + session.user.id,
+        user_id: session.user.id,
+        events: [
+          {
+            kind: "log",
+            worker_id: "",
+            message: "Connected to stream.",
+          } satisfies StreamingEvent,
+        ],
+      };
+
+      clientManager.dispatchJobResultToClients(initial);
     },
     cancel: () => {
       clientManager.removeClient(session.user.id, clientRef);
