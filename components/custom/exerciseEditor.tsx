@@ -226,7 +226,7 @@ ${protoCode}
       <Button
         onClick={onSubmit}
         type="button"
-        variant="default" // Changed to default for primary action visibility
+        variant="default"
         className="flex items-center gap-1 px-2 py-1 text-base"
         disabled={resetting}
       >
@@ -253,7 +253,6 @@ ${protoCode}
       className="flex-1 border md:min-w-[450px]"
     >
       {/* Panel 1: Left Panel (Problem Markdown or Solution View) */}
-      {/* ... (Panel 1 content remains the same) ... */}
       <ResizablePanel minSize={20} defaultSize={35} className="overflow-y-auto">
         <div className="flex flex-col h-full">
           {/* Toggle buttons for left panel */}
@@ -336,7 +335,6 @@ ${protoCode}
       <ResizablePanel minSize={30} defaultSize={50}>
         <ResizablePanelGroup direction="vertical">
           <ResizablePanel defaultSize={50}>
-            {/* 💡 Use the refactored EditorHeader and pass the buttons */}
             <EditorHeader actions={editorActions} />
 
             <Editor
