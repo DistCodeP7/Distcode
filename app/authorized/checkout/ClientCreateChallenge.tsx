@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import NeonLines from "@/components/custom/NeonLine";
 import { Card, CardContent } from "@/components/ui/card";
 import { updateChallengeForm } from "../[id]/problemActions";
+import type { CheckoutFormState } from "./challenge";
 import FooterNav from "./components/Footer";
 import Header from "./components/Header";
 import StepFourSummary from "./steps/StepFourSummary";
@@ -12,7 +13,6 @@ import StepOneDetails from "./steps/StepOneDetails";
 import StepThreeSubmission from "./steps/StepThreeSubmission";
 import StepTwoTestEnv from "./steps/StepTwoTest";
 import useCreateChallenge from "./useCreateChallenge";
-import type { CheckoutFormState } from "./challenge";
 
 type ActionResult =
   | { success: true; message?: string; status?: number; id?: number }

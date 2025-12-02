@@ -29,6 +29,7 @@ type NewProblem = {
   globalEnvs: NewEnv[];
   replicaConfigs: NewReplicaConfig[];
 };
+
 import { db } from "@/lib/db";
 import { getUserById } from "@/lib/user";
 import type { CheckoutFormState } from "../checkout/challenge";
@@ -112,7 +113,6 @@ export async function saveProblem(data: SaveProblemParams) {
         .update(problems)
         .set({
           ...problemData,
-          isPublished: true,
         })
         .where(eq(problems.id, id));
     } else {
