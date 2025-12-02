@@ -1,11 +1,7 @@
 import { eq } from "drizzle-orm";
-import type {
-  CheckoutFormState,
-  Difficulty,
-} from "@/app/authorized/checkout/challenge";
+import type { Difficulty } from "@/app/authorized/checkout/challenge";
 import { problems, ratings } from "@/drizzle/schema";
 import { db } from "./db";
-
 export type ProblemWithRating = {
   id: number;
   title: string;
@@ -21,7 +17,9 @@ export async function getProblemsByUserId(
   const result = await db
     .select({
       id: problems.id,
-      challengeForm: problems.challengeForm,
+      title: problems.title,
+      description: problems.description,
+      difficulty: problems.difficulty,
       isPublished: problems.isPublished,
     })
     .from(problems)
@@ -34,21 +32,13 @@ export async function getProblemsByUserId(
       .where(eq(ratings.problemId, ex.id));
     const rating = sum.reduce((acc, curr) => acc + (curr.liked ? 1 : -1), 0);
 
-    const cf = ex.challengeForm as CheckoutFormState as {
-      details?: {
-        title?: string;
-        description?: string;
-        difficulty?: Difficulty;
-      };
-    };
-
     return {
       isPublished: ex.isPublished,
       id: ex.id,
-      title: cf?.details?.title ?? "",
-      description: cf?.details?.description ?? "",
+      title: ex.title,
+      description: ex.description,
       rating,
-      difficulty: cf?.details?.difficulty ?? "Easy",
+      difficulty: ex.difficulty as Difficulty,
     };
   });
 
