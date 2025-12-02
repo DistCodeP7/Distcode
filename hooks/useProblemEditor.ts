@@ -4,7 +4,10 @@ import { useRouter } from "next/navigation";
 import { type SetStateAction, useState } from "react";
 import { toast } from "sonner";
 import { saveProblem } from "@/app/authorized/[id]/problemActions";
-import type { CheckoutFormState } from "@/app/authorized/checkout/challenge";
+import type {
+  CheckoutFormState,
+  Difficulty,
+} from "@/app/authorized/checkout/challenge";
 import type { Paths } from "@/drizzle/schema";
 
 const getInitialContent = (path: string): string => {
@@ -243,7 +246,7 @@ export const useProblemEditor = (
         details: {
           title: "",
           description: "",
-          difficulty: "" as "Easy" | "Medium" | "Hard",
+          difficulty: "" as Difficulty,
         },
         testContainer: {
           alias: "test-container",
