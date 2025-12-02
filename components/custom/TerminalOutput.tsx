@@ -1,22 +1,35 @@
-import React from "react";
+import type React from "react";
 import type {
-  StreamingJobMessage,
-  StreamingEvent,
+  CompiledEvent,
   LogEvent,
   StatusEvent,
-  CompiledEvent,
+  StreamingEvent,
+  StreamingJobMessage,
 } from "@/types/streamingEvents";
 
 type TerminalOutputProps = {
   messages: StreamingJobMessage[];
 };
 
+type FlattenedEvent = {
+  event: StreamingEvent;
+  key: string;
+};
+
 export function TerminalOutput({ messages }: TerminalOutputProps) {
-  const allEvents: StreamingEvent[] = messages.flatMap((msg) => msg.events);
+  // Flatten events but keep a stable key derived from job + position
+  const flattenedEvents: FlattenedEvent[] = messages.flatMap((msg, msgIndex) =>
+    msg.events.map((event, evIndex) => ({
+      event,
+      key: `${msg.job_uid}-${msgIndex}-${evIndex}`,
+    }))
+  );
+
+  const allEvents: StreamingEvent[] = flattenedEvents.map((f) => f.event);
 
   // ---------- classify / extract ----------
   const logEvents: LogEvent[] = allEvents.filter(
-    (e): e is LogEvent => e.kind === "log",
+    (e): e is LogEvent => e.kind === "log"
   );
 
   const passedTests = logEvents
@@ -104,7 +117,6 @@ export function TerminalOutput({ messages }: TerminalOutputProps) {
         return `Job status: ${e.status} (${e.duration_millis} ms)${extra}`;
       }
       default: {
-        // Should never hit this, but keeps TS happy
         return JSON.stringify(event);
       }
     }
@@ -135,8 +147,8 @@ export function TerminalOutput({ messages }: TerminalOutputProps) {
         <div className="rounded-md border border-green-500/50 bg-green-500/5 p-2 text-xs text-green-400">
           <div className="mb-1 font-semibold">Passed tests</div>
           <ul className="list-disc pl-4">
-            {passedTests.map((name, idx) => (
-              <li key={idx}>{name}</li>
+            {passedTests.map((name) => (
+              <li key={name}>{name}</li>
             ))}
           </ul>
         </div>
@@ -144,11 +156,11 @@ export function TerminalOutput({ messages }: TerminalOutputProps) {
 
       {/* Raw output */}
       <div className="max-h-64 overflow-auto rounded-md bg-black/80 p-2 text-xs text-slate-100">
-        {allEvents.length === 0 ? (
+        {flattenedEvents.length === 0 ? (
           <div className="text-slate-500">No output yet.</div>
         ) : (
-          allEvents.map((event, idx) => (
-            <div key={idx} className="text-slate-100">
+          flattenedEvents.map(({ event, key }) => (
+            <div key={key} className="text-slate-100">
               {renderLine(event)}
             </div>
           ))

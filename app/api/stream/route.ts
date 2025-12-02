@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { RabbitMQReceiver } from "@/app/mq/RabbitMQReceiver";
-import { authOptions } from "../auth/[...nextauth]/route";
 import type {
-  StreamingJobMessage,
   StreamingEvent,
+  StreamingJobMessage,
 } from "@/types/streamingEvents";
+import { authOptions } from "../auth/[...nextauth]/route";
 
 type Client = {
   controller: ReadableStreamDefaultController<Uint8Array>;
@@ -25,7 +25,7 @@ class JobResultQueueListener {
     this.isRunning = true;
     this.mqReceiver.connect().then(() => {
       this.mqReceiver.consumeMessages(
-        messageCallback as (msg: Record<string, unknown>) => void,
+        messageCallback as (msg: Record<string, unknown>) => void
       );
     });
   }
@@ -42,10 +42,14 @@ class ClientManager {
   private heartBeatId: NodeJS.Timeout | undefined = undefined;
 
   addClient(userId: string, client: Client) {
-    if (!this.clients.has(userId)) {
-      this.clients.set(userId, new Set());
+    let userClients = this.clients.get(userId);
+
+    if (!userClients) {
+      userClients = new Set<Client>();
+      this.clients.set(userId, userClients);
     }
-    this.clients.get(userId)!.add(client);
+
+    userClients.add(client);
 
     if (this.clients.size === 1 && !this.heartBeatId) {
       this.heartBeatId = setInterval(() => this.heartbeat(), 15000);
@@ -110,7 +114,7 @@ export async function GET() {
   }
 
   jobResultListener.start(
-    clientManager.dispatchJobResultToClients.bind(clientManager),
+    clientManager.dispatchJobResultToClients.bind(clientManager)
   );
 
   const encoder = new TextEncoder();

@@ -7,8 +7,6 @@ export type JobStatus =
   | "JOB_COMPILATION_ERROR"
   | "JOB_CANCELED";
 
-// ----- Event types matching your Go code -----
-
 export type CompiledEvent = {
   kind: "compiled";
   success: boolean;
@@ -32,7 +30,6 @@ export type StatusEvent = {
 
 export type StreamingEvent = CompiledEvent | LogEvent | StatusEvent;
 
-// One job message = what your Go worker sends
 export type StreamingJobMessage = {
   job_uid: string;
   events: StreamingEvent[];

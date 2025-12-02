@@ -17,8 +17,8 @@ import {
 } from "@/components/ui/resizable";
 import type { Paths } from "@/drizzle/schema";
 import { useSSE } from "@/hooks/useSSE";
+import type { StreamingJobMessage } from "@/types/streamingEvents";
 import { FolderSystem } from "./folderSystem";
-import { StreamingJobMessage } from "@/types/streamingEvents";
 
 type ExerciseEditorProps = {
   exerciseId: number;
@@ -53,7 +53,7 @@ export default function ExerciseEditor({
   const [resetting, setResetting] = useState(false);
 
   const [leftPanelView, setLeftPanelView] = useState<"problem" | "solution">(
-    "problem",
+    "problem"
   );
   const [activeSolutionFile, setActiveSolutionFile] = useState(0);
 
@@ -66,7 +66,7 @@ export default function ExerciseEditor({
 
   const handleSolutionClick = () => {
     const shouldViewSolution = window.confirm(
-      "Are you sure you want to view the solution? This will show you the complete answer to the problem.",
+      "Are you sure you want to view the solution? This will show you the complete answer to the problem."
     );
     if (shouldViewSolution) setLeftPanelView("solution");
   };
@@ -174,7 +174,7 @@ ${protoCode}
 
   const onReset = async () => {
     const confirmReset = window.confirm(
-      "Are you sure you want to reset your code? This will remove your saved progress and restore the original template.",
+      "Are you sure you want to reset your code? This will remove your saved progress and restore the original template."
     );
     if (!confirmReset) return;
 
