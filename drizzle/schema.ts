@@ -58,6 +58,7 @@ export const problems = pgTable(
     description: text("description").notNull(),
     difficulty: varchar("difficulty", { length: 50 }).notNull(),
     testAlias: varchar("test_alias", { length: 100 }).notNull(),
+    selectedTestPath: json("selected_test_path").$type<string[]>().notNull(),
     testBuildCommand: text("test_build_command").notNull(),
     testEntryCommand: text("test_entry_command").notNull(),
     testEnvs: json("test_envs").$type<newEnv[]>().notNull(),

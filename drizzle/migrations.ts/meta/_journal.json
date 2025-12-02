@@ -92,13 +92,6 @@
       "when": 1764597548938,
       "tag": "0012_sloppy_morlocks",
       "breakpoints": true
-    },
-    {
-      "idx": 13,
-      "version": "7",
-      "when": 1764666894760,
-      "tag": "0013_fresh_kulan_gath",
-      "breakpoints": true
     }
   ]
 }
