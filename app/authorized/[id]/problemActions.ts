@@ -112,7 +112,7 @@ export async function saveProblem(data: SaveProblemParams) {
         .update(problems)
         .set({
           ...problemData,
-          isPublished: false,
+          isPublished: true,
         })
         .where(eq(problems.id, id));
     } else {
