@@ -3,7 +3,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Difficulty } from "@/app/authorized/checkout/challenge";
+import type { Difficulty } from "@/app/authorized/checkout/challenge";
 
 export type exercises = {
   rating: number;

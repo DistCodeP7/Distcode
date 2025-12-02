@@ -156,8 +156,8 @@ export const useProblemEditor = (
       if (index === -1) return prev;
 
       if (
-        filePath.includes("/student/main.go") ||
-        filePath.includes("/test/test.go") ||
+        filePath.includes("student/main.go") ||
+        filePath.includes("test/test.go") ||
         filePath === "problem.md" ||
         filePath === "protocol.go" ||
         filePath === "solution.md"
@@ -191,8 +191,7 @@ export const useProblemEditor = (
       const missingFields: string[] = [];
 
       const problemKey = Object.keys(state.filesContent).find((k) => {
-        const nn = k;
-        return nn === "problem.md" || nn.startsWith("problem");
+        return k === "problem.md";
       });
 
       if (!problemKey || !state.filesContent[problemKey]?.trim())
@@ -200,7 +199,7 @@ export const useProblemEditor = (
 
       const problemMarkdown = problemKey ? state.filesContent[problemKey] : "";
       const keys = Object.keys(state.filesContent);
-      const studentFiles = keys.filter((k) => k.startsWith("/student"));
+      const studentFiles = keys.filter((k) => k.startsWith("student"));
       const solutionFiles = keys.filter((k) => k.startsWith("solution"));
       const studentCode = studentFiles.map((k) => state.filesContent[k] || "");
       const studentFilesMap = studentFiles.reduce((acc, k) => {
@@ -212,9 +211,7 @@ export const useProblemEditor = (
           ? state.filesContent[solutionFiles[0]] || ""
           : "";
 
-      const testFiles = keys.filter(
-        (k) => k.startsWith("/test") || k.startsWith("test")
-      );
+      const testFiles = keys.filter((k) => k.startsWith("test"));
       const testCode = testFiles.map((k) => state.filesContent[k] || "");
       const testFilesMap = testFiles.reduce((acc, k) => {
         acc[k] = state.filesContent[k] || "";
@@ -223,7 +220,7 @@ export const useProblemEditor = (
 
       const protocolCode =
         keys
-          .filter((k) => k === "protocol.go" || k.endsWith("/protocol.go"))
+          .filter((k) => k === "protocol.go")
           .map((k) => state.filesContent[k] || "")[0] || "";
 
       if (!studentFiles.length || studentCode.some((c) => !c.trim()))
@@ -248,13 +245,13 @@ export const useProblemEditor = (
         testContainer: {
           alias: "test-container",
           testFiles: testFilesMap,
-          buildCommand: "go build -o /app/test /app/test/test.go",
-          entryCommand: "/app/test",
+          buildCommand: "go build -o ./test ./test/test.go",
+          entryCommand: "./test",
           envs: [],
         },
         submission: {
-          buildCommand: "go build -o /app/student /app/student/main.go",
-          entryCommand: "/app/student",
+          buildCommand: "go build -o ./student ./student/main.go",
+          entryCommand: "./student",
           replicas: 1,
           globalEnvs: [],
           replicaConfigs: {

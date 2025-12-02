@@ -124,7 +124,7 @@ export default function ExerciseEditor({
     const index = fileOrder.indexOf(path);
     if (index === -1) return;
     const pathToDelete = fileOrder[index];
-    if (pathToDelete.includes("/student/main.go")) {
+    if (pathToDelete.includes("student/main.go")) {
       toast.error("Cannot delete the main.go file.");
       return;
     }

@@ -1,4 +1,3 @@
-import { CheckoutFormState } from "@/app/authorized/checkout/challenge";
 import {
   pgTable,
   serial,
@@ -6,14 +5,11 @@ import {
   timestamp,
   varchar,
   integer,
-  check,
   json,
   boolean,
 } from "drizzle-orm/pg-core";
 
-import { sql } from "drizzle-orm/sql/sql";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { title } from "process";
 import * as zod from "zod";
 
 export type Paths = { [key: string]: string };
