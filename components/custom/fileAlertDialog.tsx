@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
 } from "../ui/alert-dialog";
 import { Input } from "../ui/input";
+import { on } from "events";
 
 interface FileAlertDialogProps {
   open: boolean;
@@ -19,6 +20,7 @@ interface FileAlertDialogProps {
   onCreate?: (filename: string) => void;
   onDelete?: () => void;
   defaultName?: string;
+  currentPath?: string;
 }
 
 export function FileAlertDialog({
@@ -27,14 +29,17 @@ export function FileAlertDialog({
   onCreate,
   onDelete,
   defaultName = "",
+  currentPath = "",
 }: FileAlertDialogProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   function handleCreate() {
     const value = (inputRef.current?.value || "").trim();
+    const newPath = currentPath + value;
     if (!value) return;
     if (!onCreate) return;
-    onCreate(value);
+    if (value.includes("/")) onCreate(value);
+    else onCreate(newPath);
     onOpenChange(false);
     if (inputRef.current) inputRef.current.value = "";
   }

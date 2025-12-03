@@ -175,6 +175,7 @@ function FileTreeItem({
                     onCreate={(filename) =>
                       onCreateFile(filename, node.fullPath)
                     }
+                    currentPath={`${node.fullPath}/`}
                   />
                 </>
               )}

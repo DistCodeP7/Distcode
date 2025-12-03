@@ -126,6 +126,8 @@ export const useProblemEditor = (
           : filePath;
         const withExt = namePart.includes(".") ? namePart : `${namePart}.go`;
         fullPath = `/${withExt}`;
+      } else if (!filePath.includes(".")) {
+        fullPath = `${filePath}.go`;
       }
 
       const defaultContent = fullPath.endsWith(".md")

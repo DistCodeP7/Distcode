@@ -66,6 +66,8 @@ export default function ExerciseEditor({
     useSSE<StreamingJobMessage>("/api/stream");
 
   const folderPanelRef = useRef<ImperativePanelHandle>(null);
+  const problemPanelRef = useRef<ImperativePanelHandle>(null);
+  const editorPanelRef = useRef<ImperativePanelHandle>(null);
 
   const handleSolutionClick = () => {
     const shouldViewSolution = window.confirm(
@@ -276,10 +278,16 @@ ${protoCode}
       </ResizablePanel>
 
       {/* Handle 1: Separator between Panel 1 (File System) and Panel 2 (Problem) */}
-      <ResizableHandle withHandle />
+      <ResizableHandle withHandle handleClassName="self-start mt-20" />
 
-      {/* Panel 2: Left Panel (Problem Markdown or Solution View) */}
-      <ResizablePanel minSize={20} defaultSize={35} className="overflow-y-auto">
+      {/* Panel 2: Middle Panel (Problem Markdown or Solution View) */}
+      <ResizablePanel
+        minSize={20}
+        defaultSize={35}
+        collapsible
+        ref={problemPanelRef}
+        className="overflow-y-auto"
+      >
         <div className="flex flex-col h-full">
           {/* Toggle buttons for left panel */}
           <div className="flex border-b bg-background">
@@ -344,7 +352,12 @@ ${protoCode}
       <ResizableHandle withHandle />
 
       {/* Panel 3: Right Panel (Editor + Terminal Output) */}
-      <ResizablePanel minSize={30} defaultSize={50}>
+      <ResizablePanel
+        minSize={30}
+        defaultSize={50}
+        collapsible
+        ref={editorPanelRef}
+      >
         {/* The vertical panel group must be constrained to the height of Panel 3. */}
         <ResizablePanelGroup direction="vertical" className="h-full min-h-0">
           <ResizablePanel defaultSize={50}>
