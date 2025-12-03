@@ -13,7 +13,7 @@ type NewProblem = {
   problemMarkdown: string;
   studentCode: Paths;
   solutionCode: string;
-  protocolCode: string;
+  protocolCode: Paths;
   testCode: Paths;
   isPublished?: boolean;
   title: string;
@@ -44,7 +44,7 @@ export type SaveProblemParams = {
   studentCode: Paths;
   solutionCode: string;
   testCode: Paths;
-  protocolCode: string;
+  protocolCode: Paths;
   isPublished?: boolean;
 };
 

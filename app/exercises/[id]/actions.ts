@@ -100,6 +100,11 @@ export async function submitCode(
     ])
   );
 
+  Object.keys(exercise.protocolCode).forEach((path) => {
+    testFiles[path] = exercise.protocolCode[path];
+    submissionCode[path] = exercise.protocolCode[path];
+  });
+
   const submissionContatiner: SubmissionConfig = {
     submissionCode,
     buildCommand: exercise.submissionBuildCommand,
@@ -127,6 +132,9 @@ export async function submitCode(
     userId: user.userid,
     timeout: 60,
   };
+
+  console.log("Sub shared proto", submissionCode["shared/protocol.go"]);
+  console.log("Test shared proto", testFiles["shared/protocol.go"]);
 
   MQJobsSender.sendMessage(payload);
 
