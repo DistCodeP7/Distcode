@@ -100,40 +100,43 @@ function FileTreeItem({
 
   return (
     <div className="w-full">
-      <div className="flex items-center group w-full min-w-0">
+      <div className="flex items-center group w-full min-w-0 overflow-hidden">
         {isFile ? (
-          <>
-            <div className="flex-1 min-w-0">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() =>
-                  node.fileKey !== undefined && onFileChange(node.fileKey)
-                }
-                className={`w-full justify-start text-left gap-2 text-sm h-8 rounded-none ${
-                  node.fileKey === activeFilePath
-                    ? "bg-accent text-accent-foreground"
-                    : ""
-                }`}
-                style={{ paddingLeft: `${paddingLeft}px` }}
-              >
-                <FileTypeIcon
-                  name={node.name.endsWith(".go") ? "go" : "markdown"}
-                />
-                <span className="truncate flex-1">{node.name}</span>
-              </Button>
-            </div>
+          <div className="relative w-full flex items-center min-w-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() =>
+                node.fileKey !== undefined && onFileChange(node.fileKey)
+              }
+              className={`w-full min-w-0 shrink justify-start text-left gap-2 text-sm h-8 rounded-none ${
+                node.fileKey === activeFilePath
+                  ? "bg-accent text-accent-foreground"
+                  : ""
+              }`}
+              style={{
+                paddingLeft: `${paddingLeft}px`,
+                paddingRight: "2.5rem",
+              }}
+            >
+              <FileTypeIcon
+                name={node.name.endsWith(".go") ? "go" : "markdown"}
+              />
+              <span className="truncate min-w-0 flex-1">{node.name}</span>
+            </Button>
+
             {onDeleteFile && node.fileKey !== undefined && (
               <>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setDeleteDialogOpen(true)}
-                  className="h-8 w-8 text-destructive flex-shrink-0"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-destructive"
                   title={`Delete ${node.name}`}
                 >
                   <TrashIcon className="h-4 w-4" />
                 </Button>
+
                 <FileAlertDialog
                   open={deleteDialogOpen}
                   onOpenChange={setDeleteDialogOpen}
@@ -147,7 +150,7 @@ function FileTreeItem({
                 />
               </>
             )}
-          </>
+          </div>
         ) : (
           <div
             className="flex items-center h-8 font-semibold text-sm w-full"
@@ -180,9 +183,8 @@ function FileTreeItem({
         )}
       </div>
 
-      {/* Render children for folders (including the root) */}
       {!isFile && node.children && (
-        <div className="flex flex-col">
+        <div className="flex flex-col min-w-0">
           {Object.values(node.children)
             .sort(sortNodes)
             .map((childNode) => (
@@ -224,7 +226,7 @@ export function FolderSystem({
     : [];
 
   return (
-    <div className="flex flex-col h-full w-full max-w-[50vw] min-w-[300px]">
+    <div className="flex flex-col h-full w-full max-w-[50vw]">
       <div className="flex-1 overflow-y-auto py-2">
         {rootChildren.length === 0 ? (
           <p className="text-center text-muted-foreground text-sm pt-4">

@@ -1,7 +1,7 @@
 "use client";
 
 import { BookOpen, Code, Save, Send } from "lucide-react";
-import { type SetStateAction, useState } from "react";
+import { type SetStateAction, useState, useRef } from "react";
 import { toast } from "sonner";
 
 import type { Filemap } from "@/app/exercises/[id]/actions";
@@ -15,6 +15,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import type { ImperativePanelHandle } from "react-resizable-panels";
 import type { Paths } from "@/drizzle/schema";
 import { useSSE } from "@/hooks/useSSE";
 import type { StreamingJobMessage } from "@/types/streamingEvents";
@@ -63,6 +64,8 @@ export default function ExerciseEditor({
 
   const { messages, connect, clearMessages } =
     useSSE<StreamingJobMessage>("/api/stream");
+
+  const folderPanelRef = useRef<ImperativePanelHandle>(null);
 
   const handleSolutionClick = () => {
     const shouldViewSolution = window.confirm(
@@ -253,7 +256,29 @@ ${protoCode}
       direction="horizontal"
       className="flex-1 border md:min-w-[450px] overflow-x-hidden"
     >
-      {/* Panel 1: Left Panel (Problem Markdown or Solution View) */}
+      {/* Panel 1: Folder System (collapsible) */}
+      <ResizablePanel
+        minSize={10}
+        defaultSize={15}
+        collapsible
+        ref={folderPanelRef}
+      >
+        <div className="flex flex-col h-full">
+          <div className="flex-1 overflow-auto">
+            <FolderSystem
+              files={fileContents}
+              onFileChange={setActiveFile}
+              onCreateFile={onCreateFile}
+              onDeleteFile={onDeleteFile}
+            />
+          </div>
+        </div>
+      </ResizablePanel>
+
+      {/* Handle 1: Separator between Panel 1 (File System) and Panel 2 (Problem) */}
+      <ResizableHandle withHandle />
+
+      {/* Panel 2: Left Panel (Problem Markdown or Solution View) */}
       <ResizablePanel minSize={20} defaultSize={35} className="overflow-y-auto">
         <div className="flex flex-col h-full">
           {/* Toggle buttons for left panel */}
@@ -280,7 +305,6 @@ ${protoCode}
             )}
           </div>
 
-          {/* Content area */}
           <div className="flex-1 overflow-y-auto">
             {leftPanelView === "problem" ? (
               <MarkdownPreview
@@ -316,20 +340,7 @@ ${protoCode}
         </div>
       </ResizablePanel>
 
-      {/* Handle 1: Separator between Panel 1 (Problem) and Panel 2 (File System) */}
-      <ResizableHandle withHandle />
-
-      {/* Panel 2: Folder System */}
-      <ResizablePanel minSize={10} defaultSize={15}>
-        <FolderSystem
-          files={fileContents}
-          onFileChange={setActiveFile}
-          onCreateFile={onCreateFile}
-          onDeleteFile={onDeleteFile}
-        />
-      </ResizablePanel>
-
-      {/* Handle 2: Separator between Panel 2 (File System) and Panel 3 (Editor/Terminal) */}
+      {/* Handle 2: Separator between Panel 2 (Problem) and Panel 3 (Editor/Terminal) */}
       <ResizableHandle withHandle />
 
       {/* Panel 3: Right Panel (Editor + Terminal Output) */}

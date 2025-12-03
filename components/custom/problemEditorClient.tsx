@@ -11,6 +11,8 @@ import {
 import type { Paths } from "@/drizzle/schema";
 import { useProblemEditor } from "@/hooks/useProblemEditor";
 import { FolderSystem } from "./folderSystem";
+import type { ImperativePanelHandle } from "react-resizable-panels";
+import { useRef } from "react";
 
 export default function ProblemEditorClient({
   files,
@@ -34,6 +36,8 @@ export default function ProblemEditorClient({
     problemId,
   });
 
+  const folderPanelRef = useRef<ImperativePanelHandle>(null);
+
   const editorActions = (
     <Button
       onClick={handleSubmit}
@@ -48,12 +52,31 @@ export default function ProblemEditorClient({
 
   return (
     <div className="flex flex-col h-full w-full overflow-hidden">
-      {/* Editor + Preview */}
       <ResizablePanelGroup
         direction="horizontal"
         className="flex-1 border h-full w-full min-w-0"
       >
-        {/* Panel 1: Markdown Preview (Problem Description) */}
+        {/* Panel 1: Folder System (Collapsible) */}
+        <ResizablePanel
+          minSize={10}
+          defaultSize={25}
+          className="bg-background border-r overflow-auto"
+          collapsible
+          ref={folderPanelRef}
+        >
+          <FolderSystem
+            files={filesContent}
+            onFileChange={setActiveFile}
+            activeFilePath={activeFile}
+            onCreateFile={handleCreateFile}
+            onDeleteFile={handleDeleteFile}
+          />
+        </ResizablePanel>
+
+        {/* Handle 1: Separates Panel 1 and Panel 2 */}
+        <ResizableHandle withHandle />
+
+        {/* Panel 2 Markdown Preview (Problem Description) */}
         <ResizablePanel
           minSize={20}
           defaultSize={35}
@@ -68,24 +91,6 @@ export default function ProblemEditorClient({
                 }) || Object.keys(filesContent)[0]
               ] || ""
             }
-          />
-        </ResizablePanel>
-
-        {/* Handle 1: Separates Panel 1 and Panel 2 */}
-        <ResizableHandle withHandle />
-
-        {/* Panel 2: Folder System */}
-        <ResizablePanel
-          minSize={12}
-          defaultSize={25}
-          className="bg-background border-r overflow-auto"
-        >
-          <FolderSystem
-            files={filesContent}
-            onFileChange={setActiveFile}
-            activeFilePath={activeFile}
-            onCreateFile={handleCreateFile}
-            onDeleteFile={handleDeleteFile}
           />
         </ResizablePanel>
 
