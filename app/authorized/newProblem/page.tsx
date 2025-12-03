@@ -7,7 +7,7 @@ export default function NewProblemPage() {
     "student/main.go": "// student main.go\n",
     "solution.md": "# Solution Explanation\n\nDescribe the solution here.\n",
     "test/test.go": "// test cases go here\n",
-    "protocol.go": "// protocol definitions\n",
+    "shared/protocol.go": "// protocol definitions\n",
   };
 
   return <ProblemEditorClient files={files} initialFilesContent={{}} />;

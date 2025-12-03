@@ -47,7 +47,7 @@ export const problems = pgTable(
     problemMarkdown: text("problem_markdown").notNull(),
     studentCode: json("student_code").$type<Paths>().notNull(),
     solutionCode: text("solution_code").notNull(),
-    protocolCode: text("protocol_code").notNull(),
+    protocolCode: json("protocol_code").$type<Paths>().notNull(),
     testCode: json("test_code").$type<Paths>().notNull(),
     isPublished: boolean("is_published").default(true).notNull(),
     title: varchar("title", { length: 255 }).notNull(),

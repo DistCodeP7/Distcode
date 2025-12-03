@@ -100,6 +100,11 @@ export async function submitCode(
     ])
   );
 
+  Object.keys(exercise.protocolCode).forEach((path) => {
+    testFiles[path] = exercise.protocolCode[path];
+    submissionCode[path] = exercise.protocolCode[path];
+  });
+
   const submissionContatiner: SubmissionConfig = {
     submissionCode,
     buildCommand: exercise.submissionBuildCommand,

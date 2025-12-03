@@ -23,11 +23,11 @@ const getInitialContent = (path: string): string => {
     path.endsWith(".go") ||
     path.startsWith("student") ||
     path.startsWith("test") ||
-    path === "protocol.go"
+    path.startsWith("shared")
   ) {
     if (path.startsWith("student")) return "// Write your code here\n";
     if (path.startsWith("test")) return "// Write your test cases here\n";
-    if (path === "protocol.go")
+    if (path.startsWith("shared"))
       return `package main
 
 // Define any shared protocols or interfaces here
@@ -214,10 +214,11 @@ export const useProblemEditor = (
         return acc;
       }, {} as Paths);
 
-      const protocolCode =
-        keys
-          .filter((k) => k === "protocol.go")
-          .map((k) => state.filesContent[k] || "")[0] || "";
+      const protocolCode = keys.filter((k) => k.startsWith("shared"));
+      const protoFilesMap = protocolCode.reduce((acc, k) => {
+        acc[k] = state.filesContent[k] || "";
+        return acc;
+      }, {} as Paths);
 
       if (!studentFiles.length || studentCode.some((c) => !c.trim()))
         missingFields.push("Student code");
@@ -237,7 +238,7 @@ export const useProblemEditor = (
         studentCode: studentFilesMap,
         solutionCode,
         testCode: testFilesMap,
-        protocolCode,
+        protocolCode: protoFilesMap,
         isPublished,
       };
 
