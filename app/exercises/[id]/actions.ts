@@ -133,9 +133,6 @@ export async function submitCode(
     timeout: 60,
   };
 
-  console.log("Sub shared proto", submissionCode["shared/protocol.go"]);
-  console.log("Test shared proto", testFiles["shared/protocol.go"]);
-
   MQJobsSender.sendMessage(payload);
 
   return { success: true, message: "Code submitted successfully" };
