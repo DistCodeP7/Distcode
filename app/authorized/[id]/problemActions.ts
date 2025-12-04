@@ -132,13 +132,13 @@ export async function saveProblem(data: SaveProblemParams) {
           difficulty: "",
           testAlias: "test-container",
           selectedTestPath: [],
-          testBuildCommand: "go build -o ./testing ./test/test.go",
+          testBuildCommand: "go build -c -o ./test_binary ./test/test.go",
           testEntryCommand: "./testing",
           testEnvs: [],
-          submissionBuildCommand: "go build -o ./student ./student/main.go",
-          submissionEntryCommand: "./student",
+          submissionBuildCommand: "go build -o ./stud ./student/main.go",
+          submissionEntryCommand: "./stud",
           globalEnvs: [],
-          replicaConfigs: [{ alias: "student-replica-1", envs: [] }],
+          replicaConfigs: [{ alias: "user-replica-1", envs: [] }],
         } as NewProblem)
         .returning();
       exerciseId = result[0].id;

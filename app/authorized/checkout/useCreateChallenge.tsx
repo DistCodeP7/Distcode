@@ -7,12 +7,21 @@ import type {
   SubmissionConfig,
   TestContainerConfig,
 } from "./challenge";
+import { base } from "motion/react-client";
 
-const useCreateChallenge = (baseFormParam: CheckoutFormState) => {
+const useCreateChallenge = (
+  baseFormParam: CheckoutFormState,
+  current: string[]
+) => {
   const baseForm = baseFormParam;
 
   const [form, setForm] = useState<CheckoutFormState>(baseForm);
 
+  Object.keys(form.testContainer.testFiles).forEach((file) => {
+    if (!current.includes(file)) {
+      delete form.testContainer.testFiles[file];
+    }
+  });
   useLayoutEffect(() => {
     const saved = localStorage.getItem("challengeForm");
     if (saved) {
