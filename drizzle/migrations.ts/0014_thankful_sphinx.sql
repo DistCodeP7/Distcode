@@ -1,0 +1,1 @@
+ALTER TABLE "problems" ALTER COLUMN "protocol_code" SET DATA TYPE json;

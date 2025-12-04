@@ -25,15 +25,17 @@ export default async function ExercisePage({
     if (saved?.success) savedCode = saved.code;
   }
 
+  const protocolCode = exercise.protocolCode["shared/protocol.go"] || "";
+
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-full flex flex-col overflow-x-hidden">
       <ExerciseEditor
         exerciseId={exerciseParams.id}
         problemMarkdown={exercise.problemMarkdown}
         studentCode={exercise.studentCode}
         solutionCode={exercise.solutionCode}
         testCasesCode={exercise.testCode}
-        protocalCode={exercise.protocolCode}
+        protocalCode={protocolCode}
         savedCode={savedCode}
       />
     </div>

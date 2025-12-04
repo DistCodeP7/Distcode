@@ -13,7 +13,7 @@ type NewProblem = {
   problemMarkdown: string;
   studentCode: Paths;
   solutionCode: string;
-  protocolCode: string;
+  protocolCode: Paths;
   testCode: Paths;
   isPublished?: boolean;
   title: string;
@@ -44,7 +44,7 @@ export type SaveProblemParams = {
   studentCode: Paths;
   solutionCode: string;
   testCode: Paths;
-  protocolCode: string;
+  protocolCode: Paths;
   isPublished?: boolean;
 };
 
@@ -132,8 +132,8 @@ export async function saveProblem(data: SaveProblemParams) {
           difficulty: "",
           testAlias: "test-container",
           selectedTestPath: [],
-          testBuildCommand: "go build -o ./test ./test/test.go",
-          testEntryCommand: "./test",
+          testBuildCommand: "go build -o ./testing ./test/test.go",
+          testEntryCommand: "./testing",
           testEnvs: [],
           submissionBuildCommand: "go build -o ./student ./student/main.go",
           submissionEntryCommand: "./student",

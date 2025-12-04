@@ -1,5 +1,7 @@
 "use client";
-import { Send } from "lucide-react";
+import { Save, Send } from "lucide-react";
+import { useRef } from "react";
+import type { ImperativePanelHandle } from "react-resizable-panels";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
 import { Button } from "@/components/ui/button";
@@ -26,6 +28,7 @@ export default function ProblemEditorClient({
     setActiveFile,
     handleEditorContentChange,
     handleSubmit,
+    handleSave,
     handleCreateFile,
     handleDeleteFile,
     filesContent,
@@ -34,30 +37,63 @@ export default function ProblemEditorClient({
     problemId,
   });
 
+  const folderPanelRef = useRef<ImperativePanelHandle>(null);
+  const problemPanelRef = useRef<ImperativePanelHandle>(null);
+
   const editorActions = (
-    <Button
-      onClick={handleSubmit}
-      type="button"
-      variant="default"
-      className="flex items-center gap-1 px-2 py-1 text-base"
-    >
-      <Send className="w-4 h-4" />
-      {problemId ? "Update Problem" : "Create Problem"}
-    </Button>
+    <div className="flex items-center gap-2">
+      <Button
+        onClick={handleSave}
+        type="button"
+        variant="secondary"
+        className="flex items-center gap-1 px-2 py-1 text-base"
+      >
+        <Save className="w-4 h-4" />
+        Save
+      </Button>
+      <Button
+        onClick={handleSubmit}
+        type="button"
+        variant="default"
+        className="flex items-center gap-1 px-2 py-1 text-base"
+      >
+        <Send className="w-4 h-4" />
+        {problemId ? "Update Problem" : "Create Problem"}
+      </Button>
+    </div>
   );
 
   return (
-    <div className="flex flex-col h-screen w-screen overflow-hidden">
-      {/* Editor + Preview */}
+    <div className="flex flex-col h-full w-full overflow-hidden">
       <ResizablePanelGroup
         direction="horizontal"
         className="flex-1 border h-full w-full min-w-0"
       >
-        {/* Panel 1: Markdown Preview (Problem Description) */}
+        {/* Panel 1: Folder System (Collapsible) */}
+        <ResizablePanel
+          minSize={10}
+          defaultSize={25}
+          collapsible
+          ref={folderPanelRef}
+        >
+          <FolderSystem
+            files={filesContent}
+            onFileChange={setActiveFile}
+            activeFilePath={activeFile}
+            onCreateFile={handleCreateFile}
+            onDeleteFile={handleDeleteFile}
+          />
+        </ResizablePanel>
+
+        {/* Handle 1: Separates Panel 1 and Panel 2 */}
+        <ResizableHandle withHandle />
+
+        {/* Panel 2 Markdown Preview (Problem Description) */}
         <ResizablePanel
           minSize={20}
           defaultSize={35}
-          className="flex-1 min-w-0 overflow-auto"
+          collapsible
+          ref={problemPanelRef}
         >
           {/* Show the problem markdown: try to find a problem.* key in filesContent */}
           <MarkdownPreview
@@ -68,24 +104,6 @@ export default function ProblemEditorClient({
                 }) || Object.keys(filesContent)[0]
               ] || ""
             }
-          />
-        </ResizablePanel>
-
-        {/* Handle 1: Separates Panel 1 and Panel 2 */}
-        <ResizableHandle withHandle />
-
-        {/* Panel 2: Folder System */}
-        <ResizablePanel
-          minSize={12}
-          defaultSize={25}
-          className="bg-background border-r overflow-auto"
-        >
-          <FolderSystem
-            files={filesContent}
-            onFileChange={setActiveFile}
-            activeFilePath={activeFile}
-            onCreateFile={handleCreateFile}
-            onDeleteFile={handleDeleteFile}
           />
         </ResizablePanel>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { BookOpen, Code, Save, Send } from "lucide-react";
-import { type SetStateAction, useState } from "react";
+import { type SetStateAction, useState, useRef } from "react";
 import { toast } from "sonner";
 
 import type { Filemap } from "@/app/exercises/[id]/actions";
@@ -15,6 +15,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import type { ImperativePanelHandle } from "react-resizable-panels";
 import type { Paths } from "@/drizzle/schema";
 import { useSSE } from "@/hooks/useSSE";
 import type { StreamingJobMessage } from "@/types/streamingEvents";
@@ -63,6 +64,10 @@ export default function ExerciseEditor({
 
   const { messages, connect, clearMessages } =
     useSSE<StreamingJobMessage>("/api/stream");
+
+  const folderPanelRef = useRef<ImperativePanelHandle>(null);
+  const problemPanelRef = useRef<ImperativePanelHandle>(null);
+  const editorPanelRef = useRef<ImperativePanelHandle>(null);
 
   const handleSolutionClick = () => {
     const shouldViewSolution = window.confirm(
@@ -215,7 +220,7 @@ ${protoCode}
     <>
       <Button
         type="button"
-        variant="secondary"
+        variant="outline"
         className="flex items-center gap-1 px-2 py-1 text-base"
         onClick={onSave}
         disabled={resetting}
@@ -227,7 +232,7 @@ ${protoCode}
       <Button
         onClick={onSubmit}
         type="button"
-        variant="default"
+        variant="outline"
         className="flex items-center gap-1 px-2 py-1 text-base"
         disabled={resetting}
       >
@@ -243,7 +248,7 @@ ${protoCode}
         disabled={resetting}
       >
         <Send className="w-4 h-4" />
-        Reset To Starter Code
+        Reset Code
       </Button>
     </>
   );
@@ -251,10 +256,38 @@ ${protoCode}
   return (
     <ResizablePanelGroup
       direction="horizontal"
-      className="flex-1 border md:min-w-[450px]"
+      className="flex-1 border md:min-w-[450px] overflow-x-hidden"
     >
-      {/* Panel 1: Left Panel (Problem Markdown or Solution View) */}
-      <ResizablePanel minSize={20} defaultSize={35} className="overflow-y-auto">
+      {/* Panel 1: Folder System (collapsible) */}
+      <ResizablePanel
+        minSize={10}
+        defaultSize={15}
+        collapsible
+        ref={folderPanelRef}
+      >
+        <div className="flex flex-col h-full">
+          <div className="flex-1 overflow-auto">
+            <FolderSystem
+              files={fileContents}
+              onFileChange={setActiveFile}
+              onCreateFile={onCreateFile}
+              onDeleteFile={onDeleteFile}
+            />
+          </div>
+        </div>
+      </ResizablePanel>
+
+      {/* Handle 1: Separator between Panel 1 (File System) and Panel 2 (Problem) */}
+      <ResizableHandle withHandle handleClassName="self-start mt-20" />
+
+      {/* Panel 2: Middle Panel (Problem Markdown or Solution View) */}
+      <ResizablePanel
+        minSize={20}
+        defaultSize={35}
+        collapsible
+        ref={problemPanelRef}
+        className="overflow-y-auto"
+      >
         <div className="flex flex-col h-full">
           {/* Toggle buttons for left panel */}
           <div className="flex border-b bg-background">
@@ -280,7 +313,6 @@ ${protoCode}
             )}
           </div>
 
-          {/* Content area */}
           <div className="flex-1 overflow-y-auto">
             {leftPanelView === "problem" ? (
               <MarkdownPreview
@@ -316,25 +348,18 @@ ${protoCode}
         </div>
       </ResizablePanel>
 
-      {/* Handle 1: Separator between Panel 1 (Problem) and Panel 2 (File System) */}
-      <ResizableHandle withHandle />
-
-      {/* Panel 2: Folder System */}
-      <ResizablePanel minSize={10} defaultSize={15}>
-        <FolderSystem
-          files={fileContents}
-          onFileChange={setActiveFile}
-          onCreateFile={onCreateFile}
-          onDeleteFile={onDeleteFile}
-        />
-      </ResizablePanel>
-
-      {/* Handle 2: Separator between Panel 2 (File System) and Panel 3 (Editor/Terminal) */}
+      {/* Handle 2: Separator between Panel 2 (Problem) and Panel 3 (Editor/Terminal) */}
       <ResizableHandle withHandle />
 
       {/* Panel 3: Right Panel (Editor + Terminal Output) */}
-      <ResizablePanel minSize={30} defaultSize={50}>
-        <ResizablePanelGroup direction="vertical">
+      <ResizablePanel
+        minSize={30}
+        defaultSize={50}
+        collapsible
+        ref={editorPanelRef}
+      >
+        {/* The vertical panel group must be constrained to the height of Panel 3. */}
+        <ResizablePanelGroup direction="vertical" className="h-full min-h-0">
           <ResizablePanel defaultSize={50}>
             <EditorHeader actions={editorActions} />
 
@@ -361,7 +386,10 @@ ${protoCode}
           <ResizableHandle withHandle />
 
           <ResizablePanel defaultSize={50}>
-            <TerminalOutput messages={messages} />
+            {/* Ensures TerminalOutput's flex-1 root correctly calculates height. */}
+            <div className="h-full flex">
+              <TerminalOutput messages={messages} />
+            </div>
           </ResizablePanel>
         </ResizablePanelGroup>
       </ResizablePanel>
