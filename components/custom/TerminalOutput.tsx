@@ -123,48 +123,49 @@ export function TerminalOutput({ messages }: TerminalOutputProps) {
   };
 
   return (
-    <div className="flex flex-col gap-2 text-sm font-mono">
-      {/* Status badge */}
-      <div
-        className={`inline-flex items-center gap-2 rounded-md border px-2 py-1 text-xs ${statusClass}`}
-      >
-        <span
-          className={`h-2 w-2 rounded-full ${
-            status === "passed"
-              ? "bg-green-500"
-              : status === "failed"
-                ? "bg-red-500"
-                : status === "running"
-                  ? "bg-yellow-500"
-                  : "bg-slate-400"
-          }`}
-        />
-        <span>{statusLabel}</span>
-      </div>
-
-      {/* Passed tests */}
-      {status === "passed" && passedTests.length > 0 && (
-        <div className="rounded-md border border-green-500/50 bg-green-500/5 p-2 text-xs text-green-400">
-          <div className="mb-1 font-semibold">Passed tests</div>
-          <ul className="list-disc pl-4">
-            {passedTests.map((name) => (
-              <li key={name}>{name}</li>
-            ))}
-          </ul>
+    <div className="flex flex-col flex-1 w-full overflow-hidden">
+      {/* Inner Flex Container (Flex Container for badge, tests, and output) */}
+      <div className="flex flex-col gap-2 text-sm font-mono flex-1 min-h-0">
+        {/* Status badge */}
+        <div
+          className={`inline-flex items-center gap-2 rounded-md border px-2 py-1 text-xs ${statusClass}`}
+        >
+          <span
+            className={`h-2 w-2 rounded-full ${
+              status === "passed"
+                ? "bg-green-500"
+                : status === "failed"
+                  ? "bg-red-500"
+                  : status === "running"
+                    ? "bg-yellow-500"
+                    : "bg-slate-400"
+            }`}
+          />
+          <span>{statusLabel}</span>
         </div>
-      )}
-
-      {/* Raw output */}
-      <div className="max-h-64 overflow-auto rounded-md bg-black/80 p-2 text-xs text-slate-100">
-        {flattenedEvents.length === 0 ? (
-          <div className="text-slate-500">No output yet.</div>
-        ) : (
-          flattenedEvents.map(({ event, key }) => (
-            <div key={key} className="text-slate-100">
-              {renderLine(event)}
-            </div>
-          ))
+        {/* Passed tests */}
+        {status === "passed" && passedTests.length > 0 && (
+          <div className="rounded-md border border-green-500/50 bg-green-500/5 p-2 text-xs text-green-400">
+            <div className="mb-1 font-semibold">Passed tests</div>
+            <ul className="list-disc pl-4">
+              {passedTests.map((name) => (
+                <li key={name}>{name}</li>
+              ))}
+            </ul>
+          </div>
         )}
+        {/* Raw output */}
+        <div className="flex-1 h-0 overflow-auto rounded-md p-2 text-xs text-slate-100 whitespace-pre-wrap break-words">
+          {flattenedEvents.length === 0 ? (
+            <div className="text-slate-500">No output yet.</div>
+          ) : (
+            flattenedEvents.map(({ event, key }) => (
+              <div key={key} className="text-slate-100">
+                {renderLine(event)}
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
