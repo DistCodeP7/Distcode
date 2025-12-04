@@ -39,6 +39,7 @@ export default async function EditProblemPage({
   if (exercise.solutionCode)
     initialFilesContent["solution.md"] = exercise.solutionCode;
   assignFilesContent(exercise.testCode, initialFilesContent);
+  assignFilesContent(exercise.protocolCode, initialFilesContent);
 
   return (
     <ProblemEditorClient
