@@ -1,5 +1,7 @@
 "use client";
-import { Send } from "lucide-react";
+import { Save, Send } from "lucide-react";
+import { useRef } from "react";
+import type { ImperativePanelHandle } from "react-resizable-panels";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
 import { Button } from "@/components/ui/button";
@@ -11,8 +13,6 @@ import {
 import type { Paths } from "@/drizzle/schema";
 import { useProblemEditor } from "@/hooks/useProblemEditor";
 import { FolderSystem } from "./folderSystem";
-import type { ImperativePanelHandle } from "react-resizable-panels";
-import { useRef } from "react";
 
 export default function ProblemEditorClient({
   files,
@@ -28,6 +28,7 @@ export default function ProblemEditorClient({
     setActiveFile,
     handleEditorContentChange,
     handleSubmit,
+    handleSave,
     handleCreateFile,
     handleDeleteFile,
     filesContent,
@@ -40,15 +41,26 @@ export default function ProblemEditorClient({
   const problemPanelRef = useRef<ImperativePanelHandle>(null);
 
   const editorActions = (
-    <Button
-      onClick={handleSubmit}
-      type="button"
-      variant="default"
-      className="flex items-center gap-1 px-2 py-1 text-base"
-    >
-      <Send className="w-4 h-4" />
-      {problemId ? "Update Problem" : "Create Problem"}
-    </Button>
+    <div className="flex items-center gap-2">
+      <Button
+        onClick={handleSave}
+        type="button"
+        variant="secondary"
+        className="flex items-center gap-1 px-2 py-1 text-base"
+      >
+        <Save className="w-4 h-4" />
+        Save
+      </Button>
+      <Button
+        onClick={handleSubmit}
+        type="button"
+        variant="default"
+        className="flex items-center gap-1 px-2 py-1 text-base"
+      >
+        <Send className="w-4 h-4" />
+        {problemId ? "Update Problem" : "Create Problem"}
+      </Button>
+    </div>
   );
 
   return (
