@@ -248,11 +248,11 @@ export const useProblemEditor = (
       if (result.success) {
         const qs = `id=${encodeURIComponent(String(result.id))}`;
         const action = isPublished ? "submitted" : "saved";
-        if (action === "saved"){
-            toast.success(`Problem ${action} successfully.`);
+        if (action === "submitted"){
+            router.push(`/authorized/checkout/?${qs}`);
         }
         else {
-            router.push(`/authorized/checkout/?${qs}`);
+            toast.success(`Problem ${action} successfully.`);
         }
       }
     } catch (err) {
