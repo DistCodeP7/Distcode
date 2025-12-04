@@ -1,8 +1,8 @@
+import { FolderOpen, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { deleteProblemFromList } from "@/app/authorized/[id]/listActions";
-import { DeleteButton } from "@/app/authorized/deleteButton";
 import NeonLines from "@/components/custom/NeonLine";
 import { Button } from "@/components/ui/button";
 import { getProblemsByUserId } from "@/lib/problems";
@@ -115,17 +115,36 @@ export default async function ProblemListPage() {
 
                 <div className="flex gap-2 mt-2">
                   <Link href={`/authorized/${s.id}`}>
-                    <Button size="sm">Edit</Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="hover:cursor-pointer hover:bg-primary/70"
+                    >
+                      Edit
+                      <Pencil className="w-4 h-4" />
+                    </Button>
                   </Link>
                   <Link href={`/exercises/${s.id}`}>
-                    <Button size="sm" variant="ghost">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="hover:cursor-pointer hover:bg-primary/70"
+                    >
                       Open
+                      <FolderOpen className="w-4 h-4 scale-120" />
                     </Button>
                   </Link>
 
                   {/* Delete */}
                   <form action={deleteProblemFromList.bind(null, s.id)}>
-                    <DeleteButton />
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="hover:cursor-pointer hover:bg-primary/70"
+                    >
+                      Delete
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </form>
                 </div>
               </div>
