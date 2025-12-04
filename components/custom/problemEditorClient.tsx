@@ -37,6 +37,7 @@ export default function ProblemEditorClient({
   });
 
   const folderPanelRef = useRef<ImperativePanelHandle>(null);
+  const problemPanelRef = useRef<ImperativePanelHandle>(null);
 
   const editorActions = (
     <Button
@@ -60,7 +61,6 @@ export default function ProblemEditorClient({
         <ResizablePanel
           minSize={10}
           defaultSize={25}
-          className="bg-background border-r overflow-auto"
           collapsible
           ref={folderPanelRef}
         >
@@ -80,7 +80,8 @@ export default function ProblemEditorClient({
         <ResizablePanel
           minSize={20}
           defaultSize={35}
-          className="flex-1 min-w-0 overflow-auto"
+          collapsible
+          ref={problemPanelRef}
         >
           {/* Show the problem markdown: try to find a problem.* key in filesContent */}
           <MarkdownPreview

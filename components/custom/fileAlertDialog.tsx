@@ -12,7 +12,6 @@ import {
   AlertDialogTitle,
 } from "../ui/alert-dialog";
 import { Input } from "../ui/input";
-import { on } from "events";
 
 interface FileAlertDialogProps {
   open: boolean;

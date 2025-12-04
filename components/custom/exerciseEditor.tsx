@@ -220,7 +220,7 @@ ${protoCode}
     <>
       <Button
         type="button"
-        variant="secondary"
+        variant="outline"
         className="flex items-center gap-1 px-2 py-1 text-base"
         onClick={onSave}
         disabled={resetting}
@@ -232,7 +232,7 @@ ${protoCode}
       <Button
         onClick={onSubmit}
         type="button"
-        variant="default"
+        variant="outline"
         className="flex items-center gap-1 px-2 py-1 text-base"
         disabled={resetting}
       >
@@ -248,7 +248,7 @@ ${protoCode}
         disabled={resetting}
       >
         <Send className="w-4 h-4" />
-        Reset To Starter Code
+        Reset Code
       </Button>
     </>
   );
