@@ -27,7 +27,7 @@ const getInitialContent = (path: string): string => {
     path.startsWith("test") ||
     path.startsWith("shared")
   ) {
-    if (path.startsWith("student")) return defaultMain;
+    if (path.startsWith("student")) return "// Write your code here\n";
     if (path.startsWith("test")) return defaultTest;
     if (path.startsWith("shared"))
       return `package main
@@ -123,12 +123,25 @@ export const useProblemEditor = (
       } else if (!filePath.includes(".")) {
         fullPath = `${filePath}.go`;
       }
+      let defaultContent = "";
 
-      const defaultContent = fullPath.endsWith(".md")
-        ? ""
-        : fullPath.includes("test")
-          ? defaultTest
-          : `// New file: ${fullPath.split("/").pop()}`;
+      const type = fullPath.split("/")[0];
+      switch (type) {
+        case "student":
+          defaultContent = defaultMain;
+          break;
+        case "test":
+          defaultContent = defaultTest;
+          break;
+        case "shared":
+          defaultContent = `package shared`;
+          break;
+        default:
+          defaultContent = fullPath.endsWith(".md")
+            ? ""
+            : `// New file: ${fullPath.split("/").pop()}`;
+          break;
+      }
 
       return {
         ...prev,
