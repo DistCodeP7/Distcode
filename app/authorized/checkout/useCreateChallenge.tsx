@@ -13,14 +13,27 @@ const useCreateChallenge = (
   current: string[]
 ) => {
   const baseForm = baseFormParam;
+  const buildInitialForm = (): CheckoutFormState => {
+    const base = baseFormParam;
+    const baseTestFiles = { ...base.testContainer.testFiles };
 
-  const [form, setForm] = useState<CheckoutFormState>(baseForm);
-
-  Object.keys(form.testContainer.testFiles).forEach((file) => {
-    if (!current.includes(file)) {
-      delete form.testContainer.testFiles[file];
+    if (base.testContainer.testFiles?.["test/test.go"]) {
+      baseTestFiles["test/test.go"] =
+        base.testContainer.testFiles["test/test.go"];
     }
-  });
+    Object.keys(baseTestFiles).forEach((f) => {
+      if (f !== "test/test.go" && !current.includes(f)) {
+        delete baseTestFiles[f];
+      }
+    });
+
+    return {
+      ...base,
+      testContainer: { ...base.testContainer, testFiles: baseTestFiles },
+    };
+  };
+
+  const [form, setForm] = useState<CheckoutFormState>(buildInitialForm);
   useLayoutEffect(() => {
     const saved = localStorage.getItem("challengeForm");
     if (saved) {
