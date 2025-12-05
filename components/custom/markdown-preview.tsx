@@ -144,7 +144,7 @@ const MarkdownPreview = ({ content }: MarkdownPreviewProps) => {
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw]}
       >
-        {content || temp}
+        {content ? content : temp}
       </ReactMarkdown>
     </ScrollArea>
   );
