@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { type SetStateAction, useState, useEffect } from "react";
+import { type SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { saveProblem } from "@/app/authorized/[id]/problemActions";
 import type { Paths } from "@/drizzle/schema";
@@ -259,11 +259,10 @@ export const useProblemEditor = (
       if (result.success) {
         const qs = `id=${encodeURIComponent(String(result.id))}`;
         const action = isPublished ? "submitted" : "saved";
-        if (action === "submitted"){
-            router.push(`/authorized/checkout/?${qs}`);
-        }
-        else {
-            toast.success(`Problem ${action} successfully.`);
+        if (action === "submitted") {
+          router.push(`/authorized/checkout/?${qs}`);
+        } else {
+          toast.success(`Problem ${action} successfully.`);
         }
       }
     } catch (err) {
