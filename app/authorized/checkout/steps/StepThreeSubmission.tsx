@@ -48,7 +48,11 @@ const StepThreeSubmission = ({
 
     for (let i = 0; i < newCount; i++) {
       if (!newReplicaConfigs[i]) {
-        newReplicaConfigs[i] = { alias: `user-service-${i + 1}`, envs: [] };
+        newReplicaConfigs[i] = {
+          alias: `user-service-${i + 1}`,
+          envs: [],
+          id: i,
+        };
       }
     }
 
@@ -152,10 +156,11 @@ const StepThreeSubmission = ({
             const rep = config.replicaConfigs[i] || {
               alias: `user-service-${i + 1}`,
               envs: [],
+              id: i,
             };
             return (
               <Card
-                key={rep.alias}
+                key={rep.id}
                 className="hover:border-primary/50 transition-colors"
               >
                 <CardHeader>

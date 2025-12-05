@@ -128,7 +128,7 @@ export async function GET() {
 
       // Optional: send a "connected" log using the *new* shape
       const initial: StreamingJobMessage = {
-        job_uid: "initial-" + session.user.id,
+        job_uid: `initial-${session.user.id}`,
         user_id: session.user.id,
         events: [
           {
