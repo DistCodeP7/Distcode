@@ -1,10 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { RabbitMQReceiver } from "@/app/mq/RabbitMQReceiver";
-import type {
-  StreamingEvent,
-  StreamingJobMessage,
-} from "@/types/streamingEvents";
+import type { StreamingJobMessage } from "@/types/streamingEvents";
 import { authOptions } from "../auth/[...nextauth]/route";
 
 type Client = {
@@ -38,7 +35,7 @@ class JobResultQueueListener {
 }
 
 class ClientManager {
-  private clients: Map<string, Set<Client>> = new Map();
+  public clients: Map<string, Set<Client>> = new Map();
   private heartBeatId: NodeJS.Timeout | undefined = undefined;
 
   addClient(userId: string, client: Client) {
@@ -78,9 +75,11 @@ class ClientManager {
           client.controller.enqueue(client.encoder.encode(":\n\n"));
         } catch {
           this.removeClient(userId, client);
+          client.controller.close();
         }
       }
     }
+    if (!this.hasClients()) jobResultListener.stop();
   }
 
   dispatchJobResultToClients(msg: StreamingJobMessage) {
@@ -125,21 +124,6 @@ export async function GET() {
       const client: Client = { controller, encoder };
       clientRef = client;
       clientManager.addClient(session.user.id, client);
-
-      // Optional: send a "connected" log using the *new* shape
-      const initial: StreamingJobMessage = {
-        job_uid: `initial-${session.user.id}`,
-        user_id: session.user.id,
-        events: [
-          {
-            kind: "log",
-            worker_id: "",
-            message: "Connected to stream.",
-          } satisfies StreamingEvent,
-        ],
-      };
-
-      clientManager.dispatchJobResultToClients(initial);
     },
     cancel: () => {
       clientManager.removeClient(session.user.id, clientRef);

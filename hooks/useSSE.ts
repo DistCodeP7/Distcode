@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export const useSSE = <T>(url: string) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -48,6 +48,12 @@ export const useSSE = <T>(url: string) => {
     eventSourceRef.current?.close();
     setIsConnected(false);
   };
+
+  useEffect(() => {
+    return () => {
+      eventSourceRef.current?.close();
+    };
+  }, []);
 
   return {
     isLoading,
