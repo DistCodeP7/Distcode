@@ -10,6 +10,8 @@ const receiver = new RabbitMQReceiver({
 });
 
 async function init() {
+  await sender.disconnect();
+  await receiver.disconnect();
   await sender.connect();
   await receiver.connect();
 }

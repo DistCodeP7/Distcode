@@ -6,7 +6,7 @@ import { v4 as uuid } from "uuid"; // Example for a common UUID library in JS
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { problems, ratings, userCode } from "@/drizzle/schema";
 import { db } from "@/lib/db";
-import { MQJobsSender } from "@/lib/mq";
+import { MQJobsSender, ready } from "@/lib/mq";
 import { getUserById } from "@/lib/user";
 
 export type Filemap = {
@@ -132,7 +132,7 @@ export async function submitCode(
     userId: user.userid,
     timeout: 60,
   };
-
+  await ready;
   MQJobsSender.sendMessage(payload);
 
   return { success: true, message: "Code submitted successfully" };
