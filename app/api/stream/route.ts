@@ -75,9 +75,11 @@ class ClientManager {
           client.controller.enqueue(client.encoder.encode(":\n\n"));
         } catch {
           this.removeClient(userId, client);
+          client.controller.close();
         }
       }
     }
+    if (!this.hasClients()) jobResultListener.stop();
   }
 
   dispatchJobResultToClients(msg: StreamingJobMessage) {
