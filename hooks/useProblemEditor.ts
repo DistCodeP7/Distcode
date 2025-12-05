@@ -77,12 +77,6 @@ export const useProblemEditor = (
       "problem.md"
   );
 
-  useEffect(() => {
-    if (state.activeFile.endsWith(".md")) {
-      setLastMarkdownFile(state.activeFile);
-    }
-  }, [state.activeFile]);
-
   const syncFilesContent = () => {
     setState((prev) => {
       const newFilesContent = Object.keys(files).reduce((acc, key) => {
@@ -191,6 +185,9 @@ export const useProblemEditor = (
 
   const setActiveFile = (activeFile: string) => {
     setState((prev) => ({ ...prev, activeFile }));
+    if (activeFile.endsWith(".md")) {
+      setLastMarkdownFile(activeFile);
+    }
   };
 
   const handleSaveOrSubmit = async (isPublished: boolean) => {
