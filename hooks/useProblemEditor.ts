@@ -247,7 +247,13 @@ export const useProblemEditor = (
       const result: ActionResult = await saveProblem(payload);
       if (result.success) {
         const qs = `id=${encodeURIComponent(String(result.id))}`;
-        router.push(`/authorized/checkout/?${qs}`);
+        const action = isPublished ? "submitted" : "saved";
+        if (action === "submitted"){
+            router.push(`/authorized/checkout/?${qs}`);
+        }
+        else {
+            toast.success(`Problem ${action} successfully.`);
+        }
       }
     } catch (err) {
       toast.error(`An unexpected error occurred: ${err}`);
