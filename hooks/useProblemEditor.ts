@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { type SetStateAction, useState } from "react";
+import { type SetStateAction, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { saveProblem } from "@/app/authorized/[id]/problemActions";
 import type { Paths } from "@/drizzle/schema";
@@ -71,6 +71,17 @@ export const useProblemEditor = (
       isSubmitting: false,
     };
   });
+
+  const [lastMarkdownFile, setLastMarkdownFile] = useState(
+    Object.keys(state.filesContent).find((k) => k.endsWith(".md")) ||
+      "problem.md"
+  );
+
+  useEffect(() => {
+    if (state.activeFile.endsWith(".md")) {
+      setLastMarkdownFile(state.activeFile);
+    }
+  }, [state.activeFile]);
 
   const syncFilesContent = () => {
     setState((prev) => {
@@ -268,5 +279,6 @@ export const useProblemEditor = (
     handleCreateFile,
     handleDeleteFile,
     syncFilesContent,
+    lastMarkdownFile,
   };
 };
