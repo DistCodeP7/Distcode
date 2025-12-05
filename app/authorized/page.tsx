@@ -57,7 +57,7 @@ export default async function ProblemListPage() {
             {submissions.map((s) => (
               <div
                 key={s.id}
-                className="rounded-md border p-6 flex flex-col gap-3 bg-background shadow hover:shadow-[0_0_8px_rgba(255,255,255,0.2)] transition-all duration-200"
+                className="relative rounded-md border p-6 flex flex-col gap-3 bg-background shadow hover:shadow-[0_0_8px_rgba(255,255,255,0.2)] transition-all duration-200"
               >
                 <Link
                   href={`/authorized/${s.id}`}
@@ -109,12 +109,6 @@ export default async function ProblemListPage() {
                         {s.difficulty ?? "Easy"}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span>Rating:</span>
-                      <span className="font-semibold text-foreground">
-                        {s.rating ?? 0}
-                      </span>
-                    </div>
                   </div>
                 </Link>
 
@@ -134,9 +128,8 @@ export default async function ProblemListPage() {
                     <Button
                       size="lg"
                       variant="destructive"
-                      className="hover:cursor-pointer"
+                      className="absolute bottom-6 right-6 hover:cursor-pointer"
                     >
-                      Delete
                       <TrashIcon className="w-4 h-4" />
                     </Button>
                   </form>
