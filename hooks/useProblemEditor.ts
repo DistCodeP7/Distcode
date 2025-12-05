@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { type SetStateAction, useState } from "react";
+import { type SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { saveProblem } from "@/app/authorized/[id]/problemActions";
 import type { Paths } from "@/drizzle/schema";
+import { defaultTest } from "@/default_files/defaultTest";
 
 const getInitialContent = (path: string): string => {
   if (
@@ -26,7 +27,7 @@ const getInitialContent = (path: string): string => {
     path.startsWith("shared")
   ) {
     if (path.startsWith("student")) return "// Write your code here\n";
-    if (path.startsWith("test")) return "// Write your test cases here\n";
+    if (path.startsWith("test")) return defaultTest;
     if (path.startsWith("shared"))
       return `package main
 
@@ -72,6 +73,11 @@ export const useProblemEditor = (
     };
   });
 
+  const [lastMarkdownFile, setLastMarkdownFile] = useState(
+    Object.keys(state.filesContent).find((k) => k.endsWith(".md")) ||
+      "problem.md"
+  );
+
   const syncFilesContent = () => {
     setState((prev) => {
       const newFilesContent = Object.keys(files).reduce((acc, key) => {
@@ -104,20 +110,7 @@ export const useProblemEditor = (
         toast.error("Cannot create a file named main.go");
         return prev;
       }
-      const parentPath = filePath.includes("/") ? filePath : "student";
-      if (filePath.endsWith("/")) {
-        const folderName = filePath.replace(/^\/+|\/+$/g, "");
-        const placeholderPath = `${parentPath}/${folderName}/placeholder.md`;
-        const defaultContent = `// placeholder for ${folderName}`;
-        return {
-          ...prev,
-          filesContent: {
-            ...prev.filesContent,
-            [placeholderPath]: defaultContent,
-          },
-          activeFile: placeholderPath,
-        };
-      }
+
       const isFullPath = filePath.includes("/");
       let fullPath = filePath;
       if (!isFullPath) {
@@ -132,7 +125,9 @@ export const useProblemEditor = (
 
       const defaultContent = fullPath.endsWith(".md")
         ? ""
-        : `// New file: ${fullPath.split("/").pop()}`;
+        : fullPath.includes("test")
+          ? defaultTest
+          : `// New file: ${fullPath.split("/").pop()}`;
 
       return {
         ...prev,
@@ -155,7 +150,7 @@ export const useProblemEditor = (
 
       if (
         filePath.includes("student/main.go") ||
-        filePath.includes("test/test.go") ||
+        filePath.includes("test/main_test.go") ||
         filePath === "problem.md" ||
         filePath === "protocol.go" ||
         filePath === "solution.md"
@@ -180,6 +175,9 @@ export const useProblemEditor = (
 
   const setActiveFile = (activeFile: string) => {
     setState((prev) => ({ ...prev, activeFile }));
+    if (activeFile.endsWith(".md")) {
+      setLastMarkdownFile(activeFile);
+    }
   };
 
   const handleSaveOrSubmit = async (isPublished: boolean) => {
@@ -248,11 +246,10 @@ export const useProblemEditor = (
       if (result.success) {
         const qs = `id=${encodeURIComponent(String(result.id))}`;
         const action = isPublished ? "submitted" : "saved";
-        if (action === "submitted"){
-            router.push(`/authorized/checkout/?${qs}`);
-        }
-        else {
-            toast.success(`Problem ${action} successfully.`);
+        if (action === "submitted") {
+          router.push(`/authorized/checkout/?${qs}`);
+        } else {
+          toast.success(`Problem ${action} successfully.`);
         }
       }
     } catch (err) {
@@ -274,5 +271,6 @@ export const useProblemEditor = (
     handleCreateFile,
     handleDeleteFile,
     syncFilesContent,
+    lastMarkdownFile,
   };
 };

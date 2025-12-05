@@ -14,6 +14,16 @@ export type CompiledEvent = {
   error?: string;
 };
 
+export type Resulttype = "success" | "failure" | "panic";
+
+export type TestResult = {
+  type: Resulttype;
+  name: string;
+  duration_ms: number;
+  message: string;
+  panic?: string;
+};
+
 export type LogEvent = {
   kind: "log";
   worker_id?: string;
@@ -26,6 +36,7 @@ export type StatusEvent = {
   message?: string;
   duration_millis: number;
   failed_worker_id?: string;
+  test_results?: TestResult[];
 };
 
 export type StreamingEvent = CompiledEvent | LogEvent | StatusEvent;
