@@ -83,7 +83,7 @@ class ClientManager {
   }
 
   dispatchJobResultToClients(msg: StreamingJobMessage) {
-    //console.log("Dispatching job result to clients:", msg);
+    console.log("Dispatching job result to clients:", msg);
 
     const userId = msg.user_id;
     if (!userId) return;
@@ -124,12 +124,10 @@ export async function GET() {
       const client: Client = { controller, encoder };
       clientRef = client;
       clientManager.addClient(session.user.id, client);
-      console.log(`Client connected, count: ${clientManager.clients.size}`);
     },
     cancel: () => {
       clientManager.removeClient(session.user.id, clientRef);
       if (!clientManager.hasClients()) jobResultListener.stop();
-      console.log(`Client disconnected, count: ${clientManager.clients.size}`);
     },
   });
 
