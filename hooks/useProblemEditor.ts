@@ -4,9 +4,9 @@ import { useRouter } from "next/navigation";
 import { type SetStateAction, useState } from "react";
 import { toast } from "sonner";
 import { saveProblem } from "@/app/authorized/[id]/problemActions";
-import type { Paths } from "@/drizzle/schema";
-import { defaultTest } from "@/default_files/defaultTest";
 import { defaultMain } from "@/default_files/defaultMain";
+import { defaultTest } from "@/default_files/defaultTest";
+import type { Paths } from "@/drizzle/schema";
 
 const getInitialContent = (path: string): string => {
   if (

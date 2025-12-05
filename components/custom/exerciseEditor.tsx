@@ -6,10 +6,10 @@ import type { ImperativePanelHandle } from "react-resizable-panels";
 import { toast } from "sonner";
 import type { Filemap } from "@/app/exercises/[id]/actions";
 import {
+  cancelJobRequest,
   resetCode,
   saveCode,
   submitCode,
-  cancelJobRequest,
 } from "@/app/exercises/[id]/actions";
 import { ConfirmDialog } from "@/components/custom/confirmDialog";
 import Editor, { EditorHeader } from "@/components/custom/editor";
