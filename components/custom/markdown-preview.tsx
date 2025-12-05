@@ -1,5 +1,7 @@
 import type React from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
 import { temp } from "@/lib/temp";
@@ -117,12 +119,23 @@ const MarkdownPreview = ({ content }: MarkdownPreviewProps) => {
           </code>
         );
       }
+
+      const match = /language-(\w+)/.exec(className || "");
+      const lang = match ? match[1] : undefined;
+
       return (
-        <pre className="rounded-lg bg-muted p-4 whitespace-pre-wrap break-words">
-          <code className={cn("font-mono", className)} {...props}>
-            {children}
-          </code>
-        </pre>
+        <div className="rounded-lg overflow-hidden">
+          <SyntaxHighlighter
+            language={lang}
+            style={vscDarkPlus}
+            showLineNumbers={false}
+            wrapLongLines={true}
+            PreTag="div"
+            {...props}
+          >
+            {String(children).replace(/\n$/, "")}
+          </SyntaxHighlighter>
+        </div>
       );
     },
   };

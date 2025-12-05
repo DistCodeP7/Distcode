@@ -123,12 +123,7 @@ export default function ExerciseEditor({
     });
   };
   const onDeleteFile = async (path: string) => {
-    if (fileOrder.length <= 1) {
-      toast.error("Cannot delete the last remaining file.");
-      return;
-    }
     const index = fileOrder.indexOf(path);
-    if (index === -1) return;
     const pathToDelete = fileOrder[index];
     if (pathToDelete.includes("student/main.go")) {
       toast.error("Cannot delete the main.go file.");
@@ -260,7 +255,8 @@ ${protoCode}
     >
       {/* Panel 1: Folder System (collapsible) */}
       <ResizablePanel
-        minSize={10}
+        minSize={4}
+        maxSize={20}
         defaultSize={15}
         collapsible
         ref={folderPanelRef}
@@ -269,6 +265,7 @@ ${protoCode}
           <div className="flex-1 overflow-auto">
             <FolderSystem
               files={fileContents}
+              sections={["student"]}
               onFileChange={setActiveFile}
               onCreateFile={onCreateFile}
               onDeleteFile={onDeleteFile}
@@ -282,7 +279,7 @@ ${protoCode}
 
       {/* Panel 2: Middle Panel (Problem Markdown or Solution View) */}
       <ResizablePanel
-        minSize={20}
+        minSize={5}
         defaultSize={35}
         collapsible
         ref={problemPanelRef}
@@ -349,7 +346,7 @@ ${protoCode}
       </ResizablePanel>
 
       {/* Handle 2: Separator between Panel 2 (Problem) and Panel 3 (Editor/Terminal) */}
-      <ResizableHandle withHandle />
+      <ResizableHandle withHandle handleClassName="self-start mt-60" />
 
       {/* Panel 3: Right Panel (Editor + Terminal Output) */}
       <ResizablePanel

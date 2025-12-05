@@ -71,8 +71,9 @@ export default function ProblemEditorClient({
       >
         {/* Panel 1: Folder System (Collapsible) */}
         <ResizablePanel
-          minSize={10}
-          defaultSize={25}
+          minSize={4}
+          maxSize={20}
+          defaultSize={15}
           collapsible
           ref={folderPanelRef}
         >

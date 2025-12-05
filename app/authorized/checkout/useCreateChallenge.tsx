@@ -7,7 +7,6 @@ import type {
   SubmissionConfig,
   TestContainerConfig,
 } from "./challenge";
-import { base } from "motion/react-client";
 
 const useCreateChallenge = (
   baseFormParam: CheckoutFormState,
