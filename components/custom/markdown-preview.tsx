@@ -120,13 +120,10 @@ const MarkdownPreview = ({ content }: MarkdownPreviewProps) => {
         );
       }
 
-      const match = /language-(\w+)/.exec(className || "");
-      const lang = match ? match[1] : undefined;
-
       return (
         <div className="rounded-lg overflow-hidden">
           <SyntaxHighlighter
-            language={lang}
+            language={"go"}
             style={vscDarkPlus}
             showLineNumbers={false}
             wrapLongLines={true}
