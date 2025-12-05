@@ -12,6 +12,7 @@ function normalizePath(p: string) {
 
 function isProtectedName(normalizedName: string) {
   if (!normalizedName) return false;
+  //TODO rethink this logic temp for now
   const n = normalizedName;
   if (
     n === "problem.md" ||
@@ -77,7 +78,7 @@ function FolderSection({
               open={createOpen}
               onOpenChange={setCreateOpen}
               onCreate={(filename) => {
-                // normalize creation: prevent protected basenames
+                //TODO fix this logic to be better: Normalize creation: prevent protected basenames
                 const parts = filename.split("/");
                 const base = parts.pop() || filename;
                 if (
