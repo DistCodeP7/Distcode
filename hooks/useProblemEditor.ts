@@ -5,6 +5,7 @@ import { type SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { saveProblem } from "@/app/authorized/[id]/problemActions";
 import type { Paths } from "@/drizzle/schema";
+import { defaultTest } from "@/default_files/defaultTest";
 
 const getInitialContent = (path: string): string => {
   if (
@@ -26,7 +27,7 @@ const getInitialContent = (path: string): string => {
     path.startsWith("shared")
   ) {
     if (path.startsWith("student")) return "// Write your code here\n";
-    if (path.startsWith("test")) return "// Write your test cases here\n";
+    if (path.startsWith("test")) return defaultTest;
     if (path.startsWith("shared"))
       return `package main
 
@@ -109,20 +110,7 @@ export const useProblemEditor = (
         toast.error("Cannot create a file named main.go");
         return prev;
       }
-      const parentPath = filePath.includes("/") ? filePath : "student";
-      if (filePath.endsWith("/")) {
-        const folderName = filePath.replace(/^\/+|\/+$/g, "");
-        const placeholderPath = `${parentPath}/${folderName}/placeholder.md`;
-        const defaultContent = `// placeholder for ${folderName}`;
-        return {
-          ...prev,
-          filesContent: {
-            ...prev.filesContent,
-            [placeholderPath]: defaultContent,
-          },
-          activeFile: placeholderPath,
-        };
-      }
+
       const isFullPath = filePath.includes("/");
       let fullPath = filePath;
       if (!isFullPath) {
@@ -137,7 +125,9 @@ export const useProblemEditor = (
 
       const defaultContent = fullPath.endsWith(".md")
         ? ""
-        : `// New file: ${fullPath.split("/").pop()}`;
+        : fullPath.includes("test")
+          ? defaultTest
+          : `// New file: ${fullPath.split("/").pop()}`;
 
       return {
         ...prev,

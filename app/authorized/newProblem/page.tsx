@@ -1,4 +1,5 @@
 import ProblemEditorClient from "@/components/custom/problemEditorClient";
+import { defaultTest } from "@/default_files/defaultTest";
 import type { Paths } from "@/drizzle/schema";
 
 export default function NewProblemPage() {
@@ -6,7 +7,7 @@ export default function NewProblemPage() {
     "problem.md": "# Problem Description\n\nDescribe the problem here.\n",
     "student/main.go": "// student main.go\n",
     "solution.md": "# Solution Explanation\n\nDescribe the solution here.\n",
-    "test/main_test.go": "// test cases go here\n",
+    "test/main_test.go": defaultTest,
     "shared/protocol.go": "// protocol definitions\n",
   };
 

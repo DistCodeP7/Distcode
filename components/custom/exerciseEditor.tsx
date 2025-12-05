@@ -20,6 +20,7 @@ import type { Paths } from "@/drizzle/schema";
 import { useSSE } from "@/hooks/useSSE";
 import type { StreamingJobMessage } from "@/types/streamingEvents";
 import { FolderSystem } from "./folderSystem";
+import { defaultTest } from "@/default_files/defaultTest";
 
 type ExerciseEditorProps = {
   exerciseId: number;
@@ -107,21 +108,6 @@ export default function ExerciseEditor({
   const onCreateFile = async (filename: string, parentPath = "student") => {
     if (filename.includes("main.go")) {
       toast.error("Cannot create a file named main.go");
-      return;
-    }
-
-    if (filename.endsWith("/")) {
-      const folderName = filename.replace(/^\/+|\/+$/g, "");
-      const placeholderPath = `${parentPath}/${folderName}/${folderName}.go`;
-      setFileContents((prev) => ({
-        ...prev,
-        [placeholderPath]: `// New file for ${folderName}`,
-      }));
-      setFileOrder((prev) => {
-        const newOrder = [...prev, placeholderPath];
-        setActiveFile(placeholderPath);
-        return newOrder;
-      });
       return;
     }
 
