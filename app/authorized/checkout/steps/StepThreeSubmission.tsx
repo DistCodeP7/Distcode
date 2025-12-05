@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import type { ReplicaConfig, SubmissionConfig } from "../challenge";
 import EnvList from "../components/EnvList";
+import { toast } from "sonner";
 
 const StepThreeSubmission = ({
   config,
@@ -31,8 +32,17 @@ const StepThreeSubmission = ({
     field: keyof ReplicaConfig,
     value: ReplicaConfig[keyof ReplicaConfig]
   ) => {
+    if (
+      field === "alias" &&
+      Object.values(config.replicaConfigs)
+        .map((r) => r.alias)
+        .includes(value as string)
+    ) {
+      toast.error("Each replica must have a unique alias.");
+      return;
+    }
     const current = config.replicaConfigs[index] || {
-      alias: `user-service-${index + 1}`,
+      alias: `user-replica-${index + 1}`,
       envs: [],
     };
     update("replicaConfigs", {
