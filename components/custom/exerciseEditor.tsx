@@ -1,9 +1,9 @@
 "use client";
 
 import { BookOpen, Code, Save, Send } from "lucide-react";
-import { type SetStateAction, useState, useRef } from "react";
+import { type SetStateAction, useRef, useState } from "react";
+import type { ImperativePanelHandle } from "react-resizable-panels";
 import { toast } from "sonner";
-
 import type { Filemap } from "@/app/exercises/[id]/actions";
 import { resetCode, saveCode, submitCode } from "@/app/exercises/[id]/actions";
 import Editor, { EditorHeader } from "@/components/custom/editor";
@@ -15,7 +15,6 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import type { ImperativePanelHandle } from "react-resizable-panels";
 import type { Paths } from "@/drizzle/schema";
 import { useSSE } from "@/hooks/useSSE";
 import type { StreamingJobMessage } from "@/types/streamingEvents";

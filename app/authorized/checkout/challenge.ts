@@ -13,6 +13,7 @@ export type TestContainerConfig = {
 export type ReplicaConfig = {
   alias: string;
   envs: Env[];
+  id: number;
 };
 
 export type SubmissionConfig = {
