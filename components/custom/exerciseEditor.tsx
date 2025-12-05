@@ -25,7 +25,6 @@ import type { Paths } from "@/drizzle/schema";
 import { useSSE } from "@/hooks/useSSE";
 import type { StreamingJobMessage } from "@/types/streamingEvents";
 import { FolderSystem } from "./folderSystem";
-import { defaultTest } from "@/default_files/defaultTest";
 
 type ExerciseEditorProps = {
   exerciseId: number;

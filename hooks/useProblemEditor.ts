@@ -1,11 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { type SetStateAction, useEffect, useState } from "react";
+import { type SetStateAction, useState } from "react";
 import { toast } from "sonner";
 import { saveProblem } from "@/app/authorized/[id]/problemActions";
 import type { Paths } from "@/drizzle/schema";
 import { defaultTest } from "@/default_files/defaultTest";
+import { defaultMain } from "@/default_files/defaultMain";
 
 const getInitialContent = (path: string): string => {
   if (
@@ -26,7 +27,7 @@ const getInitialContent = (path: string): string => {
     path.startsWith("test") ||
     path.startsWith("shared")
   ) {
-    if (path.startsWith("student")) return "// Write your code here\n";
+    if (path.startsWith("student")) return defaultMain;
     if (path.startsWith("test")) return defaultTest;
     if (path.startsWith("shared"))
       return `package main
