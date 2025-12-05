@@ -6,6 +6,7 @@ import type { ImperativePanelHandle } from "react-resizable-panels";
 import { toast } from "sonner";
 import type { Filemap } from "@/app/exercises/[id]/actions";
 import { resetCode, saveCode, submitCode, cancelJobRequest } from "@/app/exercises/[id]/actions";
+import { ConfirmDialog } from "@/components/custom/confirmDialog";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
 import { TerminalOutput } from "@/components/custom/TerminalOutput";
@@ -69,11 +70,22 @@ export default function ExerciseEditor({
   const problemPanelRef = useRef<ImperativePanelHandle>(null);
   const editorPanelRef = useRef<ImperativePanelHandle>(null);
 
+  const [showSolutionDialog, setShowSolutionDialog] = useState(false);
+  const [solutionDialogConfirmed, setSolutionDialogConfirmed] = useState(false);
+  const [showResetDialog, setShowResetDialog] = useState(false);
+
   const handleSolutionClick = () => {
-    const shouldViewSolution = window.confirm(
-      "Are you sure you want to view the solution? This will show you the complete answer to the problem."
-    );
-    if (shouldViewSolution) setLeftPanelView("solution");
+    if (solutionDialogConfirmed) {
+      setLeftPanelView("solution");
+    } else {
+      setShowSolutionDialog(true);
+    }
+  };
+
+  const confirmSolution = () => {
+    setSolutionDialogConfirmed(true);
+    setShowSolutionDialog(false);
+    setLeftPanelView("solution");
   };
 
   const onSubmit = async () => {
@@ -178,11 +190,11 @@ ${protoCode}
   };
 
   const onReset = async () => {
-    const confirmReset = window.confirm(
-      "Are you sure you want to reset your code? This will remove your saved progress and restore the original template."
-    );
-    if (!confirmReset) return;
+    setShowResetDialog(true);
+  };
 
+  const confirmReset = async () => {
+    setShowResetDialog(false);
     setResetting(true);
     try {
       const result = await resetCode({ params: { id: exerciseId } });
@@ -221,7 +233,7 @@ ${protoCode}
       <Button
         type="button"
         variant="outline"
-        className="flex items-center gap-1 px-2 py-1 text-base"
+        className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
         onClick={onSave}
         disabled={resetting}
       >
@@ -233,7 +245,7 @@ ${protoCode}
         onClick={onSubmit}
         type="button"
         variant="outline"
-        className="flex items-center gap-1 px-2 py-1 text-base"
+        className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
         disabled={resetting}
       >
         <Send className="w-4 h-4" />
@@ -244,7 +256,7 @@ ${protoCode}
         onClick={onReset}
         type="button"
         variant="outline"
-        className="flex items-center gap-1 px-2 py-1 text-base"
+        className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
         disabled={resetting}
       >
         <Send className="w-4 h-4" />
@@ -254,136 +266,153 @@ ${protoCode}
   );
 
   return (
-    <ResizablePanelGroup
-      direction="horizontal"
-      className="flex-1 border md:min-w-[450px] overflow-x-hidden"
-    >
-      {/* Panel 1: Folder System (collapsible) */}
-      <ResizablePanel
-        minSize={10}
-        defaultSize={15}
-        collapsible
-        ref={folderPanelRef}
+    <>
+      <ConfirmDialog
+        open={showSolutionDialog}
+        onOpenChange={setShowSolutionDialog}
+        title="View Solution?"
+        description="Are you sure you want to view the solution? This will show you the complete answer to the problem."
+        confirmLabel="View Solution"
+        onConfirm={confirmSolution}
+      />
+      <ConfirmDialog
+        open={showResetDialog}
+        onOpenChange={setShowResetDialog}
+        title="Reset Code?"
+        description="Are you sure you want to reset your code? This will remove your saved progress and restore the original template."
+        confirmLabel="Reset"
+        onConfirm={confirmReset}
+      />
+      <ResizablePanelGroup
+        direction="horizontal"
+        className="flex-1 border md:min-w-[450px] overflow-x-hidden"
       >
-        <div className="flex flex-col h-full">
-          <div className="flex-1 overflow-auto">
-            <FolderSystem
-              files={fileContents}
-              onFileChange={setActiveFile}
-              onCreateFile={onCreateFile}
-              onDeleteFile={onDeleteFile}
-            />
-          </div>
-        </div>
-      </ResizablePanel>
-
-      {/* Handle 1: Separator between Panel 1 (File System) and Panel 2 (Problem) */}
-      <ResizableHandle withHandle handleClassName="self-start mt-20" />
-
-      {/* Panel 2: Middle Panel (Problem Markdown or Solution View) */}
-      <ResizablePanel
-        minSize={20}
-        defaultSize={35}
-        collapsible
-        ref={problemPanelRef}
-        className="overflow-y-auto"
-      >
-        <div className="flex flex-col h-full">
-          {/* Toggle buttons for left panel */}
-          <div className="flex border-b bg-background">
-            <Button
-              variant={leftPanelView === "problem" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setLeftPanelView("problem")}
-              className="rounded-none border-r"
-            >
-              <BookOpen className="w-4 h-4 mr-2" />
-              Problem
-            </Button>
-            {solutionFiles.length > 0 && (
-              <Button
-                variant={leftPanelView === "solution" ? "default" : "ghost"}
-                size="sm"
-                onClick={handleSolutionClick}
-                className="rounded-none"
-              >
-                <Code className="w-4 h-4 mr-2" />
-                Solution
-              </Button>
-            )}
-          </div>
-
-          <div className="flex-1 overflow-y-auto">
-            {leftPanelView === "problem" ? (
-              <MarkdownPreview
-                content={appendProtoToMarkdown(problemMarkdown, protocalCode)}
+        {/* Panel 1: Folder System (collapsible) */}
+        <ResizablePanel
+          minSize={10}
+          defaultSize={15}
+          collapsible
+          ref={folderPanelRef}
+        >
+          <div className="flex flex-col h-full">
+            <div className="flex-1 overflow-auto">
+              <FolderSystem
+                files={fileContents}
+                onFileChange={setActiveFile}
+                onCreateFile={onCreateFile}
+                onDeleteFile={onDeleteFile}
               />
-            ) : (
-              <div className="h-full flex flex-col">
-                {solutionFiles.length > 1 && (
-                  <div className="flex border-b bg-muted">
-                    {solutionFiles.map((file, index) => (
-                      <Button
-                        key={file.name}
-                        variant={
-                          activeSolutionFile === index ? "default" : "ghost"
-                        }
-                        size="sm"
-                        onClick={() => setActiveSolutionFile(index)}
-                        className="rounded-none border-r"
-                      >
-                        {file.name}
-                      </Button>
-                    ))}
-                  </div>
-                )}
-                <div className="flex-1">
-                  <MarkdownPreview
-                    content={solutionFiles[activeSolutionFile]?.content || ""}
-                  />
-                </div>
-              </div>
-            )}
+            </div>
           </div>
-        </div>
-      </ResizablePanel>
+        </ResizablePanel>
 
-      {/* Handle 2: Separator between Panel 2 (Problem) and Panel 3 (Editor/Terminal) */}
-      <ResizableHandle withHandle />
+        {/* Handle 1: Separator between Panel 1 (File System) and Panel 2 (Problem) */}
+        <ResizableHandle withHandle handleClassName="self-start mt-20" />
 
-      {/* Panel 3: Right Panel (Editor + Terminal Output) */}
-      <ResizablePanel
-        minSize={30}
-        defaultSize={50}
-        collapsible
-        ref={editorPanelRef}
-      >
-        {/* The vertical panel group must be constrained to the height of Panel 3. */}
-        <ResizablePanelGroup direction="vertical" className="h-full min-h-0">
-          <ResizablePanel defaultSize={50}>
-            <EditorHeader actions={editorActions} />
+        {/* Panel 2: Middle Panel (Problem Markdown or Solution View) */}
+        <ResizablePanel
+          minSize={20}
+          defaultSize={35}
+          collapsible
+          ref={problemPanelRef}
+          className="overflow-y-auto"
+        >
+          <div className="flex flex-col h-full">
+            {/* Toggle buttons for left panel */}
+            <div className="flex border-b bg-background">
+              <Button
+                variant={leftPanelView === "problem" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => setLeftPanelView("problem")}
+                className="rounded-none border-r"
+              >
+                <BookOpen className="w-4 h-4 mr-2 hover:cursor-pointer" />
+                Problem
+              </Button>
+              {solutionFiles.length > 0 && (
+                <Button
+                  variant={leftPanelView === "solution" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={handleSolutionClick}
+                  className="rounded-none hover:cursor-pointer"
+                >
+                  <Code className="w-4 h-4 mr-2" />
+                  Solution
+                </Button>
+              )}
+            </div>
 
-            <Editor
-              editorContent={fileContents[activeFile]}
-              setEditorContent={setEditorContent}
-              language={activeFile?.endsWith(".go") ? "go" : "markdown"}
-              options={{
-                readOnly: resetting,
-                minimap: { enabled: false },
-              }}
-            />
-
-            {resetting && (
-              <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm z-10">
-                <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
-                  <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                  <span>Resetting to starter code...</span>
+            <div className="flex-1 overflow-y-auto">
+              {leftPanelView === "problem" ? (
+                <MarkdownPreview
+                  content={appendProtoToMarkdown(problemMarkdown, protocalCode)}
+                />
+              ) : (
+                <div className="h-full flex flex-col">
+                  {solutionFiles.length > 1 && (
+                    <div className="flex border-b bg-muted">
+                      {solutionFiles.map((file, index) => (
+                        <Button
+                          key={file.name}
+                          variant={
+                            activeSolutionFile === index ? "default" : "ghost"
+                          }
+                          size="sm"
+                          onClick={() => setActiveSolutionFile(index)}
+                          className="rounded-none border-r"
+                        >
+                          {file.name}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <MarkdownPreview
+                      content={solutionFiles[activeSolutionFile]?.content || ""}
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
-          </ResizablePanel>
+              )}
+            </div>
+          </div>
+        </ResizablePanel>
 
-          <ResizableHandle withHandle />
+        {/* Handle 2: Separator between Panel 2 (Problem) and Panel 3 (Editor/Terminal) */}
+        <ResizableHandle withHandle />
+
+        {/* Panel 3: Right Panel (Editor + Terminal Output) */}
+        <ResizablePanel
+          minSize={30}
+          defaultSize={50}
+          collapsible
+          ref={editorPanelRef}
+        >
+          {/* The vertical panel group must be constrained to the height of Panel 3. */}
+          <ResizablePanelGroup direction="vertical" className="h-full min-h-0">
+            <ResizablePanel defaultSize={50}>
+              <EditorHeader actions={editorActions} />
+
+              <Editor
+                editorContent={fileContents[activeFile]}
+                setEditorContent={setEditorContent}
+                language={activeFile?.endsWith(".go") ? "go" : "markdown"}
+                options={{
+                  readOnly: resetting,
+                  minimap: { enabled: false },
+                }}
+              />
+
+              {resetting && (
+                <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm z-10">
+                  <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
+                    <span className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    <span>Resetting to starter code...</span>
+                  </div>
+                </div>
+              )}
+            </ResizablePanel>
+
+            <ResizableHandle withHandle />
 
           <ResizablePanel defaultSize={50}>
             {/* Ensures TerminalOutput's flex-1 root correctly calculates height. */}

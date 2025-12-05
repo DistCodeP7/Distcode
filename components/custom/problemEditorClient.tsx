@@ -46,7 +46,7 @@ export default function ProblemEditorClient({
         onClick={handleSave}
         type="button"
         variant="secondary"
-        className="flex items-center gap-1 px-2 py-1 text-base"
+        className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
       >
         <Save className="w-4 h-4" />
         Save
@@ -55,7 +55,7 @@ export default function ProblemEditorClient({
         onClick={handleSubmit}
         type="button"
         variant="default"
-        className="flex items-center gap-1 px-2 py-1 text-base"
+        className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
       >
         <Send className="w-4 h-4" />
         {problemId ? "Update Problem" : "Create Problem"}
