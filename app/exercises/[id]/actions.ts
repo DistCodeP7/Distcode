@@ -2,11 +2,11 @@
 
 import { and, desc, eq } from "drizzle-orm";
 import { getServerSession } from "next-auth";
-import { v4 as uuid } from "uuid"; // Example for a common UUID library in JS
+import { v4 as uuid } from "uuid";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { problems, ratings, userCode } from "@/drizzle/schema";
 import { db } from "@/lib/db";
-import { MQJobsSender, ready } from "@/lib/mq";
+import { MQJobsSender, ready, MQJobsCanceller } from "@/lib/mq";
 import { getUserById } from "@/lib/user";
 
 export type Filemap = {
@@ -135,7 +135,7 @@ export async function submitCode(
   await ready;
   MQJobsSender.sendMessage(payload);
 
-  return { success: true, message: "Code submitted successfully" };
+  return { success: true, message: "Code submitted successfully", jobUid: payload.jobUid };
 }
 
 export async function saveCode(
@@ -206,6 +206,16 @@ export async function loadSavedCode({ params }: { params: { id: number } }) {
   }
 
   return { success: true, code: problem.studentCode };
+}
+
+export async function cancelJobRequest(jobUid: string) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) return { error: "Unauthorized", status: 401 };
+
+    await MQJobsCanceller.sendMessage({
+      jobUid: jobUid,
+      action: "cancel",
+    });
 }
 
 export async function loadUserRating({ params }: { params: { id: number } }) {

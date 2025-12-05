@@ -1,11 +1,11 @@
 "use client";
 
-import { BookOpen, Code, Save, Send } from "lucide-react";
+import { BookOpen, Code, Save, Send, X } from "lucide-react";
 import { type SetStateAction, useRef, useState } from "react";
 import type { ImperativePanelHandle } from "react-resizable-panels";
 import { toast } from "sonner";
 import type { Filemap } from "@/app/exercises/[id]/actions";
-import { resetCode, saveCode, submitCode } from "@/app/exercises/[id]/actions";
+import { resetCode, saveCode, submitCode, cancelJobRequest } from "@/app/exercises/[id]/actions";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
 import { TerminalOutput } from "@/components/custom/TerminalOutput";
@@ -50,6 +50,7 @@ export default function ExerciseEditor({
     ...testCasesCode,
     "/protocol/protocol.go": protocalCode,
   };
+  const [currentJobUid, setCurrentJobUid] = useState<string | null>(null);
   const [resetting, setResetting] = useState(false);
 
   const [leftPanelView, setLeftPanelView] = useState<"problem" | "solution">(
@@ -86,8 +87,8 @@ export default function ExerciseEditor({
     fileOrder.forEach((p) => {
       problemContentMap[p] = fileContents[p] ?? "";
     });
-
-    await submitCode(problemContentMap, { params: { id: exerciseId } });
+    const result = await submitCode(problemContentMap, { params: { id: exerciseId } });
+      if (result?.jobUid) { setCurrentJobUid(result.jobUid); }
   };
 
   const onCreateFile = async (filename: string, parentPath = "student") => {
@@ -386,10 +387,29 @@ ${protoCode}
 
           <ResizablePanel defaultSize={50}>
             {/* Ensures TerminalOutput's flex-1 root correctly calculates height. */}
-            <div className="h-full flex">
-              <TerminalOutput messages={messages} />
+            <div className="h-full">
+              <div className="h-full flex flex-col min-h-0">
+                <div className="flex-1 min-h-0">
+                  <TerminalOutput messages={messages} />
+                </div>
+                <div className="flex justify-end p-2">
+                  <Button
+                      variant="secondary"
+                      className="hover:cursor-pointer hover:bg-primary/55"
+                      onClick={() => {
+                        if (currentJobUid) {
+                          cancelJobRequest(currentJobUid);
+                        }
+                      }}
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Cancel submission
+                  </Button>
+                </div>
+              </div>
             </div>
           </ResizablePanel>
+
         </ResizablePanelGroup>
       </ResizablePanel>
     </ResizablePanelGroup>
