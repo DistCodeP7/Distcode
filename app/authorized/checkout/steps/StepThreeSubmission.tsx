@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import type { ReplicaConfig, SubmissionConfig } from "../challenge";
 import EnvList from "../components/EnvList";
+import { toast } from "sonner";
 
 const StepThreeSubmission = ({
   config,
@@ -31,8 +32,17 @@ const StepThreeSubmission = ({
     field: keyof ReplicaConfig,
     value: ReplicaConfig[keyof ReplicaConfig]
   ) => {
+    if (
+      field === "alias" &&
+      Object.values(config.replicaConfigs)
+        .map((r) => r.alias)
+        .includes(value as string)
+    ) {
+      toast.error("Each replica must have a unique alias.");
+      return;
+    }
     const current = config.replicaConfigs[index] || {
-      alias: `user-service-${index + 1}`,
+      alias: `user-replica-${index + 1}`,
       envs: [],
     };
     update("replicaConfigs", {
@@ -48,7 +58,11 @@ const StepThreeSubmission = ({
 
     for (let i = 0; i < newCount; i++) {
       if (!newReplicaConfigs[i]) {
-        newReplicaConfigs[i] = { alias: `user-service-${i + 1}`, envs: [] };
+        newReplicaConfigs[i] = {
+          alias: `user-service-${i + 1}`,
+          envs: [],
+          id: i,
+        };
       }
     }
 
@@ -152,10 +166,11 @@ const StepThreeSubmission = ({
             const rep = config.replicaConfigs[i] || {
               alias: `user-service-${i + 1}`,
               envs: [],
+              id: i,
             };
             return (
               <Card
-                key={rep.alias}
+                key={rep.id}
                 className="hover:border-primary/50 transition-colors"
               >
                 <CardHeader>

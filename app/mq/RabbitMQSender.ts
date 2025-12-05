@@ -41,6 +41,7 @@ export class RabbitMQSender {
   }
 
   async disconnect(): Promise<void> {
+    if (!this.channel || !this.conn) return;
     await this.channel.close();
     await this.conn.close();
   }

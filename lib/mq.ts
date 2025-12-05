@@ -8,12 +8,16 @@ const sender = new RabbitMQSender({
 const receiver = new RabbitMQReceiver({
   queue: "results",
 });
+const canceller = new RabbitMQSender({
+  queue: "jobs_cancel",
+});
 
 async function init() {
   await sender.connect();
   await receiver.connect();
+  await canceller.connect();
 }
 
 const ready = init();
 
-export { sender as MQJobsSender, receiver as MQJobsReceiver, ready };
+export { sender as MQJobsSender, receiver as MQJobsReceiver, canceller as MQJobsCanceller, ready };

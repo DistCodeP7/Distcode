@@ -33,6 +33,7 @@ export default async function Page({ searchParams }: SearchParams) {
   const replicaConfigs = exercise.replicaConfigs as {
     alias: string;
     envs: Env[];
+    id: number;
   }[];
   exercise.replicaConfigs = replicaConfigs.map((replica, rIndex) => ({
     ...replica,
@@ -65,5 +66,13 @@ export default async function Page({ searchParams }: SearchParams) {
     },
   };
 
-  return <ClientCreateChallenge baseForm={baseForm} exerciseId={id} />;
+  return (
+    <ClientCreateChallenge
+      baseForm={baseForm}
+      exerciseId={id}
+      currentSelected={
+        exercise.selectedTestPath ?? Object.keys(exercise.testCode)
+      }
+    />
+  );
 }

@@ -8,11 +8,32 @@ import type {
   TestContainerConfig,
 } from "./challenge";
 
-const useCreateChallenge = (baseFormParam: CheckoutFormState) => {
+const useCreateChallenge = (
+  baseFormParam: CheckoutFormState,
+  current: string[]
+) => {
   const baseForm = baseFormParam;
+  const buildInitialForm = (): CheckoutFormState => {
+    const base = baseFormParam;
+    const baseTestFiles = { ...base.testContainer.testFiles };
 
-  const [form, setForm] = useState<CheckoutFormState>(baseForm);
+    if (base.testContainer.testFiles?.["test/main_test.go"]) {
+      baseTestFiles["test/main_test.go"] =
+        base.testContainer.testFiles["test/main_test.go"];
+    }
+    Object.keys(baseTestFiles).forEach((f) => {
+      if (f !== "test/main_test.go" && !current.includes(f)) {
+        delete baseTestFiles[f];
+      }
+    });
 
+    return {
+      ...base,
+      testContainer: { ...base.testContainer, testFiles: baseTestFiles },
+    };
+  };
+
+  const [form, setForm] = useState<CheckoutFormState>(buildInitialForm);
   useLayoutEffect(() => {
     const saved = localStorage.getItem("challengeForm");
     if (saved) {

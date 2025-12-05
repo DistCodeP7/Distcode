@@ -21,9 +21,11 @@ type ActionResult =
 export default function ClientCreateChallenge({
   baseForm,
   exerciseId,
+  currentSelected,
 }: {
   baseForm: CheckoutFormState;
   exerciseId?: number;
+  currentSelected: string[];
 }) {
   const router = useRouter();
   const {
@@ -34,7 +36,7 @@ export default function ClientCreateChallenge({
     updateDetails,
     updateTestConfig,
     updateSubmission,
-  } = useCreateChallenge(baseForm);
+  } = useCreateChallenge(baseForm, currentSelected);
 
   const onSubmit = async () => {
     if (!exerciseId) return;
