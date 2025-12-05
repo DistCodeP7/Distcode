@@ -14,8 +14,10 @@ export type CompiledEvent = {
   error?: string;
 };
 
+export type Resulttype = "success" | "failure" | "panic";
+
 export type TestResult = {
-  type: string;
+  type: Resulttype;
   name: string;
   duration_ms: number;
   message: string;
