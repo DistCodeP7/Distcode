@@ -1,4 +1,4 @@
-import { FolderOpen, Trash2 } from "lucide-react";
+import { FolderOpen, TrashIcon } from "lucide-react";
 import Link from "next/link";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
@@ -57,7 +57,7 @@ export default async function ProblemListPage() {
             {submissions.map((s) => (
               <div
                 key={s.id}
-                className="rounded-md border p-6 flex flex-col gap-3 bg-background shadow hover:shadow-[0_0_20px_rgba(255,255,255,0.5)] transition-all duration-200"
+                className="rounded-md border p-6 flex flex-col gap-3 bg-background shadow hover:shadow-[0_0_8px_rgba(255,255,255,0.2)] transition-all duration-200"
               >
                 <Link
                   href={`/authorized/${s.id}`}
@@ -123,9 +123,9 @@ export default async function ProblemListPage() {
                     <Button
                       size="lg"
                       variant="secondary"
-                      className="hover:cursor-pointer hover:bg-primary/70"
+                      className="hover:cursor-pointer"
                     >
-                      View Public
+                      View Exercise
                       <FolderOpen className="w-4 h-4 scale-120" />
                     </Button>
                   </Link>
@@ -133,11 +133,11 @@ export default async function ProblemListPage() {
                   <form action={deleteProblemFromList.bind(null, s.id)}>
                     <Button
                       size="lg"
-                      variant="secondary"
-                      className="hover:cursor-pointer hover:bg-primary/70"
+                      variant="destructive"
+                      className="hover:cursor-pointer"
                     >
                       Delete
-                      <Trash2 className="w-4 h-4" />
+                      <TrashIcon className="w-4 h-4" />
                     </Button>
                   </form>
                 </div>
