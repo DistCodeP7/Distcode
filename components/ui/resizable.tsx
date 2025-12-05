@@ -52,11 +52,11 @@ function ResizableHandle({
       {withHandle && (
         <div
           className={cn(
-            "bg-border z-10 flex h-4 w-3 items-center justify-center rounded-xs border",
+            "bg-border z-10 flex h-12 w-3 items-center justify-center rounded-xs border",
             handleClassName,
           )}
         >
-          <GripVerticalIcon className="size-2.5" />
+          <GripVerticalIcon className="w-4 h-4" />
         </div>
       )}
     </ResizablePrimitive.PanelResizeHandle>

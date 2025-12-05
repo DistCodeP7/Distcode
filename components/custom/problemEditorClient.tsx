@@ -1,6 +1,6 @@
 "use client";
 import { Save, Send } from "lucide-react";
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import type { ImperativePanelHandle } from "react-resizable-panels";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
@@ -32,6 +32,7 @@ export default function ProblemEditorClient({
     handleCreateFile,
     handleDeleteFile,
     filesContent,
+    lastMarkdownFile,
   } = useProblemEditor(files, {
     filesContent: files ?? initialFilesContent,
     problemId,
@@ -39,6 +40,23 @@ export default function ProblemEditorClient({
 
   const folderPanelRef = useRef<ImperativePanelHandle>(null);
   const problemPanelRef = useRef<ImperativePanelHandle>(null);
+
+  const previewFile = useMemo(() => {
+    const keys = Object.keys(filesContent);
+    const isActiveMarkdown = !!activeFile && activeFile.endsWith(".md");
+
+    if (isActiveMarkdown) {
+      return activeFile;
+    }
+
+    if (filesContent[lastMarkdownFile]) {
+      return lastMarkdownFile;
+    }
+
+    return (
+      keys.find((k) => k === "problem.md" || k === "solution.md") || keys[0]
+    );
+  }, [activeFile, filesContent, lastMarkdownFile]);
 
   const editorActions = (
     <div className="flex items-center gap-2">
@@ -71,8 +89,9 @@ export default function ProblemEditorClient({
       >
         {/* Panel 1: Folder System (Collapsible) */}
         <ResizablePanel
-          minSize={10}
-          defaultSize={25}
+          minSize={4}
+          maxSize={20}
+          defaultSize={15}
           collapsible
           ref={folderPanelRef}
         >
@@ -88,23 +107,14 @@ export default function ProblemEditorClient({
         {/* Handle 1: Separates Panel 1 and Panel 2 */}
         <ResizableHandle withHandle />
 
-        {/* Panel 2 Markdown Preview (Problem Description) */}
+        {/* Panel 2 Markdown Preview (Problem Description / Solution) */}
         <ResizablePanel
           minSize={20}
           defaultSize={35}
           collapsible
           ref={problemPanelRef}
         >
-          {/* Show the problem markdown: try to find a problem.* key in filesContent */}
-          <MarkdownPreview
-            content={
-              filesContent[
-                Object.keys(filesContent).find((k) => {
-                  return k === "problem.md" || k.startsWith("problem");
-                }) || Object.keys(filesContent)[0]
-              ] || ""
-            }
-          />
+          <MarkdownPreview content={filesContent[previewFile]} />
         </ResizablePanel>
 
         {/* Handle 2: Separates Panel 2 and Panel 3 */}
@@ -122,12 +132,7 @@ export default function ProblemEditorClient({
             {(() => {
               const content = filesContent[activeFile] || "";
               const name = activeFile ?? "";
-              const language =
-                name.endsWith(".md") ||
-                name.startsWith("problem") ||
-                name.startsWith("solution")
-                  ? "markdown"
-                  : "go";
+              const language = name.endsWith(".md") ? "markdown" : "go";
 
               return (
                 <Editor

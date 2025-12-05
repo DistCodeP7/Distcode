@@ -20,6 +20,7 @@ import type { Paths } from "@/drizzle/schema";
 import { useSSE } from "@/hooks/useSSE";
 import type { StreamingJobMessage } from "@/types/streamingEvents";
 import { FolderSystem } from "./folderSystem";
+import { defaultTest } from "@/default_files/defaultTest";
 
 type ExerciseEditorProps = {
   exerciseId: number;
@@ -44,13 +45,10 @@ export default function ExerciseEditor({
 }: ExerciseEditorProps) {
   const initialContents: Paths = savedCode ?? studentCode;
   const initialOrder = Object.keys(initialContents);
+
   const [fileContents, setFileContents] = useState<Paths>(initialContents);
   const [fileOrder, setFileOrder] = useState<string[]>(initialOrder);
   const [activeFile, setActiveFile] = useState<string>(initialOrder[0] || "");
-  const allOtherFiles: Filemap = {
-    ...testCasesCode,
-    "/protocol/protocol.go": protocalCode,
-  };
   const [resetting, setResetting] = useState(false);
 
   const [leftPanelView, setLeftPanelView] = useState<"problem" | "solution">(
@@ -61,6 +59,11 @@ export default function ExerciseEditor({
   const solutionFiles = solutionCode
     ? [{ name: "main.go", content: solutionCode }]
     : [];
+
+  const allOtherFiles: Filemap = {
+    ...testCasesCode,
+    "/protocol/protocol.go": protocalCode,
+  };
 
   const { messages, connect, clearMessages } =
     useSSE<StreamingJobMessage>("/api/stream");
@@ -107,53 +110,38 @@ export default function ExerciseEditor({
       toast.error("Cannot create a file named main.go");
       return;
     }
-    if (filename.endsWith("/")) {
-      const folderName = filename.replace(/^\/+|\/+$/g, "");
-      const placeholderPath = `${parentPath}/${folderName}/${folderName}.go`;
-      const defaultContent = `// New file for ${folderName}`;
-      setFileContents((prev) => ({
-        ...prev,
-        [placeholderPath]: defaultContent,
-      }));
-      setFileOrder((prev) => {
-        const newOrder = [...prev, placeholderPath];
-        setActiveFile(placeholderPath);
-        return newOrder;
-      });
-      return;
-    }
+
     const namePart = filename.startsWith("/") ? filename.slice(1) : filename;
     const withExt = namePart.includes(".") ? namePart : `${namePart}.go`;
     const fullPath = `${parentPath}/${withExt}`;
-    const defaultContent = `// New file: ${withExt}`;
-    setFileContents((prev) => ({ ...prev, [fullPath]: defaultContent }));
+
+    setFileContents((prev) => ({
+      ...prev,
+      [fullPath]: `// New file: ${withExt}`,
+    }));
     setFileOrder((prev) => {
       const newOrder = [...prev, fullPath];
       setActiveFile(fullPath);
       return newOrder;
     });
   };
+
   const onDeleteFile = async (path: string) => {
-    if (fileOrder.length <= 1) {
-      toast.error("Cannot delete the last remaining file.");
-      return;
-    }
-    const index = fileOrder.indexOf(path);
-    if (index === -1) return;
-    const pathToDelete = fileOrder[index];
-    if (pathToDelete.includes("student/main.go")) {
+    if (path.includes("student/main.go")) {
       toast.error("Cannot delete the main.go file.");
       return;
     }
 
-    const newOrder = fileOrder.filter((p) => p !== pathToDelete);
+    const newOrder = fileOrder.filter((p) => p !== path);
     setFileOrder(newOrder);
     setFileContents((prev) => {
       const copy = { ...prev };
-      delete copy[pathToDelete];
+      delete copy[path];
       return copy;
     });
-    if (activeFile === pathToDelete) {
+
+    if (activeFile === path) {
+      const index = fileOrder.indexOf(path);
       const newIndex = Math.max(0, index - 1);
       setActiveFile(newOrder[newIndex] || "");
     }
@@ -161,15 +149,12 @@ export default function ExerciseEditor({
 
   const onSave = async () => {
     clearMessages();
-
     const saveMap: Paths = {};
     fileOrder.forEach((p) => {
       saveMap[p] = fileContents[p] ?? "";
     });
-    const result = await saveCode(saveMap, {
-      params: { id: exerciseId },
-    });
 
+    const result = await saveCode(saveMap, { params: { id: exerciseId } });
     if (result.error) {
       toast.error(`Error saving code: ${result.error}`);
     } else {
@@ -188,9 +173,7 @@ ${protoCode}
 `;
   };
 
-  const onReset = async () => {
-    setShowResetDialog(true);
-  };
+  const onReset = async () => setShowResetDialog(true);
 
   const confirmReset = async () => {
     setShowResetDialog(false);
@@ -209,9 +192,7 @@ ${protoCode}
         });
       }
     } catch (err) {
-      toast.error("Error resetting code", {
-        description: String(err),
-      });
+      toast.error("Error resetting code", { description: String(err) });
     } finally {
       setResetting(false);
     }
@@ -236,8 +217,7 @@ ${protoCode}
         onClick={onSave}
         disabled={resetting}
       >
-        <Save className="w-4 h-4" />
-        Save
+        <Save className="w-4 h-4" /> Save
       </Button>
 
       <Button
@@ -247,8 +227,7 @@ ${protoCode}
         className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
         disabled={resetting}
       >
-        <Send className="w-4 h-4" />
-        Submit
+        <Send className="w-4 h-4" /> Submit
       </Button>
 
       <Button
@@ -258,8 +237,7 @@ ${protoCode}
         className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
         disabled={resetting}
       >
-        <Send className="w-4 h-4" />
-        Reset Code
+        <Send className="w-4 h-4" /> Reset Code
       </Button>
     </>
   );
@@ -286,31 +264,30 @@ ${protoCode}
         direction="horizontal"
         className="flex-1 border md:min-w-[450px] overflow-x-hidden"
       >
-        {/* Panel 1: Folder System (collapsible) */}
+        {/* Panel 1: Folder System */}
         <ResizablePanel
-          minSize={10}
+          minSize={4}
+          maxSize={20}
           defaultSize={15}
           collapsible
           ref={folderPanelRef}
         >
-          <div className="flex flex-col h-full">
-            <div className="flex-1 overflow-auto">
-              <FolderSystem
-                files={fileContents}
-                onFileChange={setActiveFile}
-                onCreateFile={onCreateFile}
-                onDeleteFile={onDeleteFile}
-              />
-            </div>
+          <div className="flex flex-col h-full overflow-auto">
+            <FolderSystem
+              files={fileContents}
+              sections={["student"]}
+              onFileChange={setActiveFile}
+              onCreateFile={onCreateFile}
+              onDeleteFile={onDeleteFile}
+            />
           </div>
         </ResizablePanel>
 
-        {/* Handle 1: Separator between Panel 1 (File System) and Panel 2 (Problem) */}
         <ResizableHandle withHandle handleClassName="self-start mt-20" />
 
-        {/* Panel 2: Middle Panel (Problem Markdown or Solution View) */}
+        {/* Panel 2: Problem / Solution */}
         <ResizablePanel
-          minSize={20}
+          minSize={5}
           defaultSize={35}
           collapsible
           ref={problemPanelRef}
@@ -376,10 +353,9 @@ ${protoCode}
           </div>
         </ResizablePanel>
 
-        {/* Handle 2: Separator between Panel 2 (Problem) and Panel 3 (Editor/Terminal) */}
-        <ResizableHandle withHandle />
+        <ResizableHandle withHandle handleClassName="self-start mt-60" />
 
-        {/* Panel 3: Right Panel (Editor + Terminal Output) */}
+        {/* Panel 3: Editor + Terminal */}
         <ResizablePanel
           minSize={30}
           defaultSize={50}
@@ -395,12 +371,8 @@ ${protoCode}
                 editorContent={fileContents[activeFile]}
                 setEditorContent={setEditorContent}
                 language={activeFile?.endsWith(".go") ? "go" : "markdown"}
-                options={{
-                  readOnly: resetting,
-                  minimap: { enabled: false },
-                }}
+                options={{ readOnly: resetting, minimap: { enabled: false } }}
               />
-
               {resetting && (
                 <div className="absolute inset-0 flex items-center justify-center bg-background/70 backdrop-blur-sm z-10">
                   <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
