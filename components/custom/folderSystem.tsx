@@ -18,7 +18,7 @@ function isProtectedName(normalizedName: string) {
     n === "solution.md" ||
     n === "protocol.go" ||
     n === "main.go" ||
-    n === "test.go"
+    n === "main_test.go"
   )
     return true;
   return false;
@@ -77,14 +77,15 @@ function FolderSection({
               open={createOpen}
               onOpenChange={setCreateOpen}
               onCreate={(filename) => {
-                //TODO make this better probably
-                const base = filename.split("/").pop() || filename;
+                // normalize creation: prevent protected basenames
+                const parts = filename.split("/");
+                const base = parts.pop() || filename;
                 if (
                   [
                     "main",
                     "main.go",
-                    "test",
-                    "test.go",
+                    "main_test",
+                    "main_test.go",
                     "protocol",
                     "protocol.go",
                   ].includes(base)
@@ -93,7 +94,24 @@ function FolderSection({
                   setCreateOpen(false);
                   return;
                 }
-                onCreateFile(filename, folderKey);
+
+                // If creating inside the test folder, ensure filename ends with _test.go
+                let finalBase = base;
+
+                if (folderKey === "test") {
+                  if (!finalBase.endsWith("_test.go")) {
+                    if (finalBase.endsWith("_test")) {
+                      finalBase += ".go";
+                    } else {
+                      finalBase = `${finalBase.replace(/\.go$/, "")}_test.go`;
+                    }
+                  }
+                }
+
+                parts.push(finalBase);
+                const finalFilename = parts.join("/");
+
+                onCreateFile(finalFilename, folderKey);
                 setCreateOpen(false);
               }}
               currentPath={`${folderKey}/`}
@@ -178,7 +196,6 @@ function RootSection({
         !normalized.startsWith("student/") &&
         !normalized.startsWith("test/") &&
         !normalized.startsWith("shared/") &&
-        !normalized.startsWith("protocol/") &&
         normalized !== "protocol.go"
     )
     .map(({ key, normalized }) => ({ key, name: normalized }))

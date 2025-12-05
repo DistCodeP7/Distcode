@@ -132,7 +132,7 @@ export async function saveProblem(data: SaveProblemParams) {
           difficulty: "",
           testAlias: "test-container",
           selectedTestPath: [],
-          testBuildCommand: "go build -c -o ./test_binary ./test/test.go",
+          testBuildCommand: "go build -c -o ./test_binary ./test/main_test.go",
           testEntryCommand: "./testing",
           testEnvs: [],
           submissionBuildCommand: "go build -o ./stud ./student/main.go",

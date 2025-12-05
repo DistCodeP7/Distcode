@@ -6,7 +6,7 @@ export default function NewProblemPage() {
     "problem.md": "# Problem Description\n\nDescribe the problem here.\n",
     "student/main.go": "// student main.go\n",
     "solution.md": "# Solution Explanation\n\nDescribe the solution here.\n",
-    "test/test.go": "// test cases go here\n",
+    "test/main_test.go": "// test cases go here\n",
     "shared/protocol.go": "// protocol definitions\n",
   };
 

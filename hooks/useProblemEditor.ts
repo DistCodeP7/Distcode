@@ -166,7 +166,7 @@ export const useProblemEditor = (
 
       if (
         filePath.includes("student/main.go") ||
-        filePath.includes("test/test.go") ||
+        filePath.includes("test/main_test.go") ||
         filePath === "problem.md" ||
         filePath === "protocol.go" ||
         filePath === "solution.md"

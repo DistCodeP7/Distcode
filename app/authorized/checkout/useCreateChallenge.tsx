@@ -17,12 +17,12 @@ const useCreateChallenge = (
     const base = baseFormParam;
     const baseTestFiles = { ...base.testContainer.testFiles };
 
-    if (base.testContainer.testFiles?.["test/test.go"]) {
-      baseTestFiles["test/test.go"] =
-        base.testContainer.testFiles["test/test.go"];
+    if (base.testContainer.testFiles?.["test/main_test.go"]) {
+      baseTestFiles["test/main_test.go"] =
+        base.testContainer.testFiles["test/main_test.go"];
     }
     Object.keys(baseTestFiles).forEach((f) => {
-      if (f !== "test/test.go" && !current.includes(f)) {
+      if (f !== "test/main_test.go" && !current.includes(f)) {
         delete baseTestFiles[f];
       }
     });
