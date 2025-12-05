@@ -4,10 +4,8 @@ import { BookOpen, Code, Save, Send } from "lucide-react";
 import { type SetStateAction, useRef, useState } from "react";
 import type { ImperativePanelHandle } from "react-resizable-panels";
 import { toast } from "sonner";
-
 import type { Filemap } from "@/app/exercises/[id]/actions";
 import { resetCode, saveCode, submitCode } from "@/app/exercises/[id]/actions";
-
 import { ConfirmDialog } from "@/components/custom/confirmDialog";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import MarkdownPreview from "@/components/custom/markdown-preview";
@@ -18,7 +16,6 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-
 import type { Paths } from "@/drizzle/schema";
 import { useSSE } from "@/hooks/useSSE";
 import type { StreamingJobMessage } from "@/types/streamingEvents";
@@ -277,7 +274,6 @@ ${protoCode}
         confirmLabel="Reset"
         onConfirm={confirmReset}
       />
-
       <ResizablePanelGroup
         direction="horizontal"
         className="flex-1 border md:min-w-[450px] overflow-x-hidden"
@@ -312,6 +308,7 @@ ${protoCode}
           className="overflow-y-auto"
         >
           <div className="flex flex-col h-full">
+            {/* Toggle buttons for left panel */}
             <div className="flex border-b bg-background">
               <Button
                 variant={leftPanelView === "problem" ? "default" : "ghost"}
@@ -319,19 +316,22 @@ ${protoCode}
                 onClick={() => setLeftPanelView("problem")}
                 className="rounded-none border-r"
               >
-                <BookOpen className="w-4 h-4 mr-2" /> Problem
+                <BookOpen className="w-4 h-4 mr-2 hover:cursor-pointer" />
+                Problem
               </Button>
               {solutionFiles.length > 0 && (
                 <Button
                   variant={leftPanelView === "solution" ? "default" : "ghost"}
                   size="sm"
                   onClick={handleSolutionClick}
-                  className="rounded-none"
+                  className="rounded-none hover:cursor-pointer"
                 >
-                  <Code className="w-4 h-4 mr-2" /> Solution
+                  <Code className="w-4 h-4 mr-2" />
+                  Solution
                 </Button>
               )}
             </div>
+
             <div className="flex-1 overflow-y-auto">
               {leftPanelView === "problem" ? (
                 <MarkdownPreview
@@ -376,9 +376,11 @@ ${protoCode}
           collapsible
           ref={editorPanelRef}
         >
+          {/* The vertical panel group must be constrained to the height of Panel 3. */}
           <ResizablePanelGroup direction="vertical" className="h-full min-h-0">
             <ResizablePanel defaultSize={50}>
               <EditorHeader actions={editorActions} />
+
               <Editor
                 editorContent={fileContents[activeFile]}
                 setEditorContent={setEditorContent}
@@ -398,6 +400,7 @@ ${protoCode}
             <ResizableHandle withHandle />
 
             <ResizablePanel defaultSize={50}>
+              {/* Ensures TerminalOutput's flex-1 root correctly calculates height. */}
               <div className="h-full flex">
                 <TerminalOutput messages={messages} />
               </div>
