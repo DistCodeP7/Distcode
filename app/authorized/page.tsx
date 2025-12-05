@@ -1,8 +1,8 @@
+import { FolderOpen, TrashIcon } from "lucide-react";
 import Link from "next/link";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { deleteProblemFromList } from "@/app/authorized/[id]/listActions";
-import { DeleteButton } from "@/app/authorized/deleteButton";
 import NeonLines from "@/components/custom/NeonLine";
 import { Button } from "@/components/ui/button";
 import { getProblemsByUserId } from "@/lib/problems";
@@ -57,75 +57,81 @@ export default async function ProblemListPage() {
             {submissions.map((s) => (
               <div
                 key={s.id}
-                className="rounded-md border p-6 flex flex-col gap-3 bg-background shadow"
+                className="relative rounded-md border p-6 flex flex-col gap-3 bg-background shadow hover:shadow-[0_0_8px_rgba(255,255,255,0.2)] transition-all duration-200"
               >
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <h2
-                      className="text-xl font-bold text-foreground overflow-hidden text-ellipsis whitespace-nowrap"
-                      title={s.title}
-                    >
-                      {s.title}
-                    </h2>
-                  </div>
-                  <span
-                    className={`px-2 py-1 rounded text-xs font-semibold flex-shrink-0 ${
-                      s.isPublished
-                        ? "bg-green-100 text-green-700"
-                        : "bg-yellow-100 text-yellow-700"
-                    }`}
-                  >
-                    {s.isPublished ? "Published" : "Draft"}
-                  </span>
-                </div>
-
-                <div
-                  className="text-sm text-muted-foreground max-w-full overflow-hidden text-ellipsis whitespace-nowrap"
-                  title={s.description}
+                <Link
+                  href={`/authorized/${s.id}`}
+                  className="flex-1 flex flex-col gap-3 cursor-pointer"
                 >
-                  {s.description || (
-                    <span className="italic text-muted-foreground">
-                      No description
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <span>Difficulty:</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <h2
+                        className="text-xl font-bold text-foreground overflow-hidden text-ellipsis whitespace-nowrap"
+                        title={s.title}
+                      >
+                        {s.title}
+                      </h2>
+                    </div>
                     <span
-                      className={
-                        s.difficulty === "Easy"
-                          ? "text-chart-2"
-                          : s.difficulty === "Medium"
-                            ? "text-chart-3"
-                            : "text-primary"
-                      }
+                      className={`px-2 py-1 rounded text-xs font-semibold flex-shrink-0 ${
+                        s.isPublished
+                          ? "bg-green-100 text-green-700"
+                          : "bg-yellow-100 text-yellow-700"
+                      }`}
                     >
-                      {s.difficulty ?? "Easy"}
+                      {s.isPublished ? "Published" : "Draft"}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span>Rating:</span>
-                    <span className="font-semibold text-foreground">
-                      {s.rating ?? 0}
-                    </span>
+
+                  <div
+                    className="text-sm text-muted-foreground max-w-full overflow-hidden text-ellipsis whitespace-nowrap"
+                    title={s.description}
+                  >
+                    {s.description || (
+                      <span className="italic text-muted-foreground">
+                        No description
+                      </span>
+                    )}
                   </div>
-                </div>
+
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                      <span>Difficulty:</span>
+                      <span
+                        className={
+                          s.difficulty === "Easy"
+                            ? "text-chart-2"
+                            : s.difficulty === "Medium"
+                              ? "text-chart-3"
+                              : "text-primary"
+                        }
+                      >
+                        {s.difficulty ?? "Easy"}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
 
                 <div className="flex gap-2 mt-2">
-                  <Link href={`/authorized/${s.id}`}>
-                    <Button size="sm">Edit</Button>
-                  </Link>
                   <Link href={`/exercises/${s.id}`}>
-                    <Button size="sm" variant="ghost">
-                      Open
+                    <Button
+                      size="lg"
+                      variant="secondary"
+                      className="hover:cursor-pointer"
+                    >
+                      View Exercise
+                      <FolderOpen className="w-4 h-4 scale-120" />
                     </Button>
                   </Link>
 
-                  {/* Delete */}
                   <form action={deleteProblemFromList.bind(null, s.id)}>
-                    <DeleteButton />
+                    <Button
+                      size="lg"
+                      variant="destructive"
+                      className="absolute bottom-6 right-6 hover:cursor-pointer"
+                    >
+                      <TrashIcon className="w-4 h-4" />
+                    </Button>
                   </form>
                 </div>
               </div>
