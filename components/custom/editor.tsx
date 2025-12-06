@@ -50,7 +50,7 @@ export default function CustomEditor({
             height="100%"
             language={language}
             value={editorContent}
-            onChange={(value) => value && setEditorContent(value)}
+            onChange={(value) => setEditorContent(value ?? "")}
             options={{ minimap: { enabled: false } }}
             onMount={handleEditorDidMount}
             theme="vs-dark"
