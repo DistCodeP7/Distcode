@@ -21,10 +21,9 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import { defaultTest } from "@/default_files/defaultTest";
 import type { Paths } from "@/drizzle/schema";
 import { useSSE } from "@/hooks/useSSE";
-import type { StreamingJobMessage } from "@/types/streamingEvents";
+import type { StreamingJobEvent } from "@/types/streamingEvents";
 import { FolderSystem } from "./folderSystem";
 
 type ExerciseEditorProps = {
@@ -72,7 +71,7 @@ export default function ExerciseEditor({
   };
 
   const { messages, connect, clearMessages } =
-    useSSE<StreamingJobMessage>("/api/stream");
+    useSSE<StreamingJobEvent>("/api/stream");
 
   const folderPanelRef = useRef<ImperativePanelHandle>(null);
   const problemPanelRef = useRef<ImperativePanelHandle>(null);
