@@ -1,3 +1,4 @@
+import { LogEventPayload, Outcome, TestResult } from "@/types/streamingEvents";
 import {
   pgTable,
   serial,
@@ -7,12 +8,11 @@ import {
   integer,
   json,
   boolean,
+  jsonb,
 } from "drizzle-orm/pg-core";
 
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import * as zod from "zod";
-
-export type Paths = { [key: string]: string };
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -29,6 +29,9 @@ export const UsersSchema = createSelectSchema(users);
 export const NewUserSchema = createInsertSchema(users).omit({ id: true });
 
 export type TUser = zod.infer<typeof UsersSchema>;
+
+
+export type Paths = { [key: string]: string };
 
   type newReplicaConfig = {
     alias: string;
@@ -109,3 +112,23 @@ export const NewRatingSchema = createInsertSchema(ratings).omit({ id: true });
 
 export type TRating = zod.infer<typeof RatingsSchema>;
 
+export const job_results = pgTable("job_results", {
+  id: serial("id").primaryKey(),
+  jobId: varchar("job_id").notNull(),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.userid, { onDelete: "cascade" }),
+  problemId: integer("problem_id")
+    .notNull()
+    .references(() => problems.id, { onDelete: "cascade" }),
+  outcome: json("outcome").$type<Outcome>(),
+  testResults: json("test_results").$type<TestResult[]>(),
+  duration: integer("duration"),
+  finishedAt: timestamp("finished_at"),
+  logs: jsonb("log").$type<LogEventPayload[]>(),
+});
+
+export const Job_ResultsSchema = createSelectSchema(job_results);
+export const NewJob_ResultsSchema = createInsertSchema(job_results).omit({ id: true });
+
+export type TResults = zod.infer<typeof Job_ResultsSchema>;

@@ -4,7 +4,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 import { v4 as uuid } from "uuid";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { problems, ratings, userCode } from "@/drizzle/schema";
+import { job_results, problems, ratings, userCode } from "@/drizzle/schema";
 import { db } from "@/lib/db";
 import { MQJobsCanceller, MQJobsSender, ready } from "@/lib/mq";
 import { getUserById } from "@/lib/user";
@@ -132,6 +132,38 @@ export async function submitCode(
     userId: user.userid,
     timeout: 60,
   };
+
+  if (
+    (
+      await db
+        .select()
+        .from(job_results)
+        .where(
+          and(
+            eq(job_results.problemId, exercise.id),
+            eq(job_results.userId, user.userid)
+          )
+        )
+    ).length === 0
+  ) {
+    await db.insert(job_results).values({
+      jobId: payload.jobUid,
+      userId: user.userid,
+      problemId: exercise.id,
+    });
+  } else {
+    // Update jobId to new submission
+    await db
+      .update(job_results)
+      .set({ jobId: payload.jobUid })
+      .where(
+        and(
+          eq(job_results.problemId, exercise.id),
+          eq(job_results.userId, user.userid)
+        )
+      );
+  }
+
   await ready;
   MQJobsSender.sendMessage(payload);
 
