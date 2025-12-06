@@ -114,7 +114,7 @@ export type TRating = zod.infer<typeof RatingsSchema>;
 
 export const job_results = pgTable("job_results", {
   id: serial("id").primaryKey(),
-  jobId: varchar("job_id").notNull(),
+  jobUid: varchar("job_uid").notNull(),
   userId: varchar("user_id")
     .notNull()
     .references(() => users.userid, { onDelete: "cascade" }),
@@ -122,10 +122,10 @@ export const job_results = pgTable("job_results", {
     .notNull()
     .references(() => problems.id, { onDelete: "cascade" }),
   outcome: json("outcome").$type<Outcome>(),
-  testResults: json("test_results").$type<TestResult[]>(),
+  test_results: json("test_results").$type<TestResult[]>(),
   duration: integer("duration"),
   finishedAt: timestamp("finished_at"),
-  logs: jsonb("log").$type<LogEventPayload[]>(),
+  logs: jsonb("logs").$type<LogEventPayload[]>(),
 });
 
 export const Job_ResultsSchema = createSelectSchema(job_results);

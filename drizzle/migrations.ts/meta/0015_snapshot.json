@@ -1,5 +1,5 @@
 {
-  "id": "4922ba97-d4f5-4299-a10c-ab6fb0cb3cfa",
+  "id": "cb83f6f7-c143-4797-a716-55e5b2533022",
   "prevId": "cb19d197-2134-4e95-b9cf-918a2398039a",
   "version": "7",
   "dialect": "postgresql",
@@ -14,8 +14,8 @@
           "primaryKey": true,
           "notNull": true
         },
-        "job_id": {
-          "name": "job_id",
+        "job_uid": {
+          "name": "job_uid",
           "type": "varchar",
           "primaryKey": false,
           "notNull": true
@@ -56,8 +56,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "log": {
-          "name": "log",
+        "logs": {
+          "name": "logs",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": false

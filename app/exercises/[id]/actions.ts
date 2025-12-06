@@ -147,7 +147,7 @@ export async function submitCode(
     ).length === 0
   ) {
     await db.insert(job_results).values({
-      jobId: payload.jobUid,
+      jobUid: payload.jobUid,
       userId: user.userid,
       problemId: exercise.id,
     });
@@ -155,7 +155,7 @@ export async function submitCode(
     // Update jobId to new submission
     await db
       .update(job_results)
-      .set({ jobId: payload.jobUid })
+      .set({ jobUid: payload.jobUid })
       .where(
         and(
           eq(job_results.problemId, exercise.id),
