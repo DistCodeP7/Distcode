@@ -8,7 +8,6 @@ export async function getMQConnection(): Promise<Connection> {
     return connection;
   }
   const connectionUrl = process.env.RABBITMQ_URL;
-  console.log(connectionUrl);
   if (!connectionUrl) {
     throw new Error("RabbitMQ connection URL is not provided.");
   }

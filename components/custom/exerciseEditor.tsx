@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/resizable";
 import type { Paths } from "@/drizzle/schema";
 import { useSSE } from "@/hooks/useSSE";
-import type { StreamingJobMessage } from "@/types/streamingEvents";
+import type { StreamingJobEvent } from "@/types/streamingEvents";
 import { FolderSystem } from "./folderSystem";
 
 type ExerciseEditorProps = {
@@ -71,7 +71,7 @@ export default function ExerciseEditor({
   };
 
   const { messages, connect, clearMessages } =
-    useSSE<StreamingJobMessage>("/api/stream");
+    useSSE<StreamingJobEvent>("/api/stream");
 
   const folderPanelRef = useRef<ImperativePanelHandle>(null);
   const problemPanelRef = useRef<ImperativePanelHandle>(null);
@@ -98,17 +98,21 @@ export default function ExerciseEditor({
   const onSubmit = async () => {
     clearMessages();
     connect();
+
     const allFiles: Filemap = { ...allOtherFiles };
     fileOrder.forEach((path) => {
       allFiles[path] = fileContents[path];
     });
+
     const problemContentMap: Filemap = {};
     fileOrder.forEach((p) => {
       problemContentMap[p] = fileContents[p] ?? "";
     });
+
     const result = await submitCode(problemContentMap, {
       params: { id: exerciseId },
     });
+
     if (result?.jobUid) {
       setCurrentJobUid(result.jobUid);
     }
@@ -229,15 +233,31 @@ ${protoCode}
         <Save className="w-4 h-4" /> Save
       </Button>
 
-      <Button
-        onClick={onSubmit}
-        type="button"
-        variant="outline"
-        className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
-        disabled={resetting}
-      >
-        <Send className="w-4 h-4" /> Submit
-      </Button>
+      {!currentJobUid ? (
+        <Button
+          onClick={onSubmit}
+          type="button"
+          variant="outline"
+          className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
+          disabled={resetting}
+        >
+          <Send className="w-4 h-4" />
+          Submit
+        </Button>
+      ) : (
+        <Button
+          onClick={() => {
+            cancelJobRequest(currentJobUid);
+            setCurrentJobUid(null);
+          }}
+          type="button"
+          variant="destructive"
+          className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
+        >
+          <X className="w-4 h-4" />
+          Cancel Tests
+        </Button>
+      )}
 
       <Button
         onClick={onReset}
@@ -400,20 +420,6 @@ ${protoCode}
                 <div className="h-full flex flex-col min-h-0">
                   <div className="flex-1 min-h-0">
                     <TerminalOutput messages={messages} />
-                  </div>
-                  <div className="flex justify-end p-2">
-                    <Button
-                      variant="secondary"
-                      className="hover:cursor-pointer hover:bg-primary/55"
-                      onClick={() => {
-                        if (currentJobUid) {
-                          cancelJobRequest(currentJobUid);
-                        }
-                      }}
-                    >
-                      <X className="w-4 h-4 mr-2" />
-                      Cancel submission
-                    </Button>
                   </div>
                 </div>
               </div>
