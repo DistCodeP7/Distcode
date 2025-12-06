@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { RabbitMQReceiver } from "@/app/mq/RabbitMQReceiver";
-import type { StreamingJobMessage } from "@/types/streamingEvents";
+import type { StreamingJobEvent } from "@/types/streamingEvents";
 import { authOptions } from "../auth/[...nextauth]/route";
 
 type Client = {
@@ -17,7 +17,7 @@ class JobResultQueueListener {
     this.mqReceiver = mqReceiver;
   }
 
-  start(messageCallback: (msg: StreamingJobMessage) => void) {
+  start(messageCallback: (msg: StreamingJobEvent) => void) {
     if (this.isRunning) return;
     this.isRunning = true;
     this.mqReceiver.connect().then(() => {
@@ -82,7 +82,7 @@ class ClientManager {
     if (!this.hasClients()) jobResultListener.stop();
   }
 
-  dispatchJobResultToClients(msg: StreamingJobMessage) {
+  dispatchJobResultToClients(msg: StreamingJobEvent) {
     console.log("Dispatching job result to clients:", msg);
 
     const userId = msg.user_id;

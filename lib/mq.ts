@@ -20,4 +20,9 @@ async function init() {
 
 const ready = init();
 
-export { sender as MQJobsSender, receiver as MQJobsReceiver, canceller as MQJobsCanceller, ready };
+export {
+  sender as MQJobsSender,
+  receiver as MQJobsReceiver,
+  canceller as MQJobsCanceller,
+  ready,
+};

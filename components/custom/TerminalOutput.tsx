@@ -1,19 +1,19 @@
-import { useMemo, useState } from "react";
 import {
-  Terminal,
-  FileText,
-  CheckCircle2,
-  XCircle,
   AlertCircle,
+  CheckCircle2,
+  FileText,
+  Terminal,
+  XCircle,
 } from "lucide-react";
-import { Button } from "../ui/button";
+import { useState } from "react";
 import type {
-  StreamingJobEvent,
   Outcome,
   Phase,
   ResultEventPayload,
+  StreamingJobEvent,
   TestResult,
 } from "@/types/streamingEvents";
+import { Button } from "../ui/button";
 
 type ViewMode = "CONSOLE" | "TESTS";
 
