@@ -13,7 +13,7 @@ function NeonLine({ index, total }: NeonLineProps) {
 
   return (
     <div
-      className="neon-line w-[2px] absolute animate-pulse"
+      className="neon-line w-[2px] fixed animate-pulse"
       style={{
         "--initial-angle": `${angle}deg`,
         top: `${top}%`,
