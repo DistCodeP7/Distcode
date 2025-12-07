@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/resizable";
 import type { Paths } from "@/drizzle/schema";
 import { useProblemEditor } from "@/hooks/useProblemEditor";
-import { FolderSystem } from "./folderSystem";
+import { FolderSystem } from "@/components/custom/folder-system/FolderSystem";
 
 export default function ProblemEditorClient({
   files,

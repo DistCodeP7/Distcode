@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { columns } from "@/components/custom/columns";
-import { DataTable } from "@/components/custom/data-table";
+import { columns } from "@/components/custom/exercise-table/columns";
+import { DataTable } from "@/components/custom/exercise-table/data-table";
 import type { ExerciseRow } from "@/lib/fetchExercises";
 
 export default function ExercisesTable({
