@@ -133,3 +133,20 @@ export const NewJob_ResultsSchema = createInsertSchema(job_results).omit({ id: t
 
 export type TResults = typeof job_results.$inferSelect; 
 export type NewResult = typeof job_results.$inferInsert;
+
+export type VClock = { [key: string]: number };
+
+export const log_entry = pgTable("log_entry", {
+  id: serial("id").primaryKey(),
+  timestamp: integer("timestamp").notNull(),
+  from: varchar("from").notNull(),
+  to: varchar("to").notNull(),
+  type: varchar("type").notNull(),
+  vector_clock: json("vector_clock").$type<VClock>().notNull(),
+  payload: varchar("payload"),
+});
+
+export const Log_EntrySchema = createSelectSchema(log_entry);
+export const NewLog_EntrySchema = createInsertSchema(log_entry).omit({ id: true });
+
+export type TLog_Entry = zod.infer<typeof Log_EntrySchema>;
