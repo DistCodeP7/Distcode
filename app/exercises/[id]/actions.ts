@@ -4,9 +4,9 @@ import { and, desc, eq } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 import { v4 as uuid } from "uuid";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { problems, ratings, userCode } from "@/drizzle/schema";
+import { job_results, problems, ratings, userCode } from "@/drizzle/schema";
 import { db } from "@/lib/db";
-import { MQJobsSender, ready, MQJobsCanceller } from "@/lib/mq";
+import { MQJobsCanceller, MQJobsSender, ready } from "@/lib/mq";
 import { getUserById } from "@/lib/user";
 
 export type Filemap = {
@@ -132,10 +132,46 @@ export async function submitCode(
     userId: user.userid,
     timeout: 60,
   };
+
+  if (
+    (
+      await db
+        .select()
+        .from(job_results)
+        .where(
+          and(
+            eq(job_results.problemId, exercise.id),
+            eq(job_results.userId, user.userid)
+          )
+        )
+    ).length === 0
+  ) {
+    await db.insert(job_results).values({
+      jobUid: payload.jobUid,
+      userId: user.userid,
+      problemId: exercise.id,
+    });
+  } else {
+    // Update jobId to new submission
+    await db
+      .update(job_results)
+      .set({ jobUid: payload.jobUid })
+      .where(
+        and(
+          eq(job_results.problemId, exercise.id),
+          eq(job_results.userId, user.userid)
+        )
+      );
+  }
+
   await ready;
   MQJobsSender.sendMessage(payload);
 
-  return { success: true, message: "Code submitted successfully", jobUid: payload.jobUid };
+  return {
+    success: true,
+    message: "Code submitted successfully",
+    jobUid: payload.jobUid,
+  };
 }
 
 export async function saveCode(
@@ -209,13 +245,13 @@ export async function loadSavedCode({ params }: { params: { id: number } }) {
 }
 
 export async function cancelJobRequest(jobUid: string) {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) return { error: "Unauthorized", status: 401 };
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { error: "Unauthorized", status: 401 };
 
-    await MQJobsCanceller.sendMessage({
-      jobUid: jobUid,
-      action: "cancel",
-    });
+  await MQJobsCanceller.sendMessage({
+    jobUid: jobUid,
+    action: "cancel",
+  });
 }
 
 export async function loadUserRating({ params }: { params: { id: number } }) {

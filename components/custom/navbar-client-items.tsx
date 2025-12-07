@@ -1,9 +1,10 @@
 "use client";
 
+import useShortcut from "@/hooks/useShortcut";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import useShortcut from "@/hooks/useShortcut";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,8 +17,13 @@ import {
 } from "../ui/dropdown-menu";
 
 export const AuthAvatar = ({ userAvatar }: { userAvatar: string }) => {
+  const router = useRouter();
+
   const profileShortcut = useShortcut({
-    callback: () => toast.success("Opening profile..."),
+    callback: () => {
+      toast.success("Opening profile...");
+      router.push("/authorized/profile");
+    },
     shortCutOS: {
       Windows: "⇧+Ctrl+U",
       MacOS: "⇧⌘U",
@@ -51,7 +57,7 @@ export const AuthAvatar = ({ userAvatar }: { userAvatar: string }) => {
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push("/authorized/profile")}>
             Profile
             <DropdownMenuShortcut>{profileShortcut}</DropdownMenuShortcut>
           </DropdownMenuItem>
