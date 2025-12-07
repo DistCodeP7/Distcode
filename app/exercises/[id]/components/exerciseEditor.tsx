@@ -1,23 +1,22 @@
 "use client";
 
+import { useState } from "react";
+import type { Paths } from "@/drizzle/schema";
 import type { Filemap } from "@/app/exercises/[id]/actions";
 import { cancelJobRequest, submitCode } from "@/app/exercises/[id]/actions";
 import { ConfirmDialog } from "@/components/custom/confirmDialog";
+import { FolderSystem } from "@/components/custom/folderSystem";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import type { Paths } from "@/drizzle/schema";
 import { useSSE } from "@/hooks/useSSE";
-import type { StreamingJobMessage } from "@/types/streamingEvents";
-
+import type { StreamingJobEvent } from "@/types/streamingEvents";
 import { useExerciseFiles } from "./useExerciseFiles";
 import { EditorActions } from "./EditorActions";
 import { ProblemSolutionPanel } from "./ProblemSolutionPanel";
 import { EditorWithTerminalPanel } from "./EditorWithTerminalPanel";
-import { useState } from "react";
-import { FolderSystem } from "@/components/custom/folderSystem";
 
 type ExerciseEditorProps = {
   exerciseId: number;
@@ -42,6 +41,11 @@ export default function ExerciseEditor({
 }: ExerciseEditorProps) {
   const initialContents: Paths = savedCode ?? studentCode;
 
+  const { messages, connect, clearMessages } =
+    useSSE<StreamingJobEvent>("/api/stream");
+
+  const [currentJobUid, setCurrentJobUid] = useState<string | null>(null);
+
   const {
     fileContents,
     fileOrder,
@@ -60,6 +64,7 @@ export default function ExerciseEditor({
     exerciseId,
     initialContents,
     studentCode,
+    onBeforeSave: clearMessages,
   });
 
   const solutionFiles = solutionCode
@@ -71,20 +76,15 @@ export default function ExerciseEditor({
     "/protocol/protocol.go": protocalCode,
   };
 
-  const { messages, connect, clearMessages } =
-    useSSE<StreamingJobMessage>("/api/stream");
-
-  const [currentJobUid, setCurrentJobUid] = useState<string | null>(null);
-
+  // Job is considered "active" while we have a job UID
+  // and NO result event has appeared in the stream yet.
   const hasActiveJob =
-    !!currentJobUid && !messages.some((msg) => msg.job_uid === currentJobUid);
+    !!currentJobUid && !messages.some((msg) => msg.type === "result");
 
   const handleSubmit = async () => {
     clearMessages();
     connect();
 
-    // Currently allOtherFiles is not used in the submit payload,
-    // but kept here for future extension if needed.
     const _allFiles: Filemap = { ...allOtherFiles };
     fileOrder.forEach((path) => {
       _allFiles[path] = fileContents[path];

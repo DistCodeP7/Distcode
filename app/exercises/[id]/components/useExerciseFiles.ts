@@ -9,12 +9,14 @@ type UseExerciseFilesArgs = {
   exerciseId: number;
   initialContents: Paths;
   studentCode: Paths;
+  onBeforeSave?: () => void;
 };
 
 export function useExerciseFiles({
   exerciseId,
   initialContents,
   studentCode,
+  onBeforeSave,
 }: UseExerciseFilesArgs) {
   const initialOrder = Object.keys(initialContents);
 
@@ -68,6 +70,8 @@ export function useExerciseFiles({
   };
 
   const onSave = async () => {
+    if (onBeforeSave) onBeforeSave();
+
     const saveMap: Paths = {};
     fileOrder.forEach((p) => {
       saveMap[p] = fileContents[p] ?? "";

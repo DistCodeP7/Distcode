@@ -3,7 +3,7 @@
 import type React from "react";
 import { type SetStateAction } from "react";
 import type { Paths } from "@/drizzle/schema";
-import type { StreamingJobMessage } from "@/types/streamingEvents";
+import type { StreamingJobEvent } from "@/types/streamingEvents";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -17,7 +17,7 @@ type EditorWithTerminalPanelProps = {
   fileContents: Paths;
   resetting: boolean;
   setEditorContent: (value: SetStateAction<string>) => void;
-  messages: StreamingJobMessage[];
+  messages: StreamingJobEvent[];
   actions: React.ReactNode;
 };
 
