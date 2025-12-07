@@ -131,4 +131,5 @@ export const job_results = pgTable("job_results", {
 export const Job_ResultsSchema = createSelectSchema(job_results);
 export const NewJob_ResultsSchema = createInsertSchema(job_results).omit({ id: true });
 
-export type TResults = zod.infer<typeof Job_ResultsSchema>;
+export type TResults = typeof job_results.$inferSelect; 
+export type NewResult = typeof job_results.$inferInsert;
