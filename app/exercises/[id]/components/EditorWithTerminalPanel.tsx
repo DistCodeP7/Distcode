@@ -5,7 +5,7 @@ import type { SetStateAction } from "react";
 import type { ImperativePanelHandle } from "react-resizable-panels";
 // 1. Import the type
 import Editor, { EditorHeader } from "@/components/custom/editor";
-import { TerminalOutput } from "@/components/custom/TerminalOutput";
+import { TerminalOutput } from "@/components/custom/terminal/terminalOutput";
 import {
   ResizableHandle,
   ResizablePanel,
