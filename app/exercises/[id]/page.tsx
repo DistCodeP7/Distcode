@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import ExerciseEditor from "@/components/custom/exerciseEditor";
+import ExerciseEditor from "@/app/exercises/[id]/components/exerciseEditor";
 import type { Paths } from "@/drizzle/schema";
 import { getExercise, loadSavedCode } from "./actions";
 
