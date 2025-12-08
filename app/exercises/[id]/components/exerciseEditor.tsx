@@ -5,7 +5,7 @@ import type { Paths } from "@/drizzle/schema";
 import type { Filemap } from "@/app/exercises/[id]/actions";
 import { cancelJobRequest, submitCode } from "@/app/exercises/[id]/actions";
 import { ConfirmDialog } from "@/components/custom/confirmDialog";
-import { FolderSystem } from "@/components/custom/folderSystem";
+import { FolderSystem } from "@/components/custom/folder-system/folderSystem";
 import {
   ResizableHandle,
   ResizablePanel,
