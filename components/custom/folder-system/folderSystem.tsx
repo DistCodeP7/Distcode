@@ -1,8 +1,8 @@
 "use client";
 
 import type { Paths } from "@/drizzle/schema";
-import { FileSection } from "./FileSection";
-import type { Section } from "./fileUtils";
+import { Section } from "@/components/custom/folder-system/fileUtils";
+import { FileSection } from "@/components/custom/folder-system/fileSection";
 
 interface FolderSystemProps {
   files: Paths;
