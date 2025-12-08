@@ -1,11 +1,11 @@
 import { FolderOpen, TrashIcon } from "lucide-react";
 import Link from "next/link";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { deleteProblemFromList } from "@/app/authorized/[id]/listActions";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";;
 import NeonLines from "@/components/custom/NeonLine";
 import { Button } from "@/components/ui/button";
 import { getProblemsByUserId } from "@/lib/problems";
+import DeleteButton from "@/components/custom/deleteExerciseDialog";
 
 export default async function ProblemListPage() {
   const session = await getServerSession(authOptions);
@@ -124,15 +124,8 @@ export default async function ProblemListPage() {
                     </Button>
                   </Link>
 
-                  <form action={deleteProblemFromList.bind(null, s.id)}>
-                    <Button
-                      size="lg"
-                      variant="destructive"
-                      className="absolute bottom-6 right-6 hover:cursor-pointer"
-                    >
-                      <TrashIcon className="w-4 h-4" />
-                    </Button>
-                  </form>
+                  <DeleteButton id={s.id} />
+
                 </div>
               </div>
             ))}
