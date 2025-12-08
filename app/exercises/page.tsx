@@ -1,4 +1,4 @@
-import ExercisesTable from "@/components/custom/exerciseTable";
+import ExercisesTable from "@/components/custom/exercise-table/exerciseTable";
 import NeonLines from "@/components/custom/NeonLine";
 import { fetchExercises } from "@/lib/fetchExercises";
 
