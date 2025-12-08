@@ -1,5 +1,3 @@
-// test/problemActions.test.ts
-
 // --- Shared mocks ---------------------------------------------------------
 
 const getServerSessionMock = jest.fn();

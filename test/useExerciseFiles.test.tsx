@@ -1,9 +1,8 @@
-import { renderHook, act } from "@testing-library/react";
-import type { Paths } from "@/drizzle/schema";
-
+import { act, renderHook } from "@testing-library/react";
 import { toast } from "sonner";
 import { resetCode, saveCode } from "@/app/exercises/[id]/actions";
 import { useExerciseFiles } from "@/app/exercises/[id]/components/useExerciseFiles";
+import type { Paths } from "@/drizzle/schema";
 
 // --- Mock server actions ---
 jest.mock("@/app/exercises/[id]/actions", () => ({
@@ -67,7 +66,7 @@ describe("useExerciseFiles", () => {
     });
 
     expect(result.current.fileContents["student/foo.go"]).toBe(
-      "// New file: foo.go",
+      "// New file: foo.go"
     );
     expect(result.current.fileOrder).toContain("student/foo.go");
     expect(result.current.activeFile).toBe("student/foo.go");
@@ -82,7 +81,7 @@ describe("useExerciseFiles", () => {
     });
 
     expect(toastError()).toHaveBeenCalledWith(
-      "Cannot create a file named main.go",
+      "Cannot create a file named main.go"
     );
     expect(result.current.fileOrder.length).toBe(initialLength);
   });
@@ -111,7 +110,7 @@ describe("useExerciseFiles", () => {
     });
 
     expect(toastError()).toHaveBeenCalledWith(
-      "Cannot delete the main.go file.",
+      "Cannot delete the main.go file."
     );
     expect(result.current.fileOrder).toEqual(initialOrder);
   });
@@ -129,7 +128,7 @@ describe("useExerciseFiles", () => {
       useExerciseFiles({
         ...defaultArgs,
         onBeforeSave,
-      }),
+      })
     );
 
     await act(async () => {
@@ -218,7 +217,7 @@ describe("useExerciseFiles", () => {
     });
 
     expect(result.current.fileContents["student/main.go"]).toBe(
-      "// updated content",
+      "// updated content"
     );
   });
 });
