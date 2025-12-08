@@ -1,8 +1,8 @@
+import { ConsoleView } from "@/components/custom/terminal/consoleView";
+import { TerminalToolbar } from "@/components/custom/terminal/terminalToolbar";
+import { TestResultsView } from "@/components/custom/terminal/testResultsView";
 import type { StreamingJobEvent } from "@/types/streamingEvents";
 import { useTerminalController } from "./useTerminalController";
-import { TerminalToolbar } from "@/components/custom/terminal/terminalToolbar";
-import { ConsoleView } from "@/components/custom/terminal/consoleView";
-import { TestResultsView } from "@/components/custom/terminal/testResultsView";
 
 type TerminalOutputProps = {
   messages: StreamingJobEvent[];

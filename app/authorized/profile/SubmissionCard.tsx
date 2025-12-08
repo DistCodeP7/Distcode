@@ -1,11 +1,5 @@
 "use client";
 
-import { TerminalOutput } from "@/components/custom/terminal/terminalOutput";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import type { TProblem, TResults } from "@/drizzle/schema";
-import { cn } from "@/lib/utils";
 import {
   AlertCircle,
   Calendar,
@@ -18,6 +12,12 @@ import {
   XCircle,
 } from "lucide-react";
 import { useState } from "react";
+import { TerminalOutput } from "@/components/custom/terminal/terminalOutput";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import type { TProblem, TResults } from "@/drizzle/schema";
+import { cn } from "@/lib/utils";
 import { reconstructStreamEvents } from "./logReconstructor";
 
 const getStatusConfig = (outcome: string | null | undefined) => {
@@ -104,7 +104,7 @@ export function SubmissionCard({ problem, results }: SubmissionCardProps) {
                 "flex items-center gap-2 px-2.5 py-1 rounded-full border text-xs font-medium transition-colors",
                 status.bgSoft,
                 status.text,
-                status.border,
+                status.border
               )}
             >
               {status.icon}
@@ -152,7 +152,7 @@ export function SubmissionCard({ problem, results }: SubmissionCardProps) {
                 "h-7 text-xs gap-1.5 transition-all",
                 showLogs
                   ? "bg-muted text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
               <Terminal className="w-3.5 h-3.5" />

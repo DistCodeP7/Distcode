@@ -3,6 +3,7 @@ import { Save, Send } from "lucide-react";
 import { useMemo, useRef } from "react";
 import type { ImperativePanelHandle } from "react-resizable-panels";
 import Editor, { EditorHeader } from "@/components/custom/editor";
+import { FolderSystem } from "@/components/custom/folder-system/folderSystem";
 import MarkdownPreview from "@/components/custom/markdown-preview";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +13,6 @@ import {
 } from "@/components/ui/resizable";
 import type { Paths } from "@/drizzle/schema";
 import { useProblemEditor } from "@/hooks/useProblemEditor";
-import { FolderSystem } from "@/components/custom/folder-system/folderSystem";
 
 export default function ProblemEditorClient({
   files,

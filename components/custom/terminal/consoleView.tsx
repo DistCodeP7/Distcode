@@ -1,5 +1,5 @@
-import type { Outcome, Phase } from "@/types/streamingEvents";
 import { AlertCircle, AlertTriangle } from "lucide-react";
+import type { Outcome, Phase } from "@/types/streamingEvents";
 
 type ConsoleViewProps = {
   logs: Array<{ phase: Phase; message: string; workerId?: string }>;

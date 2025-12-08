@@ -1,5 +1,7 @@
 "use client";
 
+import { useRef, useState } from "react";
+import type { ImperativePanelHandle } from "react-resizable-panels";
 import type { Filemap } from "@/app/exercises/[id]/actions";
 import { cancelJobRequest, submitCode } from "@/app/exercises/[id]/actions";
 import { ConfirmDialog } from "@/components/custom/confirmDialog";
@@ -12,8 +14,6 @@ import {
 import type { Paths } from "@/drizzle/schema";
 import { useSSE } from "@/hooks/useSSE";
 import type { StreamingJobEvent } from "@/types/streamingEvents";
-import { useRef, useState } from "react";
-import { ImperativePanelHandle } from "react-resizable-panels";
 import { EditorActions } from "./EditorActions";
 import { EditorWithTerminalPanel } from "./EditorWithTerminalPanel";
 import { ProblemSolutionPanel } from "./ProblemSolutionPanel";

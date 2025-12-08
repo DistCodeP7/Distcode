@@ -1,5 +1,5 @@
-import type { TestResult } from "@/types/streamingEvents";
 import { CheckCircle2, XCircle } from "lucide-react";
+import type { TestResult } from "@/types/streamingEvents";
 
 type TestResultsViewProps = {
   passedTests: TestResult[];
