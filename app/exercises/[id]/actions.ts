@@ -184,8 +184,8 @@ export async function submitCode(
 }
 
 export async function saveCode(
-  content: Filemap,
-  { params }: { params: { id: number } }
+    content: Filemap,
+    { params }: { params: { id: number } }
 ) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { error: "Unauthorized", status: 401 };
@@ -193,25 +193,49 @@ export async function saveCode(
   const user = await getUserById(session.user.id);
   if (!user) return { error: "User not found.", status: 404 };
 
-  const problemsId = Number(params.id);
-  if (Number.isNaN(problemsId))
-    return { error: "Invalid problems id", status: 400 };
+  const problemId = Number(params.id);
+  if (Number.isNaN(problemId))
+    return { error: "Invalid problem id", status: 400 };
 
   const [foundProblem] = await db
-    .select()
-    .from(problems)
-    .where(eq(problems.id, problemsId))
-    .limit(1);
+      .select()
+      .from(problems)
+      .where(eq(problems.id, problemId))
+      .limit(1);
 
   if (!foundProblem) {
     return { error: "Problem not found.", status: 404 };
   }
 
-  await db.insert(userCode).values({
-    userId: user.userid,
-    problemId: problemsId,
-    codeSubmitted: content,
-  });
+  const [existing] = await db
+      .select()
+      .from(userCode)
+      .where(
+          and(
+              eq(userCode.userId, Number(user.userid)),
+              eq(userCode.problemId, problemId)
+          )
+      )
+      .limit(1);
+
+  if (existing) {
+    await db
+        .update(userCode)
+        .set({ codeSubmitted: content })
+        .where(
+            and(
+                eq(userCode.userId, (user.userid)),
+                eq(userCode.problemId, problemId)
+            )
+        );
+  } else {
+    // Insert new row
+    await db.insert(userCode).values({
+      userId: (user.userid),
+      problemId,
+      codeSubmitted: content,
+    });
+  }
 
   return { success: true, message: "Code saved successfully." };
 }
