@@ -203,16 +203,14 @@ export async function saveCode(
       .where(eq(problems.id, problemId))
       .limit(1);
 
-  if (!foundProblem) {
-    return { error: "Problem not found.", status: 404 };
-  }
+  if (!foundProblem) return { error: "Problem not found.", status: 404 };
 
   const [existing] = await db
       .select()
       .from(userCode)
       .where(
           and(
-              eq(userCode.userId, Number(user.userid)),
+              eq(userCode.userId, user.userid),
               eq(userCode.problemId, problemId)
           )
       )
@@ -224,14 +222,13 @@ export async function saveCode(
         .set({ codeSubmitted: content })
         .where(
             and(
-                eq(userCode.userId, (user.userid)),
+                eq(userCode.userId, user.userid),
                 eq(userCode.problemId, problemId)
             )
         );
   } else {
-    // Insert new row
     await db.insert(userCode).values({
-      userId: (user.userid),
+      userId: user.userid,
       problemId,
       codeSubmitted: content,
     });
@@ -239,6 +236,7 @@ export async function saveCode(
 
   return { success: true, message: "Code saved successfully." };
 }
+
 
 export async function loadSavedCode({ params }: { params: { id: number } }) {
   const session = await getServerSession(authOptions);
