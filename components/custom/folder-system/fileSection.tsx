@@ -3,16 +3,15 @@
 import { PlusIcon, TrashIcon } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-
-import {
-  type FileEntry,
-  type Section,
-  getFilesForSection,
-  isProtectedName,
-} from "./fileUtils";
-import { Button } from "@/components/ui/button";
 import FileAlertDialog from "@/components/custom/fileAlertDialog";
 import { FileTypeIcon } from "@/components/custom/Icon";
+import { Button } from "@/components/ui/button";
+import {
+  type FileEntry,
+  getFilesForSection,
+  isProtectedName,
+  type Section,
+} from "./fileUtils";
 
 type FileSectionProps = {
   title: string;

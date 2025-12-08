@@ -24,7 +24,7 @@ export type FileEntry = {
 
 export function getFilesForSection(
   section: Section,
-  files: Record<string, string>,
+  files: Record<string, string>
 ): FileEntry[] {
   const all = Object.keys(files).map((k) => ({
     key: k,
@@ -38,7 +38,7 @@ export function getFilesForSection(
           !normalized.startsWith("student/") &&
           !normalized.startsWith("test/") &&
           !normalized.startsWith("shared/") &&
-          normalized !== "protocol.go",
+          normalized !== "protocol.go"
       )
       .map(({ key, normalized }) => ({ key, name: normalized }))
       .sort((a, b) => a.name.localeCompare(b.name));
