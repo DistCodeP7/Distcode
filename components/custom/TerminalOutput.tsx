@@ -1,3 +1,10 @@
+import type {
+  Outcome,
+  Phase,
+  ResultEventPayload,
+  StreamingJobEvent,
+  TestResult,
+} from "@/types/streamingEvents";
 import {
   AlertCircle,
   CheckCircle2,
@@ -6,18 +13,17 @@ import {
   XCircle,
 } from "lucide-react";
 import { useState } from "react";
-import type {
-  Outcome,
-  Phase,
-  ResultEventPayload,
-  StreamingJobEvent,
-  TestResult,
-} from "@/types/streamingEvents";
 import { Button } from "../ui/button";
 
 type ViewMode = "CONSOLE" | "TESTS";
 
 const getStatusConfig = (phase: Phase, outcome?: Outcome) => {
+  if (phase === "DEBUGGING")
+    return {
+      label: "Debugging",
+      color: "bg-yellow-500 animate-pulse",
+      text: "text-yellow-500",
+    };
   if (phase === "PENDING")
     return {
       label: "Pending",
@@ -281,6 +287,10 @@ function ConsoleView({ logs, error, phase }: ConsoleViewProps) {
           ) : log.phase === "RUNNING" ? (
             <span className="text-[var(--chart-2)]/80 mr-2 select-none font-bold text-[10px]">
               [RUN {log.workerId}]
+            </span>
+          ) : log.phase === "DEBUGGING" ? (
+            <span className="text-yellow-500/80 mr-2 select-none font-bold text-[10px]">
+              [DBG {log.workerId}]
             </span>
           ) : null}
           <span className="text-foreground/90">{log.message}</span>

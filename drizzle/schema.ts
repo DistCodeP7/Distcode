@@ -1,14 +1,15 @@
 import { LogEventPayload, Outcome, TestResult } from "@/types/streamingEvents";
 import {
+  bigint,
+  boolean,
+  integer,
+  json,
+  jsonb,
   pgTable,
   serial,
   text,
   timestamp,
   varchar,
-  integer,
-  json,
-  boolean,
-  jsonb,
 } from "drizzle-orm/pg-core";
 
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
@@ -114,7 +115,7 @@ export type TRating = zod.infer<typeof RatingsSchema>;
 
 export const job_results = pgTable("job_results", {
   id: serial("id").primaryKey(),
-  jobUid: varchar("job_uid").notNull(),
+  jobUid: varchar("job_uid").notNull().unique(),
   userId: varchar("user_id")
     .notNull()
     .references(() => users.userid, { onDelete: "cascade" }),
@@ -136,17 +137,20 @@ export type NewResult = typeof job_results.$inferInsert;
 
 export type VClock = { [key: string]: number };
 
-export const log_entry = pgTable("log_entry", {
+export const job_process_messages = pgTable("job_process_messages", {
   id: serial("id").primaryKey(),
-  timestamp: integer("timestamp").notNull(),
+  jobUid: varchar("job_uid")
+  .notNull()
+  .references(() => job_results.jobUid, { onDelete: "cascade" }),
+timestamp: bigint("timestamp", { mode: "number" }).notNull(),
   from: varchar("from").notNull(),
   to: varchar("to").notNull(),
   type: varchar("type").notNull(),
   vector_clock: json("vector_clock").$type<VClock>().notNull(),
-  payload: varchar("payload"),
+  payload: text("payload"),
 });
 
-export const Log_EntrySchema = createSelectSchema(log_entry);
-export const NewLog_EntrySchema = createInsertSchema(log_entry).omit({ id: true });
+export const Job_Process_MessagesSchema = createSelectSchema(job_process_messages);
+export const NewJob_Process_MessagesSchema = createInsertSchema(job_process_messages).omit({ id: true });
 
-export type TLog_Entry = zod.infer<typeof Log_EntrySchema>;
+export type TJob_Process_Messages = zod.infer<typeof Job_Process_MessagesSchema>;
