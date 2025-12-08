@@ -42,6 +42,7 @@ export default function ExerciseEditor({
 }: ExerciseEditorProps) {
   const initialContents: Paths = savedCode ?? studentCode;
   const terminalRef = useRef<ImperativePanelHandle | null>(null!);
+
   const { messages, connect, clearMessages } =
     useSSE<StreamingJobEvent>("/api/stream");
 
@@ -65,7 +66,6 @@ export default function ExerciseEditor({
     exerciseId,
     initialContents,
     studentCode,
-    onBeforeSave: clearMessages,
   });
 
   const solutionFiles = solutionCode
