@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { type SetStateAction, useState } from "react";
 import { toast } from "sonner";
 import { saveProblem } from "@/app/authorized/[id]/problemActions";
+import { defaultMain } from "@/default_files/defaultMain";
 import { defaultTest } from "@/default_files/defaultTest";
 import type { Paths } from "@/drizzle/schema";
 
@@ -122,12 +123,25 @@ export const useProblemEditor = (
       } else if (!filePath.includes(".")) {
         fullPath = `${filePath}.go`;
       }
+      let defaultContent = "";
 
-      const defaultContent = fullPath.endsWith(".md")
-        ? ""
-        : fullPath.includes("test")
-          ? defaultTest
-          : `// New file: ${fullPath.split("/").pop()}`;
+      const type = fullPath.split("/")[0];
+      switch (type) {
+        case "student":
+          defaultContent = defaultMain;
+          break;
+        case "test":
+          defaultContent = defaultTest;
+          break;
+        case "shared":
+          defaultContent = `package shared`;
+          break;
+        default:
+          defaultContent = fullPath.endsWith(".md")
+            ? ""
+            : `// New file: ${fullPath.split("/").pop()}`;
+          break;
+      }
 
       return {
         ...prev,
