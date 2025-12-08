@@ -138,7 +138,7 @@ export async function saveProblem(data: SaveProblemParams) {
           submissionBuildCommand: "go build -o ./stud ./student/main.go",
           submissionEntryCommand: "./stud",
           globalEnvs: [],
-          replicaConfigs: [{ alias: "user-replica-1", envs: [] }],
+          replicaConfigs: [{ alias: "replica-1", envs: [] }],
         } as NewProblem)
         .returning();
       exerciseId = result[0].id;
