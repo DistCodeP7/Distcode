@@ -1,7 +1,7 @@
 "use client";
 
 import { TrashIcon } from "lucide-react";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { deleteProblemFromList } from "@/app/authorized/[id]/listActions";
 import {
   AlertDialog,
@@ -17,12 +17,15 @@ import { Button } from "@/components/ui/button";
 
 export default function DeleteButton({ id }: { id: number }) {
   const [open, setOpen] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [isLoading, setIsLoading] = useState(false);
 
-  function handleDelete() {
-    startTransition(async () => {
+  async function handleDelete() {
+    try {
+      setIsLoading(true);
       await deleteProblemFromList(id);
-    });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -48,7 +51,7 @@ export default function DeleteButton({ id }: { id: number }) {
 
           <AlertDialogFooter>
             <AlertDialogCancel
-              disabled={isPending}
+              disabled={isLoading}
               className="hover:cursor-pointer transition-colors hover:bg-accent hover:text-accent-foreground"
             >
               Cancel
@@ -56,10 +59,10 @@ export default function DeleteButton({ id }: { id: number }) {
 
             <AlertDialogAction
               className="bg-destructive hover:bg-destructive/80 hover:cursor-pointer transition-colors"
-              disabled={isPending}
+              disabled={isLoading}
               onClick={handleDelete}
             >
-              Delete
+              {isLoading ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
