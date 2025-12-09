@@ -44,19 +44,18 @@ import { getTraceDataAction } from "./actions";
 
 export type VClock = Record<string, number>;
 
-// The transformed row from the Server Action
 export type TJob_Process_Messages = {
   id: number;
   jobUid: string;
   eventId: string;
   messageId: string;
-  timestamp: number; // Milliseconds now!
+  timestamp: number; // Milliseconds
   from: string;
   to: string;
-  eventType: "SEND" | "RECV" | "DROP" | string; // Type loosening for DB variants
+  eventType: "SEND" | "RECV" | "DROP" | string;
   messageType: string;
   vector_clock: VClock;
-  payload: any;
+  payload: unknown;
 };
 
 type PairedTransmission = {
@@ -67,12 +66,19 @@ type PairedTransmission = {
   sendEvent: TJob_Process_Messages;
   recvEvent?: TJob_Process_Messages;
   latency?: number;
-  payload: any;
+  payload: unknown;
 };
 
 // ==========================================
 // 2. LOGIC (TRANSFORMER)
 // ==========================================
+
+// Helper to convert Vector Clock to Scalar Logical Time (Sum of components)
+// This ensures that if A -> B, then Scalar(A) < Scalar(B)
+function getLogicalTime(clock: VClock | undefined): number {
+  if (!clock) return 0;
+  return Object.values(clock).reduce((acc, val) => acc + val, 0);
+}
 
 function pairEvents(events: TJob_Process_Messages[]): PairedTransmission[] {
   const map = new Map<string, Partial<PairedTransmission>>();
@@ -81,15 +87,14 @@ function pairEvents(events: TJob_Process_Messages[]): PairedTransmission[] {
     if (!map.has(e.messageId)) {
       map.set(e.messageId, {
         messageId: e.messageId,
-        from: e.from, // Note: For RECV events, 'from' is still the sender
-        to: e.to, // Note: For RECV events, 'to' is the receiver
+        from: e.from,
+        to: e.to,
         type: e.messageType,
         payload: e.payload,
       });
     }
-    const entry = map.get(e.messageId)!;
-
-    // Use loose string matching to handle case sensitivity if DB is inconsistent
+    const entry = map.get(e.messageId);
+    if (!entry) return;
     const evtType = e.eventType.toUpperCase();
 
     if (evtType === "SEND") {
@@ -99,15 +104,25 @@ function pairEvents(events: TJob_Process_Messages[]): PairedTransmission[] {
     }
   });
 
+  // Type guard to narrow entries that have both sendEvent and recvEvent
+  function hasSendAndRecv(
+    x: Partial<PairedTransmission>
+  ): x is PairedTransmission & {
+    sendEvent: TJob_Process_Messages;
+    recvEvent: TJob_Process_Messages;
+  } {
+    return !!x.sendEvent && !!x.recvEvent;
+  }
+
   return Array.from(map.values())
-    .filter((x) => x.sendEvent && x.recvEvent)
+    .filter(hasSendAndRecv)
     .map((x) => ({
       ...x,
-      // Calculate Latency in Milliseconds
+      // We still calculate Latency in MS for the Table/Tooltip, even if plot is logical
       latency: parseFloat(
-        (x.recvEvent!.timestamp - x.sendEvent!.timestamp).toFixed(3)
+        (x.recvEvent.timestamp - x.sendEvent.timestamp).toFixed(3)
       ),
-    })) as PairedTransmission[];
+    }));
 }
 
 // ==========================================
@@ -135,7 +150,6 @@ function EventTable({
     setVisibleColumns((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  // Generate dynamic colors for actors
   const getActorColor = (actor: string) => {
     let hash = 0;
     for (let i = 0; i < actor.length; i++)
@@ -187,7 +201,7 @@ function EventTable({
                 {visibleColumns.payload && <TableHead>Payload</TableHead>}
                 {visibleColumns.clock && <TableHead>Vector Clock</TableHead>}
                 {visibleColumns.latency && (
-                  <TableHead className="text-right">Latency</TableHead>
+                  <TableHead className="text-right">Latency (ms)</TableHead>
                 )}
               </TableRow>
             </TableHeader>
@@ -225,17 +239,29 @@ function EventTable({
                   )}
                   {visibleColumns.payload && (
                     <TableCell className="text-xs max-w-[200px] truncate text-muted-foreground">
-                      {JSON.stringify(t.payload)}
+                      <pre>{JSON.stringify(t.payload, null, 2)}</pre>
                     </TableCell>
                   )}
                   {visibleColumns.clock && (
                     <TableCell className="font-mono text-[10px] text-muted-foreground">
-                      <div className="flex flex-col">
-                        <span>
-                          S: {JSON.stringify(t.sendEvent.vector_clock)}
+                      <div className="flex flex-col gap-1">
+                        <span className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-primary">
+                            S:
+                          </span>
+                          {JSON.stringify(t.sendEvent.vector_clock)}
+                          <span className="opacity-50 text-[9px]">
+                            (Σ{getLogicalTime(t.sendEvent.vector_clock)})
+                          </span>
                         </span>
-                        <span>
-                          R: {JSON.stringify(t.recvEvent?.vector_clock)}
+                        <span className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-primary">
+                            R:
+                          </span>
+                          {JSON.stringify(t.recvEvent?.vector_clock)}
+                          <span className="opacity-50 text-[9px]">
+                            (Σ{getLogicalTime(t.recvEvent?.vector_clock)})
+                          </span>
                         </span>
                       </div>
                     </TableCell>
@@ -286,15 +312,12 @@ export default function SpaceTimeDiagram({
     setIsLoading(false);
   }, [jobUid]);
 
-  // Initial Fetch
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // Transform Data
   const pairedTransmissions = useMemo(() => pairEvents(rawEvents), [rawEvents]);
 
-  // Extract Unique Actors (Swimlanes) dynamically from data
   const actors = useMemo(() => {
     const s = new Set<string>();
     rawEvents.forEach((e) => {
@@ -309,15 +332,18 @@ export default function SpaceTimeDiagram({
     if (!pairedTransmissions.length)
       return { plotData: [], layout: {}, dynamicHeight: 500 };
 
-    const minTime = Math.min(...rawEvents.map((e) => e.timestamp));
-    const maxTime = Math.max(...rawEvents.map((e) => e.timestamp));
-    const dynamicHeight = 500;
+    // Calculate Logical Min/Max for plotting range
+    const logicalTimes = rawEvents.map((e) => getLogicalTime(e.vector_clock));
+    const minLogical = Math.min(...logicalTimes);
+    const maxLogical = Math.max(...logicalTimes);
+
+    // Height calculation based on logical depth could be useful, but fixed is fine for now
+    const dynamicHeight = 600;
 
     const theme = isDarkMode
       ? { bg: "#09090b", text: "#e4e4e7", grid: "#27272a", line: "#3f3f46" }
       : { bg: "#ffffff", text: "#333333", grid: "#f3f4f6", line: "#e5e7eb" };
 
-    // Helper for consistent colors
     const getActorColor = (actor: string) => {
       let hash = 0;
       for (let i = 0; i < actor.length; i++)
@@ -326,24 +352,27 @@ export default function SpaceTimeDiagram({
       return "#" + "00000".substring(0, 6 - c.length) + c;
     };
 
+    // Swimlanes (vertical lines)
     const shapes = actors.map((actor) => ({
       type: "line",
       x0: actor,
       x1: actor,
-      y0: minTime - 5, // Small buffer
-      y1: maxTime + 5,
+      y0: minLogical - 1,
+      y1: maxLogical + 1,
       line: { color: theme.line, width: 1, dash: "longdash" },
       layer: "below",
     }));
 
-    const traces: any[] = [];
-    pairedTransmissions.forEach((tx) => {
-      if (!tx.sendEvent || !tx.recvEvent) return;
+    const traces = pairedTransmissions.map((tx) => {
       const color = getActorColor(tx.from);
 
-      traces.push({
+      // Calculate Y positions using Logical Time
+      const sendY = getLogicalTime(tx.sendEvent.vector_clock);
+      const recvY = getLogicalTime(tx.recvEvent?.vector_clock);
+
+      return {
         x: [tx.from, tx.to],
-        y: [tx.sendEvent.timestamp, tx.recvEvent.timestamp],
+        y: [sendY, recvY], // Using Scalar Logical Time
         mode: "lines+markers",
         type: "scatter",
         line: { color: color, width: 2 },
@@ -355,15 +384,16 @@ export default function SpaceTimeDiagram({
         },
         hoverinfo: "text",
         text: [
-          `<b>TYPE: ${tx.type}</b><br>MsgID: ${tx.messageId.slice(0, 8)}...<br>Time: ${new Date(tx.sendEvent.timestamp).toLocaleTimeString()}<br>Payload: ${JSON.stringify(tx.payload)}`,
-          `<b>LATENCY: ${tx.latency}ms</b><br>Recv: ${new Date(tx.recvEvent.timestamp).toLocaleTimeString()}`,
+          // We display both Logical Tick and Physical Time in tooltip
+          `<b>SEND (${tx.type})</b><br>Tick: ${sendY}<br>Time: ${new Date(tx.sendEvent.timestamp).toLocaleTimeString()}<br>Payload: ${JSON.stringify(tx.payload)}`,
+          `<b>RECV</b><br>Tick: ${recvY}<br>Latency: ${tx.latency}ms`,
         ],
         showlegend: false,
-      });
+      };
     });
 
     const layoutConfig = {
-      margin: { l: 50, r: 50, t: 50, b: 50 },
+      margin: { l: 60, r: 50, t: 50, b: 50 },
       height: dynamicHeight,
       plot_bgcolor: theme.bg,
       paper_bgcolor: theme.bg,
@@ -377,11 +407,13 @@ export default function SpaceTimeDiagram({
         gridcolor: theme.grid,
       },
       yaxis: {
-        type: "date",
-        tickformat: "%H:%M:%S.%L", // Shows milliseconds
-        autorange: "reversed",
+        // Changed from 'date' to 'linear' for logical ticks
+        type: "linear",
+        title: "Logical Time (Σ Vector Clock)",
+        autorange: "reversed", // Time flows down
         gridcolor: theme.grid,
         tickfont: { color: theme.text },
+        dtick: 1, // Ensure we see integer steps if range allows
       },
       shapes: shapes,
       hovermode: "closest",
@@ -397,7 +429,7 @@ export default function SpaceTimeDiagram({
           <div className="space-y-1">
             <CardTitle className="text-2xl flex items-center gap-2">
               <Activity className="h-6 w-6 text-primary" />
-              Trace Visualizer
+              Trace Visualizer (Logical Time)
             </CardTitle>
             <CardDescription>
               Job UID:{" "}
