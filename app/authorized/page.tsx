@@ -57,12 +57,14 @@ export default async function ProblemListPage() {
             {submissions.map((s) => (
               <div
                 key={s.id}
-                className="relative rounded-md border p-6 flex flex-col gap-3 bg-background shadow hover:shadow-[0_0_8px_rgba(255,255,255,0.2)] transition-all duration-200"
+                className="relative rounded-md border p-6 bg-background shadow hover:shadow-[0_0_8px_rgba(255,255,255,0.2)] transition-all duration-200"
               >
                 <Link
                   href={`/authorized/${s.id}`}
-                  className="flex-1 flex flex-col gap-3 cursor-pointer"
-                >
+                  className="absolute inset-0 z-0"
+                />
+
+                <div className="relative z-10 flex flex-col gap-3 pointer-events-none">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <h2
@@ -84,7 +86,7 @@ export default async function ProblemListPage() {
                   </div>
 
                   <div
-                    className="text-sm text-muted-foreground max-w-full overflow-hidden text-ellipsis whitespace-nowrap"
+                    className="text-sm text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap"
                     title={s.description}
                   >
                     {s.description || (
@@ -110,29 +112,35 @@ export default async function ProblemListPage() {
                       </span>
                     </div>
                   </div>
-                </Link>
 
-                <div className="flex gap-2 mt-2">
-                  <Link href={`/exercises/${s.id}`}>
-                    <Button
-                      size="lg"
-                      variant="secondary"
-                      className="hover:cursor-pointer"
+                  <div className="flex items-center gap-4 mt-2 z-20">
+                    <Link
+                      href={`/exercises/${s.id}`}
+                      className="pointer-events-auto"
                     >
-                      View Exercise
-                      <FolderOpen className="w-4 h-4 scale-120" />
-                    </Button>
-                  </Link>
+                      <Button
+                        size="lg"
+                        variant="secondary"
+                        className="hover:cursor-pointer"
+                      >
+                        View Exercise
+                        <FolderOpen className="w-4 h-4 scale-120" />
+                      </Button>
+                    </Link>
 
-                  <form action={deleteProblemFromList.bind(null, s.id)}>
-                    <Button
-                      size="lg"
-                      variant="destructive"
-                      className="absolute bottom-6 right-6 hover:cursor-pointer"
+                    <form
+                      action={deleteProblemFromList.bind(null, s.id)}
+                      className="pointer-events-auto"
                     >
-                      <TrashIcon className="w-4 h-4" />
-                    </Button>
-                  </form>
+                      <Button
+                        size="lg"
+                        variant="destructive"
+                        className="hover:cursor-pointer absolute bottom-0 right-0"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </Button>
+                    </form>
+                  </div>
                 </div>
               </div>
             ))}

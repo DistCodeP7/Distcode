@@ -49,6 +49,7 @@ export default async function Page({ searchParams }: SearchParams) {
       title: exercise.title,
       description: exercise.description,
       difficulty: exercise.difficulty as Difficulty,
+      timeout: exercise.timeout,
     },
     testContainer: {
       alias: exercise.testAlias,

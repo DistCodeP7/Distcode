@@ -68,8 +68,7 @@ export const problems = pgTable(
     replicaConfigs: json("replica_configs")
       .$type<newReplicaConfig[]>()
       .notNull(),
-
-   
+    timeout: integer("timeout").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
 );
@@ -135,17 +134,20 @@ export const NewJob_ResultsSchema = createInsertSchema(job_results).omit({ id: t
 export type TResults = typeof job_results.$inferSelect; 
 export type NewResult = typeof job_results.$inferInsert;
 
-export type VClock = { [key: string]: number };
+export type VClock = Record<string, number>;
 
 export const job_process_messages = pgTable("job_process_messages", {
   id: serial("id").primaryKey(),
   jobUid: varchar("job_uid")
   .notNull()
   .references(() => job_results.jobUid, { onDelete: "cascade" }),
-timestamp: bigint("timestamp", { mode: "number" }).notNull(),
+  eventId: varchar("event_id").notNull(),
+  messageId: varchar("message_id").notNull(),
+  timestamp: bigint("timestamp", { mode: "number" }).notNull(),
   from: varchar("from").notNull(),
   to: varchar("to").notNull(),
-  type: varchar("type").notNull(),
+  eventType: varchar("event_type").notNull(),   // "SEND", "RECV", "DROP"
+  messageType: varchar("message_type").notNull(), // Exercise dependant message types
   vector_clock: json("vector_clock").$type<VClock>().notNull(),
   payload: text("payload"),
 });
