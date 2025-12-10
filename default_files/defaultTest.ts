@@ -1,17 +1,18 @@
 export const defaultTest = `package test
 
 import (
-    "os"
-    "strings"
-    "testing"
-    "context"
+	"context"
+	"os"
+	"strings"
+	"testing"
+	"time"
 
-    //"runner/shared"
+	//"runner/shared"
 
 	"github.com/distcodep7/dsnet/dsnet"
 	"github.com/distcodep7/dsnet/testing/controller"
-    "github.com/distcodep7/dsnet/testing/disttest"
-    "github.com/distcodep7/dsnet/testing/wrapper"
+	"github.com/distcodep7/dsnet/testing/disttest"
+	"github.com/distcodep7/dsnet/testing/wrapper"
 )
 
 var (
@@ -26,6 +27,7 @@ func TestMain(m *testing.M) {
     Id = os.Getenv("ID")
     ctx = context.Background()
     WM = wrapper.NewWrapperManager(8090, Peers...)
+    WM.ReadyAll(ctx)
 
     code := m.Run()
     _ = disttest.Write("test_results.json")
@@ -46,7 +48,7 @@ func TestExample(t *testing.T) {
         msg := dsnet.BaseMessage{
             From: "TESTER",
             To:   Peers[0],
-            Type: "SendTrigger",
+            Type: "ExampleMessage",
         }
         tester.Send(ctx, Peers[0], msg)
     })
@@ -63,4 +65,5 @@ func TestFails(t *testing.T) {
         panic("SOME REASON")
     })
 }
+
 `;
