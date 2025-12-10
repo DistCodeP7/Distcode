@@ -32,11 +32,9 @@ export default async function ProblemListPage() {
         <h1 className="text-4xl sm:text-5xl font-bold text-center sm:text-left text-foreground">
           Your Contributions
         </h1>
-
         <p className="text-muted-foreground text-lg sm:text-xl max-w-3xl text-center sm:text-left">
           Drafts and published exercises you can edit.
         </p>
-
         <div className="flex justify-end">
           <Link href="/authorized/newProblem">
             <Button>Create new exercise</Button>
@@ -48,7 +46,6 @@ export default async function ProblemListPage() {
             <p className="text-muted-foreground">
               You don't have any exercises yet.
             </p>
-
             <div className="mt-4">
               <Link href="/authorized/newProblem">
                 <Button>Create your first exercise</Button>
@@ -62,15 +59,12 @@ export default async function ProblemListPage() {
                 key={s.id}
                 className="relative rounded-md border p-6 bg-background shadow hover:shadow-[0_0_8px_rgba(255,255,255,0.2)] transition-all duration-200"
               >
-                {/* Full clickable overlay */}
                 <Link
                   href={`/authorized/${s.id}`}
                   className="absolute inset-0 z-0"
                 />
 
-                {/* Content - NOT interactive (click-through) */}
                 <div className="relative z-10 flex flex-col gap-3 pointer-events-none">
-                  {/* Title, status, description, difficulty */}
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <h2
@@ -119,7 +113,6 @@ export default async function ProblemListPage() {
                     </div>
                   </div>
 
-                  {/* Buttons - interactive again */}
                   <div className="flex items-center gap-4 mt-2 z-20">
                     <Link
                       href={`/exercises/${s.id}`}
