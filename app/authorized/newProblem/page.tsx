@@ -1,4 +1,4 @@
-import ProblemEditorClient from "@/components/custom/problemEditorClient";
+import ProblemEditorClient from "@/components/custom/problem/problemEditorClient";
 import { defaultMain } from "@/default_files/defaultMain";
 import { defaultProblem } from "@/default_files/defaultProblem";
 import { defaultProtocol } from "@/default_files/defaultProtocol";

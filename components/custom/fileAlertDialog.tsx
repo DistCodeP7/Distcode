@@ -28,17 +28,14 @@ export function FileAlertDialog({
   onCreate,
   onDelete,
   defaultName = "",
-  currentPath = "",
 }: FileAlertDialogProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   function handleCreate() {
     const value = (inputRef.current?.value || "").trim();
-    const newPath = currentPath + value;
     if (!value) return;
     if (!onCreate) return;
-    if (value.includes("/")) onCreate(value);
-    else onCreate(newPath);
+    onCreate(value);
     onOpenChange(false);
     if (inputRef.current) inputRef.current.value = "";
   }
@@ -49,7 +46,7 @@ export function FileAlertDialog({
         <AlertDialogHeader>
           {onCreate && (
             <>
-              <AlertDialogTitle>Create new file / folder</AlertDialogTitle>
+              <AlertDialogTitle>Create new file</AlertDialogTitle>
               <AlertDialogDescription>Enter a file</AlertDialogDescription>
             </>
           )}
@@ -69,7 +66,7 @@ export function FileAlertDialog({
               ref={inputRef}
               defaultValue={defaultName}
               autoFocus
-              placeholder="e.g. example.go"
+              placeholder="example.go"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();

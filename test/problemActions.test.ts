@@ -73,7 +73,7 @@ describe("saveProblem", () => {
     id?: number;
     problemMarkdown: string;
     studentCode: Record<string, string>;
-    solutionCode: string;
+    solutionMarkdown: string;
     testCode: Record<string, string>;
     protocolCode: Record<string, string>;
     isPublished: boolean;
@@ -82,7 +82,7 @@ describe("saveProblem", () => {
   const baseSaveData: SaveProblemData = {
     problemMarkdown: "Some markdown",
     studentCode: { "student/main.go": "// main" },
-    solutionCode: "// solution",
+    solutionMarkdown: "// solution",
     testCode: { "test/main_test.go": "// test" },
     protocolCode: { "protocol.go": "// protocol" },
     isPublished: false,
@@ -99,7 +99,7 @@ describe("saveProblem", () => {
     });
   });
 
-  it("returns 404 when updating a non-existent problem", async () => {
+  it("returns 404 when updating a non-existent exercise", async () => {
     getServerSessionMock.mockResolvedValue({ user: { id: "user-1" } });
     findFirstMock.mockResolvedValue(null);
 
@@ -107,12 +107,12 @@ describe("saveProblem", () => {
     expect(findFirstMock).toHaveBeenCalled();
     expect(res).toEqual({
       success: false,
-      error: "Problem not found",
+      error: "Exercise not found",
       status: 404,
     });
   });
 
-  it("returns 403 when updating a problem owned by another user", async () => {
+  it("returns 403 when updating a exercise owned by another user", async () => {
     getServerSessionMock.mockResolvedValue({ user: { id: "user-1" } });
     findFirstMock.mockResolvedValue({ id: 123, userId: "other-user" });
 
@@ -124,17 +124,17 @@ describe("saveProblem", () => {
     });
   });
 
-  it("validates missing fields (problem markdown missing)", async () => {
+  it("validates string fields (problem markdown empty)", async () => {
     getServerSessionMock.mockResolvedValue({ user: { id: "user-1" } });
 
     const res = await saveProblem({
       ...baseSaveData,
-      problemMarkdown: undefined,
+      problemMarkdown: "   ",
     });
 
     expect(res).toEqual({
       success: false,
-      error: "Problem markdown is required (missing).",
+      error: "Problem markdown is required (empty).",
       status: 400,
     });
   });
@@ -154,22 +154,22 @@ describe("saveProblem", () => {
     });
   });
 
-  it("validates string fields (solutionCode empty)", async () => {
+  it("validates missing fields (solution markdown (missing))", async () => {
     getServerSessionMock.mockResolvedValue({ user: { id: "user-1" } });
 
     const res = await saveProblem({
       ...baseSaveData,
-      solutionCode: "   ",
+      solutionMarkdown: undefined,
     });
 
     expect(res).toEqual({
       success: false,
-      error: "Solution code is required (empty).",
+      error: "Solution markdown is required (missing).",
       status: 400,
     });
   });
 
-  it("updates an existing problem successfully (draft)", async () => {
+  it("updates an existing exercise successfully (draft)", async () => {
     getServerSessionMock.mockResolvedValue({ user: { id: "user-1" } });
     findFirstMock.mockResolvedValue({
       id: 123,
@@ -225,7 +225,7 @@ describe("saveProblem", () => {
 
     expect(res).toEqual({
       success: true,
-      message: "Problem published successfully!",
+      message: "Exercise published successfully!",
       status: 200,
       id: 888,
     });
@@ -272,10 +272,10 @@ describe("saveProblem", () => {
   });
 });
 
-describe("updateChallengeForm", () => {
+describe("updateExerciseForm", () => {
   const baseChallengeForm: CheckoutFormState = {
     details: {
-      title: "My Challenge",
+      title: "My Exercise",
       description: "Solve this",
       difficulty: "Easy",
       timeout: 60,
@@ -290,7 +290,7 @@ describe("updateChallengeForm", () => {
       envs: [{ key: "TEST_ENV", value: "1", id: "env-1" }],
     },
     submission: {
-      buildCommand: "go build -o ./stud ./student/main.go",
+      buildCommand: "go build -o ./wrapper -cmd ./stud ./student/main.go",
       entryCommand: "./stud",
       globalEnvs: [{ key: "GLOBAL_ENV", value: "1", id: "global-env-1" }],
       replicaConfigs: {
@@ -313,7 +313,7 @@ describe("updateChallengeForm", () => {
     });
   });
 
-  it("returns 404 when problem does not exist", async () => {
+  it("returns 404 when exercise does not exist", async () => {
     getServerSessionMock.mockResolvedValue({ user: { id: "user-1" } });
     findFirstMock.mockResolvedValue(null);
 
@@ -321,12 +321,12 @@ describe("updateChallengeForm", () => {
 
     expect(res).toEqual({
       success: false,
-      error: "Problem not found",
+      error: "Exercise not found",
       status: 404,
     });
   });
 
-  it("returns 403 when user does not own the problem", async () => {
+  it("returns 403 when user does not own the exercise", async () => {
     getServerSessionMock.mockResolvedValue({ user: { id: "user-1" } });
     findFirstMock.mockResolvedValue({ id: 1, userId: "other-user" });
 
@@ -355,7 +355,7 @@ describe("updateChallengeForm", () => {
 
     expect(res).toEqual({
       success: false,
-      error: "Title in challenge form is required.",
+      error: "Title in exercise form is required.",
       status: 400,
     });
   });
@@ -376,7 +376,7 @@ describe("updateChallengeForm", () => {
 
     expect(res).toEqual({
       success: false,
-      error: "Description in challenge form is required.",
+      error: "Description in exercise form is required.",
       status: 400,
     });
   });
@@ -397,12 +397,12 @@ describe("updateChallengeForm", () => {
 
     expect(res).toEqual({
       success: false,
-      error: "Difficulty in challenge form is invalid.",
+      error: "Difficulty in exercise form is invalid.",
       status: 400,
     });
   });
 
-  it("updates challenge form successfully", async () => {
+  it("updates exercise form successfully", async () => {
     getServerSessionMock.mockResolvedValue({ user: { id: "user-1" } });
     findFirstMock.mockResolvedValue({ id: 1, userId: "user-1" });
 
@@ -414,17 +414,17 @@ describe("updateChallengeForm", () => {
 
     expect(res).toEqual({
       success: true,
-      message: "Challenge form updated successfully.",
+      message: "Exercise form updated successfully.",
       status: 200,
     });
   });
 
-  it("handles DB errors when updating challenge form", async () => {
+  it("handles DB errors when updating exercise form", async () => {
     getServerSessionMock.mockResolvedValue({ user: { id: "user-1" } });
     findFirstMock.mockResolvedValue({ id: 1, userId: "user-1" });
 
     updateMock.mockImplementationOnce(() => {
-      throw new Error("Challenge update failed");
+      throw new Error("Exercise update failed");
     });
 
     const res = await updateChallengeForm(1, baseChallengeForm);
@@ -432,7 +432,7 @@ describe("updateChallengeForm", () => {
     expect(res.success).toBe(false);
     expect(res.status).toBe(500);
     if (!res.success) {
-      expect(res.error).toContain("Challenge update failed");
+      expect(res.error).toContain("Exercise update failed");
     }
   });
 });
@@ -468,12 +468,12 @@ describe("deleteProblem", () => {
     const res = await deleteProblem(NaN);
     expect(res).toEqual({
       success: false,
-      error: "Problem ID is required",
+      error: "Exercise ID is required",
       status: 400,
     });
   });
 
-  it("returns 404 if problem does not exist", async () => {
+  it("returns 404 if exercise does not exist", async () => {
     getServerSessionMock.mockResolvedValue({ user: { id: "user-1" } });
     getUserByIdMock.mockResolvedValue({ id: "user-1" });
     findFirstMock.mockResolvedValue(null);
@@ -481,12 +481,12 @@ describe("deleteProblem", () => {
     const res = await deleteProblem(42);
     expect(res).toEqual({
       success: false,
-      error: "Problem not found",
+      error: "Exercise not found",
       status: 404,
     });
   });
 
-  it("returns 403 if user does not own the problem", async () => {
+  it("returns 403 if user does not own the exercise", async () => {
     getServerSessionMock.mockResolvedValue({ user: { id: "user-1" } });
     getUserByIdMock.mockResolvedValue({ id: "user-1" });
     findFirstMock.mockResolvedValue({ id: 42, userId: "other-user" });
@@ -510,7 +510,7 @@ describe("deleteProblem", () => {
     expect(deleteWhereMock).toHaveBeenCalled();
     expect(res).toEqual({
       success: true,
-      message: "Problem deleted successfully.",
+      message: "Exercise deleted successfully.",
       status: 200,
     });
   });

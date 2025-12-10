@@ -6,7 +6,7 @@ export type NewProblem = {
   userId: string;
   problemMarkdown: string;
   studentCode: Filemap;
-  solutionCode: string;
+  solutionMarkdown: string;
   protocolCode: Filemap;
   testCode: Filemap;
   isPublished?: boolean;
@@ -32,7 +32,7 @@ export type SaveProblemParams = {
   id?: number;
   problemMarkdown: string;
   studentCode: Filemap;
-  solutionCode: string;
+  solutionMarkdown: string;
   testCode: Filemap;
   protocolCode: Filemap;
   isPublished?: boolean;

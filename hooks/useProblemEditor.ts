@@ -1,291 +1,126 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { type SetStateAction, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { saveProblem } from "@/app/authorized/[id]/problemActions";
-import { defaultMain } from "@/default_files/defaultMain";
-import { defaultTest } from "@/default_files/defaultTest";
+import {
+  buildExercisePayload,
+  getDefaultFileContent,
+  normalizeFilePath,
+} from "@/components/custom/problem/problemHelper";
 import type { Filemap } from "@/types/actionTypes";
 
-const getInitialContent = (path: string): string => {
-  if (
-    path.endsWith(".md") ||
-    path.startsWith("problem") ||
-    path.startsWith("solution")
-  ) {
-    if (path.startsWith("problem"))
-      return "# Problem Description\n\nDescribe the problem here.\n";
-    if (path.startsWith("solution"))
-      return "# Solution Explanation\n\nDescribe the solution here.\n";
-    return "";
-  }
-
-  if (
-    path.endsWith(".go") ||
-    path.startsWith("student") ||
-    path.startsWith("test") ||
-    path.startsWith("shared")
-  ) {
-    if (path.startsWith("student")) return "// Write your code here\n";
-    if (path.startsWith("test")) return defaultTest;
-    if (path.startsWith("shared"))
-      return `package main
-
-// Define any shared protocols or interfaces here
-`;
-    return "";
-  }
-
-  return "";
-};
-
-type ActionResult =
-  | { success: true; message?: string; status?: number; id?: number }
-  | { success: false; error?: string; status?: number };
-
-type ProblemEditorState = {
-  filesContent: Filemap;
-  activeFile: string;
-  isSubmitting: boolean;
-};
-
 export const useProblemEditor = (
-  files: Filemap,
-  initial?: {
-    filesContent?: Filemap;
-    problemId?: number;
-  }
+  initialFiles: Filemap,
+  config?: { problemId?: number }
 ) => {
   const router = useRouter();
 
-  const [state, setState] = useState<ProblemEditorState>(() => {
-    const filesContent = initial?.filesContent
-      ? { ...initial.filesContent }
-      : Object.keys(files).reduce((acc, key) => {
-          acc[key] = files[key] ?? getInitialContent(key);
-          return acc;
-        }, {} as Filemap);
-
-    return {
-      filesContent,
-      activeFile: Object.keys(files)[0] || "",
-      isSubmitting: false,
-    };
-  });
+  const [state, setState] = useState(() => ({
+    filesContent: { ...initialFiles },
+    activeFile: Object.keys(initialFiles)[0],
+    isSubmitting: false,
+  }));
 
   const [lastMarkdownFile, setLastMarkdownFile] = useState(
-    Object.keys(state.filesContent).find((k) => k.endsWith(".md")) ||
-      "problem.md"
+    Object.keys(initialFiles).find((f) => f.endsWith(".md")) || "problem.md"
   );
 
-  const syncFilesContent = () => {
-    setState((prev) => {
-      const newFilesContent = Object.keys(files).reduce((acc, key) => {
-        acc[key] =
-          prev.filesContent[key] ?? files[key] ?? getInitialContent(key);
-        return acc;
-      }, {} as Filemap);
-      return { ...prev, filesContent: newFilesContent };
-    });
+  const setActiveFile = (file: string) => {
+    setState((prev) => ({ ...prev, activeFile: file }));
+    if (file.endsWith(".md")) setLastMarkdownFile(file);
   };
 
-  const handleEditorContentChange = (value: SetStateAction<string>) => {
+  const updateFileContent = (value: string | ((v: string) => string)) => {
     setState((prev) => {
-      const activeFileName = prev.activeFile;
-      if (!activeFileName) return prev;
-      const newContent =
-        typeof value === "function"
-          ? value(prev.filesContent[activeFileName])
-          : value;
+      const active = prev.activeFile;
+      if (!active) return prev;
+
+      const newValue =
+        typeof value === "function" ? value(prev.filesContent[active]) : value;
+
       return {
         ...prev,
-        filesContent: { ...prev.filesContent, [activeFileName]: newContent },
+        filesContent: { ...prev.filesContent, [active]: newValue },
       };
     });
   };
 
-  const handleCreateFile = (filePath: string) => {
+  const createFile = (filePath: string, parent?: string) => {
     setState((prev) => {
-      if (filePath.includes("main.go")) {
-        toast.error("Cannot create a file named main.go");
+      const fullPath = normalizeFilePath(
+        parent ? `${parent}/${filePath}` : filePath
+      );
+
+      if (prev.filesContent[fullPath]) {
+        toast.error("File already exists");
         return prev;
-      }
-
-      // Normalize and validate path: strip leading '/', ensure extension, and enforce allowed prefixes
-      const raw = filePath.startsWith("/") ? filePath.slice(1) : filePath;
-      let fullPath = raw;
-      if (!raw.includes(".")) {
-        fullPath = `${raw}.go`;
-      }
-
-      const allowedPrefixes = ["student/", "test/", "shared/"];
-      if (!allowedPrefixes.some((p) => fullPath.startsWith(p))) {
-        toast.error("Create files only inside student/, test/, or shared/.");
-        return prev;
-      }
-      let defaultContent = "";
-
-      const type = fullPath.split("/")[0];
-      switch (type) {
-        case "student":
-          defaultContent = defaultMain;
-          break;
-        case "test":
-          defaultContent = defaultTest;
-          break;
-        case "shared":
-          defaultContent = `package shared`;
-          break;
-        default:
-          defaultContent = fullPath.endsWith(".md")
-            ? ""
-            : `// New file: ${fullPath.split("/").pop()}`;
-          break;
       }
 
       return {
         ...prev,
-        filesContent: { ...prev.filesContent, [fullPath]: defaultContent },
+        filesContent: {
+          ...prev.filesContent,
+          [fullPath]: getDefaultFileContent(fullPath),
+        },
         activeFile: fullPath,
       };
     });
   };
 
-  const handleDeleteFile = (filePath: string) => {
-    setState((prev) => {
-      const keys = Object.keys(prev.filesContent);
-      if (keys.length <= 1) {
-        toast.error("Cannot delete the last remaining file.");
-        return prev;
-      }
+  const deleteFile = (filePath: string) => {
+    if (!state.filesContent[filePath]) return;
 
-      const index = keys.indexOf(filePath);
-      if (index === -1) return prev;
+    const { [filePath]: _, ...newFiles } = state.filesContent;
+    const newActive =
+      state.activeFile === filePath
+        ? Object.keys(newFiles)[0]
+        : state.activeFile;
 
-      if (
-        filePath.includes("student/main.go") ||
-        filePath.includes("test/main_test.go") ||
-        filePath === "problem.md" ||
-        filePath === "protocol.go" ||
-        filePath === "solution.md"
-      ) {
-        toast.error("Cannot delete the main.go file.");
-        return prev;
-      }
-
-      const copy = { ...prev.filesContent };
-      delete copy[filePath];
-
-      let newActive = prev.activeFile;
-      if (prev.activeFile === filePath) {
-        const newKeys = Object.keys(copy);
-        const newIndex = Math.max(0, index - 1);
-        newActive = newKeys[newIndex] ?? newKeys[0] ?? "";
-      }
-
-      return { ...prev, filesContent: copy, activeFile: newActive };
-    });
+    setState({ ...state, filesContent: newFiles, activeFile: newActive });
+    toast.success(`Deleted ${filePath}`);
   };
 
-  const setActiveFile = (activeFile: string) => {
-    setState((prev) => ({ ...prev, activeFile }));
-    if (activeFile.endsWith(".md")) {
-      setLastMarkdownFile(activeFile);
-    }
-  };
-
-  const handleSaveOrSubmit = async (isPublished: boolean) => {
+  const submit = async (isPublished: boolean) => {
     setState((prev) => ({ ...prev, isSubmitting: true }));
 
     try {
-      const missingFields: string[] = [];
+      const result = buildExercisePayload(
+        state.filesContent,
+        config?.problemId,
+        isPublished
+      );
 
-      const problemKey = Object.keys(state.filesContent).find((k) => {
-        return k === "problem.md";
-      });
-
-      if (!problemKey || !state.filesContent[problemKey]?.trim())
-        missingFields.push("Problem markdown");
-
-      const problemMarkdown = problemKey ? state.filesContent[problemKey] : "";
-      const keys = Object.keys(state.filesContent);
-      const studentFiles = keys.filter((k) => k.startsWith("student"));
-      const solutionFiles = keys.filter((k) => k.startsWith("solution"));
-      const studentCode = studentFiles.map((k) => state.filesContent[k] || "");
-      const studentFilesMap = studentFiles.reduce((acc, k) => {
-        acc[k] = state.filesContent[k] || "";
-        return acc;
-      }, {} as Filemap);
-      const solutionCode =
-        solutionFiles.length > 0
-          ? state.filesContent[solutionFiles[0]] || ""
-          : "";
-
-      const testFiles = keys.filter((k) => k.startsWith("test"));
-      const testCode = testFiles.map((k) => state.filesContent[k] || "");
-      const testFilesMap = testFiles.reduce((acc, k) => {
-        acc[k] = state.filesContent[k] || "";
-        return acc;
-      }, {} as Filemap);
-
-      const protocolCode = keys.filter((k) => k.startsWith("shared"));
-      const protoFilesMap = protocolCode.reduce((acc, k) => {
-        acc[k] = state.filesContent[k] || "";
-        return acc;
-      }, {} as Filemap);
-
-      if (!studentFiles.length || studentCode.some((c) => !c.trim()))
-        missingFields.push("Student code");
-      if (solutionFiles.length !== 1 || !solutionCode.trim())
-        missingFields.push("Solution code");
-      if (!testFiles.length || testCode.some((c) => !c.trim()))
-        missingFields.push("Test code");
-
-      if (missingFields.length > 0) {
-        toast.error(`Missing or empty fields: ${missingFields.join(", ")}`);
+      if (!result.success) {
+        toast.error(`Missing fields: ${result.missing.join(", ")}`);
         return;
       }
 
-      const payload = {
-        id: initial?.problemId,
-        problemMarkdown,
-        studentCode: studentFilesMap,
-        solutionCode,
-        testCode: testFilesMap,
-        protocolCode: protoFilesMap,
-        isPublished,
-      };
+      const response = await saveProblem(result.payload);
 
-      const result: ActionResult = await saveProblem(payload);
-      if (result.success) {
-        const qs = `id=${encodeURIComponent(String(result.id))}`;
-        const action = isPublished ? "submitted" : "saved";
-        if (action === "submitted") {
-          router.push(`/authorized/checkout/?${qs}`);
-        } else {
-          toast.success(`Problem ${action} successfully.`);
-        }
+      if (response.success) {
+        if (isPublished) router.push(`/authorized/checkout/?id=${response.id}`);
+        else toast.success("Exercise saved successfully.");
+      } else {
+        toast.error(response.error || "Failed to save exercise");
       }
     } catch (err) {
-      toast.error(`An unexpected error occurred: ${err}`);
+      console.error(err);
+      toast.error("An unexpected error occurred.");
     } finally {
       setState((prev) => ({ ...prev, isSubmitting: false }));
     }
   };
 
-  const handleSubmit = () => handleSaveOrSubmit(true);
-  const handleSave = () => handleSaveOrSubmit(false);
-
   return {
     ...state,
-    setActiveFile,
-    handleEditorContentChange,
-    handleSubmit,
-    handleSave,
-    handleCreateFile,
-    handleDeleteFile,
-    syncFilesContent,
     lastMarkdownFile,
+    setActiveFile,
+    updateFileContent,
+    createFile,
+    deleteFile,
+    save: () => submit(false),
+    submit: () => submit(true),
   };
 };

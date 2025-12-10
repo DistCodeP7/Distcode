@@ -39,11 +39,11 @@ export default function ClientCreateChallenge({
     if (!exerciseId) return;
     const result: ActionResult = await updateChallengeForm(exerciseId, form);
     if (result.success) {
-      toast.success("Challenge form saved successfully!");
+      toast.success("Exercise submitted successfully!");
       router.push(`/authorized/`);
     } else
       toast.error(
-        `Failed to save challenge form. ${
+        `Failed to save exercise form. ${
           result.error ? `Error: ${result.error}` : ""
         }`
       );
