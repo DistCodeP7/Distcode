@@ -10,6 +10,7 @@ export async function Navbar() {
     { href: "#", label: "Features" },
     { href: "/exercises", label: "Exercises" },
     { href: "/authorized", label: "Create Problem" },
+    { href: "/authorized/diagram", label: "Diagram" },
   ];
 
   const session = await getServerSession(authOptions);
