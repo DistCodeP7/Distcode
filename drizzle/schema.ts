@@ -67,8 +67,7 @@ export const problems = pgTable(
     replicaConfigs: json("replica_configs")
       .$type<newReplicaConfig[]>()
       .notNull(),
-
-   
+    timeout: integer("timeout").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
 );

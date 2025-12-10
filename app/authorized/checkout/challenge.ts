@@ -30,6 +30,7 @@ export type DetailsConfig = {
   title: string;
   description: string;
   difficulty: Difficulty | "";
+  timeout: number;
 };
 
 export type CheckoutFormState = {

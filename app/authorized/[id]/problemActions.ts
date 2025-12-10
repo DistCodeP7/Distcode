@@ -28,6 +28,7 @@ type NewProblem = {
   submissionEntryCommand: string;
   globalEnvs: NewEnv[];
   replicaConfigs: NewReplicaConfig[];
+  timeout: number;
 };
 
 import { db } from "@/lib/db";
@@ -138,7 +139,8 @@ export async function saveProblem(data: SaveProblemParams) {
           submissionBuildCommand: "go build -o ./stud ./student/main.go",
           submissionEntryCommand: "./stud",
           globalEnvs: [],
-          replicaConfigs: [{ alias: "user-replica-1", envs: [] }],
+          replicaConfigs: [{ alias: "replica-1", envs: [] }],
+          timeout: 60,
         } as NewProblem)
         .returning();
       exerciseId = result[0].id;
@@ -217,6 +219,7 @@ export async function updateChallengeForm(
         submissionEntryCommand: challengeForm.submission.entryCommand,
         globalEnvs: challengeForm.submission.globalEnvs,
         replicaConfigs: Object.values(challengeForm.submission.replicaConfigs),
+        timeout: challengeForm.details.timeout,
         isPublished: true,
       })
       .where(eq(problems.id, problemId));
