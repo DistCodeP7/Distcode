@@ -355,25 +355,27 @@ describe("saveCode", () => {
     expect(res).toEqual({ error: "Problem not found.", status: 404 });
   });
 
-  it("inserts userCode and returns success", async () => {
-    getServerSessionMock.mockResolvedValueOnce({ user: { id: "u1" } });
-    getUserByIdMock.mockResolvedValueOnce({ userid: "db-u1" });
+    it("inserts userCode and returns success", async () => {
+        getServerSessionMock.mockResolvedValueOnce({ user: { id: "u1" } });
+        getUserByIdMock.mockResolvedValueOnce({ userid: "db-u1" });
 
-    mockSelectChainOnce([{ id: 1 }]);
+        mockSelectChainOnce([{ id: 1 }]);
 
-    const content: Filemap = { "/main.go": "code" };
+        mockSelectChainOnce([] as any);
 
-    const res = await saveCode(content, { params: { id: 1 } });
+        const content: Filemap = { "/main.go": "code" };
 
-    expect(insertMock).toHaveBeenCalledWith(userCode);
-    expect(insertValuesMock).toHaveBeenCalledWith({
-      userId: "db-u1",
-      problemId: 1,
-      codeSubmitted: content,
+        const res = await saveCode(content, { params: { id: 1 } });
+
+        expect(insertMock).toHaveBeenCalledWith(userCode);
+        expect(insertValuesMock).toHaveBeenCalledWith({
+            userId: "db-u1",
+            problemId: 1,
+            codeSubmitted: content,
+        });
+
+        expect(res).toEqual({ success: true, message: "Code saved successfully." });
     });
-
-    expect(res).toEqual({ success: true, message: "Code saved successfully." });
-  });
 });
 
 describe("loadSavedCode", () => {
