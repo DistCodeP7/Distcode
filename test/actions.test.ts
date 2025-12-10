@@ -435,10 +435,8 @@ describe("loadSavedCode", () => {
   it("returns 404 if neither userCode nor problem exists", async () => {
     getServerSessionMock.mockResolvedValueOnce({ user: { id: "u1" } });
 
-    // userCode -> []
     mockSelectChainOnce<any>([]);
 
-    // problems -> []
     mockSelectChainOnce<any>([]);
 
     const res = await loadSavedCode({ params: { id: 1 } });

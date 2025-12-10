@@ -51,10 +51,6 @@ jest.mock("@/drizzle/schema", () => ({
   problems: {},
 }));
 
-// ---------------------------------------------------------------------------
-// Test suites
-// ---------------------------------------------------------------------------
-
 let saveProblem: any;
 let updateChallengeForm: any;
 let deleteProblem: any;
@@ -68,10 +64,6 @@ beforeEach(async () => {
   updateChallengeForm = mod.updateChallengeForm;
   deleteProblem = mod.deleteProblem;
 });
-
-// ---------------------------------------------------------------------------
-// saveProblem tests
-// ---------------------------------------------------------------------------
 
 describe("saveProblem", () => {
   const baseSaveData: any = {
@@ -267,10 +259,6 @@ describe("saveProblem", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// updateChallengeForm tests
-// ---------------------------------------------------------------------------
-
 describe("updateChallengeForm", () => {
   const baseChallengeForm: any = {
     details: {
@@ -432,10 +420,6 @@ describe("updateChallengeForm", () => {
     }
   });
 });
-
-// ---------------------------------------------------------------------------
-// deleteProblem tests
-// ---------------------------------------------------------------------------
 
 describe("deleteProblem", () => {
   it("returns 401 when unauthenticated", async () => {
