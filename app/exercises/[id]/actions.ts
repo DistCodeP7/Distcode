@@ -278,6 +278,10 @@ export async function resetCode({ params }: { params: { id: number } }) {
 
 async function checkUserCode(submissionCode: Filemap) {
   const errors: string[] = [];
+  if (Object.keys(submissionCode).length === 0) {
+    errors.push("No submission code provided.");
+    return errors;
+  }
   Object.values(submissionCode).forEach((code: string, _) => {
     if (code.trim() === "") {
       errors.push("Submission code cannot be empty.");
