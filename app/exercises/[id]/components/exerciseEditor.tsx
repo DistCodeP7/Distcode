@@ -18,6 +18,7 @@ import { EditorActions } from "./EditorActions";
 import { EditorWithTerminalPanel } from "./EditorWithTerminalPanel";
 import { ProblemSolutionPanel } from "./ProblemSolutionPanel";
 import { useExerciseFiles } from "./useExerciseFiles";
+import { toast } from "sonner";
 
 type ExerciseEditorProps = {
   exerciseId: number;
@@ -99,7 +100,10 @@ export default function ExerciseEditor({
     const result = await submitCode(problemContentMap, {
       params: { id: exerciseId },
     });
-
+    if (result.error) {
+      toast.error("Failed to submit code", { description: result.error });
+      return;
+    }
     if (result?.jobUid) {
       setCurrentJobUid(result.jobUid);
     }
