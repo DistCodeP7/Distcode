@@ -1,10 +1,10 @@
 "use client";
 
-import useShortcut from "@/hooks/useShortcut";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
-import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { toast } from "sonner";
+import useShortcut from "@/hooks/useShortcut";
 import {
   DropdownMenu,
   DropdownMenuContent,
