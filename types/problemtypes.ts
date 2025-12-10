@@ -25,10 +25,9 @@ export type NewProblem = {
   timeout: number;
 };
 
-export type ApiResult =
-  | { success: true; message: string; status: number }
-  | { success: false; error: string; status: number };
-
+export type ActionResult =
+  | { success: true; message?: string; status?: number; id?: number }
+  | { success: false; error?: string; status?: number };
 export type SaveProblemParams = {
   id?: number;
   problemMarkdown: string;

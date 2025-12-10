@@ -2,8 +2,8 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
-import type { Difficulty } from "@/app/authorized/checkout/challenge";
 import { Button } from "@/components/ui/button";
+import type { Difficulty } from "@/types/challenge";
 
 export type exercises = {
   id: number;

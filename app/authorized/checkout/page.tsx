@@ -1,7 +1,11 @@
 import { notFound } from "next/navigation";
 import { getExercise } from "@/app/exercises/[id]/actions";
+import type {
+  CheckoutFormState,
+  Difficulty,
+  Env,
+} from "../../../types/challenge";
 import ClientCreateChallenge from "./ClientCreateChallenge";
-import type { CheckoutFormState, Difficulty, Env } from "./challenge";
 
 type SearchParams = {
   searchParams: Promise<{ id: string }>;

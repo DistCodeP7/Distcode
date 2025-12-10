@@ -14,7 +14,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
-import type { ReplicaConfig, SubmissionConfig } from "../challenge";
+import type {
+  ReplicaConfig,
+  SubmissionConfig,
+} from "../../../../types/challenge";
 import EnvList from "../components/EnvList";
 
 const StepThreeSubmission = ({

@@ -2,7 +2,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { nanoid } from "nanoid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { Env } from "../challenge";
+import type { Env } from "../../../../types/challenge";
 
 const EnvList = ({
   envs,

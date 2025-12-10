@@ -4,8 +4,9 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import NeonLines from "@/components/custom/NeonLine";
 import { Card, CardContent } from "@/components/ui/card";
+import type { ActionResult } from "@/types/problemtypes";
+import type { CheckoutFormState } from "../../../types/challenge";
 import { updateChallengeForm } from "../[id]/problemActions";
-import type { CheckoutFormState } from "./challenge";
 import FooterNav from "./components/Footer";
 import Header from "./components/Header";
 import StepFourSummary from "./steps/StepFourSummary";
@@ -13,10 +14,6 @@ import StepOneDetails from "./steps/StepOneDetails";
 import StepThreeSubmission from "./steps/StepThreeSubmission";
 import StepTwoTestEnv from "./steps/StepTwoTest";
 import useCreateChallenge from "./useCreateChallenge";
-
-type ActionResult =
-  | { success: true; message?: string; status?: number; id?: number }
-  | { success: false; error?: string; status?: number };
 
 export default function ClientCreateChallenge({
   baseForm,

@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { TestContainerConfig } from "../challenge";
+import type { TestContainerConfig } from "../../../../types/challenge";
 import EnvList from "../components/EnvList";
 
 const StepTwoTestEnv = ({

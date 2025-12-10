@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import type { Difficulty } from "@/app/authorized/checkout/challenge";
 import { problems } from "@/drizzle/schema";
+import type { Difficulty } from "@/types/challenge";
 import { db } from "./db";
 export type Problem = {
   id: number;

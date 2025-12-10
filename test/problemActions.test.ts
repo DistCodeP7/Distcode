@@ -1,7 +1,7 @@
 // --- Shared mocks ---------------------------------------------------------
 /** biome-ignore-all lint/suspicious/noExplicitAny: <Mocks have any type> */
 
-import type { CheckoutFormState } from "@/app/authorized/checkout/challenge";
+import type { CheckoutFormState } from "@/types/challenge";
 
 const getServerSessionMock = jest.fn();
 const getUserByIdMock = jest.fn();

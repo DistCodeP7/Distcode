@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { CheckoutFormState, Env } from "../challenge";
+import type { CheckoutFormState, Env } from "../../../../types/challenge";
 
 const StepFourSummary = ({ form }: { form: CheckoutFormState }) => (
   <motion.div

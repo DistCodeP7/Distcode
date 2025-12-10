@@ -39,3 +39,7 @@ export type CheckoutFormState = {
   testContainer: TestContainerConfig;
   submission: SubmissionConfig;
 };
+
+export type SearchParams = {
+  searchParams: Promise<{ id: string }>;
+};
