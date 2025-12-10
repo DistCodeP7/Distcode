@@ -74,7 +74,6 @@ jest.mock("@/lib/db", () => {
 jest.mock("@/drizzle/schema", () => ({
   job_results: { table: "job_results" },
   problems: { table: "problems" },
-  ratings: { table: "ratings" },
   userCode: { table: "userCode" },
 }));
 
@@ -82,15 +81,13 @@ let cancelJobRequest: any;
 let getExercise: any;
 let hasUserSubmitted: any;
 let loadSavedCode: any;
-let loadUserRating: any;
-let rateExercise: any;
 let resetCode: any;
 let saveCode: any;
 let submitCode: any;
 
 let db: any;
 
-import { job_results, ratings, userCode } from "@/drizzle/schema";
+import { job_results, userCode } from "@/drizzle/schema";
 
 // --- Helper utilities -----------------------------------------------------
 
@@ -128,8 +125,6 @@ beforeEach(async () => {
   getExercise = actions.getExercise;
   hasUserSubmitted = actions.hasUserSubmitted;
   loadSavedCode = actions.loadSavedCode;
-  loadUserRating = actions.loadUserRating;
-  rateExercise = actions.rateExercise;
   resetCode = actions.resetCode;
   saveCode = actions.saveCode;
   submitCode = actions.submitCode;
@@ -472,50 +467,6 @@ describe("cancelJobRequest", () => {
   });
 });
 
-describe("loadUserRating", () => {
-  it("returns null if unauthorised", async () => {
-    getServerSessionMock.mockResolvedValueOnce(null);
-
-    const res = await loadUserRating({ params: { id: 1 } });
-
-    expect(res).toBeNull();
-  });
-
-  it("returns null if problem not owned by user", async () => {
-    getServerSessionMock.mockResolvedValueOnce({ user: { id: "u1" } });
-
-    // problems select -> []
-    mockSelectChainOnce<any>([]);
-
-    const res = await loadUserRating({ params: { id: 1 } });
-
-    expect(res).toBeNull();
-  });
-
-  it("returns null if rating not found", async () => {
-    getServerSessionMock.mockResolvedValueOnce({ user: { id: "u1" } });
-
-    mockSelectChainOnce([{ id: 1, userId: "u1" }]);
-
-    mockSelectChainOnce<any>([]);
-
-    const res = await loadUserRating({ params: { id: 1 } });
-
-    expect(res).toBeNull();
-  });
-
-  it("returns 'up' or 'down' depending on rating", async () => {
-    getServerSessionMock.mockResolvedValueOnce({ user: { id: "u1" } });
-
-    mockSelectChainOnce([{ id: 1, userId: "u1" }]);
-
-    mockSelectChainOnce([{ id: 10, liked: true }]);
-
-    const resUp = await loadUserRating({ params: { id: 1 } });
-    expect(resUp).toBe("up");
-  });
-});
-
 describe("resetCode", () => {
   it("returns 401 if unauthorised", async () => {
     getServerSessionMock.mockResolvedValueOnce(null);
@@ -541,73 +492,6 @@ describe("resetCode", () => {
     expect(deleteMock).toHaveBeenCalledWith(userCode);
     expect(deleteWhereMock).toHaveBeenCalledTimes(1);
     expect(res).toEqual({ success: true, message: "Code reset successfully." });
-  });
-});
-
-describe("rateExercise", () => {
-  it("returns 401 if unauthorised", async () => {
-    getServerSessionMock.mockResolvedValueOnce(null);
-
-    const res = await rateExercise({ params: { id: 1 } }, true);
-
-    expect(res).toEqual({ error: "Unauthorized", status: 401 });
-  });
-
-  it("returns 400 for invalid id", async () => {
-    getServerSessionMock.mockResolvedValueOnce({ user: { id: "u1" } });
-
-    const res = await rateExercise(
-      { params: { id: Number("NaN") as any } },
-      true
-    );
-
-    expect(res).toEqual({ error: "Invalid exercise id", status: 400 });
-  });
-
-  it("returns 403 if exercise does not exist", async () => {
-    getServerSessionMock.mockResolvedValueOnce({ user: { id: "u1" } });
-
-    mockSelectChainOnce<any>([]);
-
-    const res = await rateExercise({ params: { id: 1 } }, true);
-
-    expect(res).toEqual({
-      error: "Then exercise doesnt exist",
-      status: 403,
-    });
-  });
-
-  it("updates existing rating", async () => {
-    getServerSessionMock.mockResolvedValueOnce({ user: { id: "u1" } });
-
-    mockSelectChainOnce([{ id: 1 }]);
-
-    mockSelectChainOnce([{ id: 10, liked: false }]);
-
-    const res = await rateExercise({ params: { id: 1 } }, true);
-
-    expect(updateMock).toHaveBeenCalledWith(ratings);
-    expect(updateSetMock).toHaveBeenCalledWith({ liked: true });
-    expect(updateWhereMock).toHaveBeenCalledTimes(1);
-    expect(res).toEqual({ success: true });
-  });
-
-  it("inserts new rating when none exists", async () => {
-    getServerSessionMock.mockResolvedValueOnce({ user: { id: "u1" } });
-
-    mockSelectChainOnce([{ id: 1 }]);
-
-    mockSelectChainOnce<any>([]);
-
-    const res = await rateExercise({ params: { id: 1 } }, false);
-
-    expect(insertMock).toHaveBeenCalledWith(ratings);
-    expect(insertValuesMock).toHaveBeenCalledWith({
-      userId: "u1",
-      problemId: 1,
-      liked: false,
-    });
-    expect(res).toEqual({ success: true });
   });
 });
 

@@ -47,7 +47,7 @@ export function DataTable<TData extends { id: number }, TValue>({
   onRowClick,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([
-    { id: "rating", desc: true },
+    { id: "name", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []

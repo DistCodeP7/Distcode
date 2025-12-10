@@ -6,30 +6,12 @@ import type { Difficulty } from "@/app/authorized/checkout/challenge";
 import { Button } from "@/components/ui/button";
 
 export type exercises = {
-  rating: number;
   id: number;
   name: string;
   description: string;
   difficulty: Difficulty;
 };
 export const columns: ColumnDef<exercises>[] = [
-  {
-    accessorKey: "rating",
-    size: 80,
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "desc")}
-        className="flex items-center justify-center"
-      >
-        <span>Rating</span>
-        <ArrowUpDown className="h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => (
-      <div className="text-center font-medium">{row.getValue("rating")}</div>
-    ),
-  },
   {
     accessorKey: "name",
     size: 200,

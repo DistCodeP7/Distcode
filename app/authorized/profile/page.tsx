@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { job_results, problems, ratings, users } from "@/drizzle/schema";
+import { job_results, problems, users } from "@/drizzle/schema";
 import { db } from "@/lib/db";
 import { SubmissionCard } from "./SubmissionCard";
 
@@ -38,14 +38,9 @@ const getProfileInfo = async (userId: string) => {
   const submissions = await db
     .select({
       problem: problems,
-      rating: ratings,
       results: job_results,
     })
     .from(problems)
-    .leftJoin(
-      ratings,
-      and(eq(ratings.problemId, problems.id), eq(ratings.userId, userId))
-    )
     .leftJoin(
       job_results,
       and(

@@ -1,6 +1,6 @@
 {
-  "id": "0e521754-bf3c-4d59-9add-9ac588deb5fa",
-  "prevId": "44b17bd9-fde1-44a9-9e5e-6c19d0223458",
+  "id": "30ada1ff-9bf2-4e38-b8aa-f0fb48f287a4",
+  "prevId": "0e521754-bf3c-4d59-9add-9ac588deb5fa",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -349,70 +349,6 @@
           ],
           "columnsTo": [
             "userid"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.ratings": {
-      "name": "ratings",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "problem_id": {
-          "name": "problem_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "liked": {
-          "name": "liked",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "ratings_user_id_users_userid_fk": {
-          "name": "ratings_user_id_users_userid_fk",
-          "tableFrom": "ratings",
-          "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "userid"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "ratings_problem_id_problems_id_fk": {
-          "name": "ratings_problem_id_problems_id_fk",
-          "tableFrom": "ratings",
-          "tableTo": "problems",
-          "columnsFrom": [
-            "problem_id"
-          ],
-          "columnsTo": [
-            "id"
           ],
           "onDelete": "cascade",
           "onUpdate": "no action"

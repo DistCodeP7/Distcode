@@ -27,7 +27,6 @@ type ExerciseEditorProps = {
   protocalCode: string;
   testCasesCode: Paths;
   savedCode?: Paths | null;
-  userRating?: "up" | "down" | null;
   canRate?: boolean;
 };
 
@@ -41,7 +40,7 @@ export default function ExerciseEditor({
   savedCode,
 }: ExerciseEditorProps) {
   const initialContents: Paths = savedCode ?? studentCode;
-  const terminalRef = useRef<ImperativePanelHandle | null>(null!);
+  const terminalRef = useRef<ImperativePanelHandle | null>(null);
 
   const { messages, connect, clearMessages } =
     useSSE<StreamingJobEvent>("/api/stream");

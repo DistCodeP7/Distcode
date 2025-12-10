@@ -96,22 +96,6 @@ export const NewUserCodeSchema = createInsertSchema(userCode).omit({ id: true })
 
 export type TUserCode = zod.infer<typeof UserCodeSchema>;
 
-export const ratings = pgTable("ratings", {
-    id: serial("id").primaryKey(),
-    userId: varchar("user_id")
-        .notNull()
-        .references(() => users.userid, { onDelete: "cascade" }),
-    problemId: integer("problem_id")
-        .notNull()
-        .references(() => problems.id, { onDelete: "cascade" }),
-    liked: boolean("liked").notNull(),
-});
-
-export const RatingsSchema = createSelectSchema(ratings);
-export const NewRatingSchema = createInsertSchema(ratings).omit({ id: true });
-
-export type TRating = zod.infer<typeof RatingsSchema>;
-
 export const job_results = pgTable("job_results", {
   id: serial("id").primaryKey(),
   jobUid: varchar("job_uid").notNull().unique(),
