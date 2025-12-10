@@ -1,5 +1,7 @@
 // --- Shared mocks ---------------------------------------------------------
 
+import type { CheckoutFormState } from "@/app/authorized/checkout/challenge";
+
 const getServerSessionMock = jest.fn();
 const getUserByIdMock = jest.fn();
 
@@ -66,7 +68,17 @@ beforeEach(async () => {
 });
 
 describe("saveProblem", () => {
-  const baseSaveData: any = {
+  type SaveProblemData = {
+    id?: number;
+    problemMarkdown: string;
+    studentCode: Record<string, string>;
+    solutionCode: string;
+    testCode: Record<string, string>;
+    protocolCode: Record<string, string>;
+    isPublished: boolean;
+  };
+
+  const baseSaveData: SaveProblemData = {
     problemMarkdown: "Some markdown",
     studentCode: { "student/main.go": "// main" },
     solutionCode: "// solution",
@@ -116,7 +128,7 @@ describe("saveProblem", () => {
 
     const res = await saveProblem({
       ...baseSaveData,
-      problemMarkdown: undefined as any,
+      problemMarkdown: undefined,
     });
 
     expect(res).toEqual({
@@ -260,11 +272,12 @@ describe("saveProblem", () => {
 });
 
 describe("updateChallengeForm", () => {
-  const baseChallengeForm: any = {
+  const baseChallengeForm: CheckoutFormState = {
     details: {
       title: "My Challenge",
       description: "Solve this",
       difficulty: "Easy",
+      timeout: 60,
     },
     testContainer: {
       alias: "test-container",
@@ -273,16 +286,18 @@ describe("updateChallengeForm", () => {
       },
       buildCommand: "go test -c -o ./test_binary ./test/",
       entryCommand: "./test_binary",
-      envs: [{ key: "TEST_ENV", value: "1" }],
+      envs: [{ key: "TEST_ENV", value: "1", id: "env-1" }],
     },
     submission: {
       buildCommand: "go build -o ./stud ./student/main.go",
       entryCommand: "./stud",
-      globalEnvs: [{ key: "GLOBAL_ENV", value: "1" }],
+      globalEnvs: [{ key: "GLOBAL_ENV", value: "1", id: "global-env-1" }],
       replicaConfigs: {
-        "replica-1": { alias: "replica-1", envs: [] },
+        1: { alias: "replica-1", envs: [], id: 1 },
       },
+      replicas: 1,
     },
+    step: 0,
   };
 
   it("returns 401 when unauthenticated", async () => {

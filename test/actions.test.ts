@@ -239,7 +239,10 @@ describe("submitCode", () => {
     getServerSessionMock.mockResolvedValueOnce({ user: { id: "user-id" } });
     getUserByIdMock.mockResolvedValueOnce({ userid: "user-id" });
 
-    const res = await submitCode({}, { params: { id: Number("NaN") as any } });
+    const res = await submitCode(
+      {},
+      { params: { id: Number("NaN") as number } }
+    );
 
     expect(res).toEqual({ error: "Invalid exercise id", status: 400 });
   });
