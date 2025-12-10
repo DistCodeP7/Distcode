@@ -130,7 +130,7 @@ export async function submitCode(
     jobUid: `${uuid()}`,
     nodes: contentArray,
     userId: user.userid,
-    timeout: 60,
+    timeout: exercise.timeout,
   };
 
   await db

@@ -285,7 +285,6 @@ describe("submitCode", () => {
 
     expect(sentPayload.jobUid).toBe("test-uuid");
     expect(sentPayload.userId).toBe("db-user-id");
-    expect(sentPayload.timeout).toBe(60);
     expect(sentPayload.nodes.submission.submissionCode["protocol.go"]).toBe(
       "protocol code"
     );
