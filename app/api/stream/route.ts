@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { RabbitMQReceiver } from "@/app/mq/RabbitMQReceiver";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { RabbitMQReceiver } from "@/app/mq/rabbitMQReceiver";
 import type { StreamingJobEvent } from "@/types/streamingEvents";
-import { authOptions } from "../auth/[...nextauth]/route";
 
 type Client = {
   controller: ReadableStreamDefaultController<Uint8Array>;

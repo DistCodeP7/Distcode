@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import type { DetailsConfig, Difficulty } from "../../../../types/challenge";
+import type { DetailsConfig, Difficulty } from "@/types/challenge";
 
 type StepOneDetailsProps = {
   form: DetailsConfig;

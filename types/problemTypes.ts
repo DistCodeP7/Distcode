@@ -1,4 +1,4 @@
-import type { Filemap } from "./actionTypes";
+import type { Filemap } from "@/types/actionTypes";
 
 type NewEnv = { key: string; value: string };
 type NewReplicaConfig = { alias: string; envs: NewEnv[] };

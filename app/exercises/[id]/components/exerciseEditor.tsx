@@ -4,6 +4,11 @@ import { useRef, useState } from "react";
 import type { ImperativePanelHandle } from "react-resizable-panels";
 import { toast } from "sonner";
 import { cancelJobRequest, submitCode } from "@/app/exercises/[id]/actions";
+import { EditorActions } from "@/app/exercises/[id]/components/editorActions";
+import { EditorWithTerminalPanel } from "@/app/exercises/[id]/components/editorWithTerminalPanel";
+import type { ExerciseEditorProps } from "@/app/exercises/[id]/components/editorProps";
+import { ProblemSolutionPanel } from "@/app/exercises/[id]/components/problemSolutionPanel";
+import { useExerciseFiles } from "@/app/exercises/[id]/components/useExerciseFiles";
 import { ConfirmDialog } from "@/components/custom/confirmDialog";
 import { FolderSystem } from "@/components/custom/folder-system/folderSystem";
 import {
@@ -14,11 +19,6 @@ import {
 import { useSSE } from "@/hooks/useSSE";
 import type { Filemap } from "@/types/actionTypes";
 import type { StreamingJobEvent } from "@/types/streamingEvents";
-import { EditorActions } from "./EditorActions";
-import { EditorWithTerminalPanel } from "./EditorWithTerminalPanel";
-import type { ExerciseEditorProps } from "./editorProps";
-import { ProblemSolutionPanel } from "./ProblemSolutionPanel";
-import { useExerciseFiles } from "./useExerciseFiles";
 
 export default function ExerciseEditor({
   exerciseId,

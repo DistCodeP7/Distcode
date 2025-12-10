@@ -6,12 +6,12 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { problems } from "@/drizzle/schema";
 import { db } from "@/lib/db";
 import { getUserById } from "@/lib/user";
-import type { CheckoutFormState } from "../../../types/challenge";
+import type { CheckoutFormState } from "@/types/challenge";
 import type {
   ActionResult,
   NewProblem,
   SaveProblemParams,
-} from "../../../types/problemtypes";
+} from "@/types/problemTypes";
 
 export async function saveProblem(data: SaveProblemParams) {
   const session = await getServerSession(authOptions);

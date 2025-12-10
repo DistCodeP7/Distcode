@@ -3,8 +3,8 @@
 import { type SetStateAction, useState } from "react";
 import { toast } from "sonner";
 import { resetCode, saveCode } from "@/app/exercises/[id]/actions";
+import type { UseExerciseFilesArgs } from "@/app/exercises/[id]/components/editorProps";
 import type { Filemap } from "@/types/actionTypes";
-import type { UseExerciseFilesArgs } from "./editorProps";
 
 type File = {
   content: Filemap;

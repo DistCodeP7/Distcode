@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { getExercise, loadSavedCode } from "@/app/exercises/[id]/actions";
 import ExerciseEditor from "@/app/exercises/[id]/components/exerciseEditor";
 import type { Filemap } from "@/types/actionTypes";
-import { getExercise, loadSavedCode } from "./actions";
 
 export default async function ExercisePage({
   params,
@@ -33,7 +33,7 @@ export default async function ExercisePage({
         exerciseId={exerciseParams.id}
         problemMarkdown={exercise.problemMarkdown}
         studentCode={exercise.studentCode}
-        solutionCode={exercise.solutionCode}
+        solutionCode={exercise.solutionMarkdown}
         testCasesCode={exercise.testCode}
         protocalCode={protocolCode}
         savedCode={savedCode}

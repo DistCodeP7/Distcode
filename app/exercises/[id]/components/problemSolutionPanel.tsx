@@ -2,10 +2,10 @@
 
 import { BookOpen, Code } from "lucide-react";
 import { useState } from "react";
+import type { ProblemSolutionPanelProps } from "@/app/exercises/[id]/components/editorProps";
 import { ConfirmDialog } from "@/components/custom/confirmDialog";
-import MarkdownPreview from "@/components/custom/markdown-preview";
+import MarkdownPreview from "@/components/custom/markdownPreview";
 import { Button } from "@/components/ui/button";
-import type { ProblemSolutionPanelProps } from "./editorProps";
 
 function appendProtoToMarkdown(markdown: string, protoCode: string) {
   return `${markdown}

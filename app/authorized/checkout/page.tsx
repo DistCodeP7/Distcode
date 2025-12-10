@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
+import ClientCreateChallenge from "@/app/authorized/checkout/clientCreateChallenge";
 import { getExercise } from "@/app/exercises/[id]/actions";
 import type {
   CheckoutFormState,
   Difficulty,
   Env,
   SearchParams,
-} from "../../../types/challenge";
-import ClientCreateChallenge from "./ClientCreateChallenge";
+} from "@/types/challenge";
 
 export default async function Page({ searchParams }: SearchParams) {
   const resolved = await searchParams;

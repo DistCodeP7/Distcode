@@ -4,9 +4,9 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
+import { ScrollArea } from "@/components/ui/scrollArea";
+import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { ScrollArea } from "../ui/scroll-area";
-import { Separator } from "../ui/separator";
 
 type MarkdownPreviewProps = {
   content?: string;

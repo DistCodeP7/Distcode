@@ -1,7 +1,7 @@
 import type { SetStateAction } from "react";
 import type { ImperativePanelHandle } from "react-resizable-panels";
 import type { Filemap } from "@/types/actionTypes";
-import type { StreamingJobEvent } from "../../../../types/streamingEvents";
+import type { StreamingJobEvent } from "@/types/streamingEvents";
 
 export type EditorWithTerminalPanelProps = {
   activeFile: string;

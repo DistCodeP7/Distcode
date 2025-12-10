@@ -4,7 +4,7 @@ import { useMemo, useRef } from "react";
 import type { ImperativePanelHandle } from "react-resizable-panels";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import { FolderSystem } from "@/components/custom/folder-system/folderSystem";
-import MarkdownPreview from "@/components/custom/markdown-preview";
+import MarkdownPreview from "@/components/custom/markdownPreview";
 import { Button } from "@/components/ui/button";
 import {
   ResizableHandle,

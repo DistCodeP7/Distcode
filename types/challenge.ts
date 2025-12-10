@@ -1,4 +1,4 @@
-import type { Filemap } from "./actionTypes";
+import type { Filemap } from "@/types/actionTypes";
 
 export type Env = { key: string; value: string; id: string };
 

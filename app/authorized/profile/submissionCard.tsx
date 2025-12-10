@@ -12,13 +12,13 @@ import {
   XCircle,
 } from "lucide-react";
 import { useState } from "react";
+import { reconstructStreamEvents } from "@/app/authorized/profile/logReconstructor";
 import { TerminalOutput } from "@/components/custom/terminal/terminalOutput";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { TProblem, TResults } from "@/drizzle/schema";
 import { cn } from "@/lib/utils";
-import { reconstructStreamEvents } from "./logReconstructor";
 
 const getStatusConfig = (outcome: string | null | undefined) => {
   switch (outcome) {
