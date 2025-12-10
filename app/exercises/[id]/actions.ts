@@ -195,7 +195,7 @@ export async function saveCode(
 
   const problemsId = Number(params.id);
   if (Number.isNaN(problemsId))
-    return { error: "Invalid problems id", status: 400 };
+    return { error: "Invalid problem id", status: 400 };
 
   const [foundProblem] = await db
     .select()

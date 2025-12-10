@@ -342,7 +342,7 @@ describe("saveCode", () => {
 
     const res = await saveCode({}, { params: { id: Number("NaN") as any } });
 
-    expect(res).toEqual({ error: "Invalid problems id", status: 400 });
+    expect(res).toEqual({ error: "Invalid problem id", status: 400 });
   });
 
   it("returns 404 if problem not found", async () => {
