@@ -4,7 +4,12 @@ import (
     "os"
     "strings"
     "testing"
+    "context"
 
+    //"runner/shared"
+
+	"github.com/distcodep7/dsnet/dsnet"
+	"github.com/distcodep7/dsnet/testing/controller"
     "github.com/distcodep7/dsnet/testing/disttest"
     "github.com/distcodep7/dsnet/testing/wrapper"
 )
@@ -12,19 +17,39 @@ import (
 var (
     Peers = []string{}
     Id    string
+    WM    *wrapper.WrapperManager
+    ctx   context.Context
 )
 
 func TestMain(m *testing.M) {
     Peers = strings.Split(os.Getenv("PEERS"), ", ")
     Id = os.Getenv("ID")
-    aliases := make([]wrapper.Alias, len(Peers))
-    for i, peer := range Peers {
-        aliases[i] = wrapper.Alias(peer)
-    }
+    ctx = context.Background()
+    WM = wrapper.NewWrapperManager(8090, Peers...)
 
     code := m.Run()
     _ = disttest.Write("test_results.json")
+    WM.ShutdownAll(ctx)
     os.Exit(code)
+}
+
+func TestExample(t *testing.T) {
+    disttest.Wrap(t, func(t *testing.T) {
+        go controller.Serve(controller.TestConfig{})
+
+        WM.StartAll(ctx)
+
+        tester, err := dsnet.NewNode("TESTER", "localhost:50051")
+        if err != nil {
+            disttest.Fail(t, "Failed to start node")
+        }
+        msg := dsnet.BaseMessage{
+                    From: "TESTER",
+                    To:   Peers[0],
+                    Type: "SendTrigger",
+			    }
+        tester.Send(ctx, Peers[0], msg)
+    })
 }
 
 func TestSuccess(t *testing.T) {
