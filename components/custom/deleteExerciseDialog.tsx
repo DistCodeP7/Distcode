@@ -33,7 +33,7 @@ export default function DeleteButton({ id }: { id: number }) {
       <Button
         size="lg"
         variant="destructive"
-        className="absolute bottom-6 right-6 hover:cursor-pointer"
+        className="absolute bottom-0 right-0 hover:cursor-pointer pointer-events-auto"
         onClick={() => setOpen(true)}
       >
         <TrashIcon className="w-4 h-4" />
