@@ -1,4 +1,9 @@
-export type Phase = "PENDING" | "COMPILING" | "RUNNING" | "COMPLETED";
+export type Phase =
+  | "PENDING"
+  | "COMPILING"
+  | "RUNNING"
+  | "COMPLETED"
+  | "DEBUGGING";
 
 export type JobEventType = "log" | "status" | "result";
 

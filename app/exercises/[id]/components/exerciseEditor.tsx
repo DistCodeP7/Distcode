@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import type { Paths } from "@/drizzle/schema";
+import { useRef, useState } from "react";
+import type { ImperativePanelHandle } from "react-resizable-panels";
 import type { Filemap } from "@/app/exercises/[id]/actions";
 import { cancelJobRequest, submitCode } from "@/app/exercises/[id]/actions";
 import { ConfirmDialog } from "@/components/custom/confirmDialog";
@@ -11,12 +11,13 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import type { Paths } from "@/drizzle/schema";
 import { useSSE } from "@/hooks/useSSE";
 import type { StreamingJobEvent } from "@/types/streamingEvents";
-import { useExerciseFiles } from "./useExerciseFiles";
 import { EditorActions } from "./EditorActions";
-import { ProblemSolutionPanel } from "./ProblemSolutionPanel";
 import { EditorWithTerminalPanel } from "./EditorWithTerminalPanel";
+import { ProblemSolutionPanel } from "./ProblemSolutionPanel";
+import { useExerciseFiles } from "./useExerciseFiles";
 
 type ExerciseEditorProps = {
   exerciseId: number;
@@ -40,6 +41,7 @@ export default function ExerciseEditor({
   savedCode,
 }: ExerciseEditorProps) {
   const initialContents: Paths = savedCode ?? studentCode;
+  const terminalRef = useRef<ImperativePanelHandle | null>(null!);
 
   const { messages, connect, clearMessages } =
     useSSE<StreamingJobEvent>("/api/stream");
@@ -64,7 +66,6 @@ export default function ExerciseEditor({
     exerciseId,
     initialContents,
     studentCode,
-    onBeforeSave: clearMessages,
   });
 
   const solutionFiles = solutionCode
@@ -84,6 +85,7 @@ export default function ExerciseEditor({
   const handleSubmit = async () => {
     clearMessages();
     connect();
+    terminalRef.current?.resize(80);
 
     const _allFiles: Filemap = { ...allOtherFiles };
     fileOrder.forEach((path) => {
@@ -170,6 +172,7 @@ export default function ExerciseEditor({
         {/* Panel 3: Editor + Terminal */}
         <ResizablePanel minSize={30} defaultSize={50} collapsible>
           <EditorWithTerminalPanel
+            terminalPanelRef={terminalRef}
             activeFile={activeFile}
             fileContents={fileContents}
             resetting={resetting}

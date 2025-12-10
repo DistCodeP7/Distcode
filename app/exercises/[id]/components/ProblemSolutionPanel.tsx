@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { BookOpen, Code } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import { ConfirmDialog } from "@/components/custom/confirmDialog";
 import MarkdownPreview from "@/components/custom/markdown-preview";
+import { Button } from "@/components/ui/button";
 
 type SolutionFile = {
   name: string;
@@ -34,7 +34,7 @@ export function ProblemSolutionPanel({
   solutionFiles,
 }: ProblemSolutionPanelProps) {
   const [leftPanelView, setLeftPanelView] = useState<"problem" | "solution">(
-    "problem",
+    "problem"
   );
   const [activeSolutionFile, setActiveSolutionFile] = useState(0);
   const [showSolutionDialog, setShowSolutionDialog] = useState(false);
