@@ -2,8 +2,8 @@
 
 import { type SetStateAction, useState } from "react";
 import { toast } from "sonner";
-import type { Paths } from "@/drizzle/schema";
 import { resetCode, saveCode } from "@/app/exercises/[id]/actions";
+import type { Paths } from "@/drizzle/schema";
 
 type UseExerciseFilesArgs = {
   exerciseId: number;
