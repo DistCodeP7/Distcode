@@ -33,8 +33,6 @@ const getProfileInfo = async (userId: string) => {
     .where(eq(users.userid, userId))
     .limit(1);
 
-  const u = user[0];
-
   const submissions = await db
     .select({
       problem: problems,
@@ -50,7 +48,7 @@ const getProfileInfo = async (userId: string) => {
     )
     .where(eq(problems.userId, userId))
     .orderBy(asc(job_results.finishedAt));
-  return { user: u, submissions };
+  return { user: user[0], submissions };
 };
 
 export default async function Profile() {

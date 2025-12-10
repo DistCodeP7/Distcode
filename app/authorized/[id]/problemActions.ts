@@ -8,7 +8,7 @@ import { db } from "@/lib/db";
 import { getUserById } from "@/lib/user";
 import type { CheckoutFormState } from "../../../types/challenge";
 import type {
-  ApiResult,
+  ActionResult,
   NewProblem,
   SaveProblemParams,
 } from "../../../types/problemtypes";
@@ -200,7 +200,7 @@ export async function updateChallengeForm(
   }
 }
 
-export async function deleteProblem(id: number): Promise<ApiResult> {
+export async function deleteProblem(id: number): Promise<ActionResult> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return { success: false, error: "Not authenticated", status: 401 };
