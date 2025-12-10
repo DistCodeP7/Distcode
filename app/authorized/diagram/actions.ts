@@ -27,7 +27,7 @@ export async function getTraceDataAction(jobUid: string) {
         // Assuming input is high-precision nanoseconds
         const bigTime = BigInt(row.timestamp);
         timeInMs = Number(bigTime / 1_000_000n);
-      } catch (e) {
+      } catch (_e) {
         // Fallback if it's already a number
         timeInMs = Number(row.timestamp) / 1_000_000;
       }

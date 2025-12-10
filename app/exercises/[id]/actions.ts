@@ -373,7 +373,7 @@ async function checkUserCode(submissionCode: Filemap) {
       if (identifier) {
         const usageRegex = new RegExp(`\\b${identifier}\\.`);
         if (!usageRegex.test(codeBody)) {
-          errors.push("" + path);
+          errors.push(`Unused import:${path}`);
         }
       }
     });

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import type { ImperativePanelHandle } from "react-resizable-panels";
+import { toast } from "sonner";
 import type { Filemap } from "@/app/exercises/[id]/actions";
 import { cancelJobRequest, submitCode } from "@/app/exercises/[id]/actions";
 import { ConfirmDialog } from "@/components/custom/confirmDialog";
@@ -18,7 +19,6 @@ import { EditorActions } from "./EditorActions";
 import { EditorWithTerminalPanel } from "./EditorWithTerminalPanel";
 import { ProblemSolutionPanel } from "./ProblemSolutionPanel";
 import { useExerciseFiles } from "./useExerciseFiles";
-import { toast } from "sonner";
 
 type ExerciseEditorProps = {
   exerciseId: number;
@@ -85,7 +85,6 @@ export default function ExerciseEditor({
   const handleSubmit = async () => {
     clearMessages();
     connect();
-    terminalRef.current?.resize(80);
 
     const _allFiles: Filemap = { ...allOtherFiles };
     fileOrder.forEach((path) => {
@@ -104,6 +103,7 @@ export default function ExerciseEditor({
       toast.error("Failed to submit code", { description: result.error });
       return;
     }
+    terminalRef.current?.resize(80);
     if (result?.jobUid) {
       setCurrentJobUid(result.jobUid);
     }

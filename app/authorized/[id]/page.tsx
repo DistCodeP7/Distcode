@@ -15,9 +15,7 @@ export default async function EditProblemPage({
   const { id } = await params;
 
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id) return notFound();
-
-  if (Number.isNaN(id)) return notFound();
+  if (!session?.user?.id || Number.isNaN(id)) return notFound();
 
   const exercise = await db.query.problems.findFirst({
     where: (s, { eq }) => eq(s.id, Number(id)),
@@ -36,8 +34,10 @@ export default async function EditProblemPage({
   }
 
   assignFilesContent(exercise.studentCode, initialFilesContent);
-  if (exercise.solutionCode)
-    initialFilesContent["solution.md"] = exercise.solutionCode;
+  assignFilesContent(
+    { "solution.md": exercise.solutionCode },
+    initialFilesContent
+  );
   assignFilesContent(exercise.testCode, initialFilesContent);
   assignFilesContent(exercise.protocolCode, initialFilesContent);
 

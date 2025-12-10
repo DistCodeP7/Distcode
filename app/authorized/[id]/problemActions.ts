@@ -3,58 +3,21 @@
 import { eq } from "drizzle-orm";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import type { Paths } from "@/drizzle/schema";
 import { problems } from "@/drizzle/schema";
-
-type NewEnv = { key: string; value: string };
-type NewReplicaConfig = { alias: string; envs: NewEnv[] };
-type NewProblem = {
-  userId: string;
-  problemMarkdown: string;
-  studentCode: Paths;
-  solutionCode: string;
-  protocolCode: Paths;
-  testCode: Paths;
-  isPublished?: boolean;
-  title: string;
-  description: string;
-  difficulty: string;
-  testAlias: string;
-  selectedTestPath: string[];
-  testBuildCommand: string;
-  testEntryCommand: string;
-  testEnvs: NewEnv[];
-  submissionBuildCommand: string;
-  submissionEntryCommand: string;
-  globalEnvs: NewEnv[];
-  replicaConfigs: NewReplicaConfig[];
-  timeout: number;
-};
-
 import { db } from "@/lib/db";
 import { getUserById } from "@/lib/user";
+import type {
+  ApiResult,
+  NewProblem,
+  SaveProblemParams,
+} from "../../../types/problemtypes";
 import type { CheckoutFormState } from "../checkout/challenge";
-
-export type ApiResult =
-  | { success: true; message: string; status: number }
-  | { success: false; error: string; status: number };
-
-export type SaveProblemParams = {
-  id?: number;
-  problemMarkdown: string;
-  studentCode: Paths;
-  solutionCode: string;
-  testCode: Paths;
-  protocolCode: Paths;
-  isPublished?: boolean;
-};
 
 export async function saveProblem(data: SaveProblemParams) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return { success: false, error: "Not authenticated", status: 401 };
   }
-
   const { id, isPublished = false, ...problemData } = data;
   let existingProblem = null;
 

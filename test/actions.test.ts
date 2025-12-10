@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: <Mock files have any type> */
 import type { Filemap } from "@/app/exercises/[id]/actions";
 
 // --- Shared mocks ---------------------------------------------------------
