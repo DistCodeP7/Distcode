@@ -79,7 +79,6 @@ jest.mock("@/drizzle/schema", () => ({
 
 let cancelJobRequest: any;
 let getExercise: any;
-let hasUserSubmitted: any;
 let loadSavedCode: any;
 let resetCode: any;
 let saveCode: any;
@@ -124,7 +123,6 @@ beforeEach(async () => {
   const actions = await import("@/app/exercises/[id]/actions");
   cancelJobRequest = actions.cancelJobRequest;
   getExercise = actions.getExercise;
-  hasUserSubmitted = actions.hasUserSubmitted;
   loadSavedCode = actions.loadSavedCode;
   resetCode = actions.resetCode;
   saveCode = actions.saveCode;
@@ -493,49 +491,5 @@ describe("resetCode", () => {
     expect(deleteMock).toHaveBeenCalledWith(userCode);
     expect(deleteWhereMock).toHaveBeenCalledTimes(1);
     expect(res).toEqual({ success: true, message: "Code reset successfully." });
-  });
-});
-
-describe("hasUserSubmitted", () => {
-  it("returns false if unauthorised", async () => {
-    getServerSessionMock.mockResolvedValueOnce(null);
-
-    const res = await hasUserSubmitted({ params: { id: 1 } });
-
-    expect(res).toBe(false);
-  });
-
-  it("returns false if problem not found", async () => {
-    getServerSessionMock.mockResolvedValueOnce({ user: { id: "u1" } });
-
-    mockSelectChainOnce<any>([]);
-
-    const res = await hasUserSubmitted({ params: { id: 1 } });
-
-    expect(res).toBe(false);
-  });
-
-  it("returns false if userCode not found", async () => {
-    getServerSessionMock.mockResolvedValueOnce({ user: { id: "u1" } });
-
-    mockSelectChainOnce([{ id: 1 }]);
-
-    mockSelectChainOnce<any>([]);
-
-    const res = await hasUserSubmitted({ params: { id: 1 } });
-
-    expect(res).toBe(false);
-  });
-
-  it("returns true if userCode exists", async () => {
-    getServerSessionMock.mockResolvedValueOnce({ user: { id: "u1" } });
-
-    mockSelectChainOnce([{ id: 1 }]);
-
-    mockSelectChainOnce([{ id: 99 }]);
-
-    const res = await hasUserSubmitted({ params: { id: 1 } });
-
-    expect(res).toBe(true);
   });
 });

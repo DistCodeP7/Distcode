@@ -276,31 +276,6 @@ export async function resetCode({ params }: { params: { id: number } }) {
   return { success: true, message: "Code reset successfully." };
 }
 
-export async function hasUserSubmitted({ params }: { params: { id: number } }) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) return false;
-
-  const problem = await db
-    .select()
-    .from(problems)
-    .where(eq(problems.id, params.id))
-    .limit(1);
-
-  if (!problem.length) return false;
-
-  const UserCode = await db
-    .select()
-    .from(userCode)
-    .where(
-      and(
-        eq(userCode.userId, session.user.id),
-        eq(userCode.problemId, params.id)
-      )
-    )
-    .limit(1);
-  return UserCode.length > 0;
-}
-
 async function checkUserCode(submissionCode: Filemap) {
   const errors: string[] = [];
   Object.values(submissionCode).forEach((code: string, _) => {
