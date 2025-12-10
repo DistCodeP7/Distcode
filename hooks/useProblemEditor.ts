@@ -112,16 +112,17 @@ export const useProblemEditor = (
         return prev;
       }
 
-      const isFullPath = filePath.includes("/");
-      let fullPath = filePath;
-      if (!isFullPath) {
-        const namePart = filePath.startsWith("/")
-          ? filePath.slice(1)
-          : filePath;
-        const withExt = namePart.includes(".") ? namePart : `${namePart}.go`;
-        fullPath = `/${withExt}`;
-      } else if (!filePath.includes(".")) {
-        fullPath = `${filePath}.go`;
+      // Normalize and validate path: strip leading '/', ensure extension, and enforce allowed prefixes
+      const raw = filePath.startsWith("/") ? filePath.slice(1) : filePath;
+      let fullPath = raw;
+      if (!raw.includes(".")) {
+        fullPath = `${raw}.go`;
+      }
+
+      const allowedPrefixes = ["student/", "test/", "shared/"];
+      if (!allowedPrefixes.some((p) => fullPath.startsWith(p))) {
+        toast.error("Create files only inside student/, test/, or shared/.");
+        return prev;
       }
       let defaultContent = "";
 
