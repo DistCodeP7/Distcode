@@ -24,7 +24,7 @@ const FooterNav = ({ step, onNext, onPrev, onSubmit }: FooterNavProps) => (
       </Button>
     ) : (
       <Button onClick={onSubmit} size="lg" className="gap-2">
-        <CheckCircle2 size={16} /> Submit Challenge
+        <CheckCircle2 size={16} /> Submit Exercise
       </Button>
     )}
   </div>

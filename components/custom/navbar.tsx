@@ -9,7 +9,7 @@ export async function Navbar() {
   const navLinks = [
     { href: "#", label: "Features" },
     { href: "/exercises", label: "Exercises" },
-    { href: "/authorized", label: "Create Problem" },
+    { href: "/authorized", label: "Create New Exercise" },
     { href: "/authorized/diagram", label: "Diagram" },
   ];
 

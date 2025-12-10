@@ -76,7 +76,7 @@ export default function ProblemEditorClient({
         className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
       >
         <Send className="w-4 h-4" />
-        {problemId ? "Update Problem" : "Create Problem"}
+        {problemId ? "Update Exercise" : "Create Exercise"}
       </Button>
     </div>
   );

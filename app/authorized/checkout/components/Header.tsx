@@ -12,7 +12,7 @@ const Header = ({
   <div className="flex flex-col lg:flex-row justify-between md:items-center gap-4 my-6">
     <div className="space-y-1">
       <h1 className="text-3xl font-bold tracking-tight text-foreground text-center lg:text-left">
-        Create Challenge
+        Configure Exercise
       </h1>
       <p className="text-muted-foreground text-center lg:text-left">
         Configure the environment details and containers.
