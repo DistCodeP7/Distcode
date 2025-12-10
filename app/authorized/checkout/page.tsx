@@ -4,12 +4,9 @@ import type {
   CheckoutFormState,
   Difficulty,
   Env,
+  SearchParams,
 } from "../../../types/challenge";
 import ClientCreateChallenge from "./ClientCreateChallenge";
-
-type SearchParams = {
-  searchParams: Promise<{ id: string }>;
-};
 
 export default async function Page({ searchParams }: SearchParams) {
   const resolved = await searchParams;

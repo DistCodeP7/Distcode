@@ -1,3 +1,4 @@
+import { Filemap } from "@/types/actionTypes";
 import { LogEventPayload, Outcome, TestResult } from "@/types/streamingEvents";
 import {
   bigint,
@@ -32,8 +33,6 @@ export const NewUserSchema = createInsertSchema(users).omit({ id: true });
 export type TUser = zod.infer<typeof UsersSchema>;
 
 
-export type Paths = { [key: string]: string };
-
   type newReplicaConfig = {
     alias: string;
     envs: newEnv[];
@@ -49,10 +48,10 @@ export const problems = pgTable(
       .notNull()
       .references(() => users.userid, { onDelete: "cascade" }),
     problemMarkdown: text("problem_markdown").notNull(),
-    studentCode: json("student_code").$type<Paths>().notNull(),
+    studentCode: json("student_code").$type<Filemap>().notNull(),
     solutionCode: text("solution_code").notNull(),
-    protocolCode: json("protocol_code").$type<Paths>().notNull(),
-    testCode: json("test_code").$type<Paths>().notNull(),
+    protocolCode: json("protocol_code").$type<Filemap>().notNull(),
+    testCode: json("test_code").$type<Filemap>().notNull(),
     isPublished: boolean("is_published").default(true).notNull(),
     title: varchar("title", { length: 255 }).notNull(),
     description: text("description").notNull(),
@@ -88,7 +87,7 @@ export const userCode = pgTable("userCode", {
     problemId: integer("problem_id")
         .notNull()
         .references(() => problems.id, { onDelete: "cascade" }),
-    codeSubmitted: json("code_submitted").$type<Paths>().notNull(),
+    codeSubmitted: json("code_submitted").$type<Filemap>().notNull(),
 });
 
 export const UserCodeSchema = createSelectSchema(userCode);

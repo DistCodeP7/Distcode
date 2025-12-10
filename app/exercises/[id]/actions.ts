@@ -8,10 +8,13 @@ import { job_results, problems, userCode } from "@/drizzle/schema";
 import { db } from "@/lib/db";
 import { MQJobsCanceller, MQJobsSender, ready } from "@/lib/mq";
 import { getUserById } from "@/lib/user";
-
-export type Filemap = {
-  [key: string]: string;
-};
+import type {
+  ContainerConfigs,
+  Filemap,
+  fullPayload,
+  SubmissionConfig,
+  TestContainerConfig,
+} from "@/types/actionTypes";
 
 export async function getExercise({ params }: { params: { id: number } }) {
   const id = Number(params.id);
@@ -40,41 +43,6 @@ export async function submitCode(
   submissionCode: Filemap,
   { params }: { params: { id: number } }
 ) {
-  type fullPayload = {
-    jobUid: string;
-    nodes: ContainerConfigs;
-    userId: string;
-    timeout: number;
-  };
-
-  type ContainerConfigs = {
-    testContainer: TestContainerConfig;
-    submission: SubmissionConfig;
-  };
-
-  type SubmissionConfig = {
-    submissionCode: Filemap;
-    buildCommand: string;
-    entryCommand: string;
-    globalEnvs: newEnv[];
-    replicaConfigs: newReplicaConfig[];
-  };
-
-  type TestContainerConfig = {
-    alias: string;
-    testFiles: Filemap;
-    buildCommand: string;
-    entryCommand: string;
-    envs: newEnv[];
-  };
-
-  type newReplicaConfig = {
-    alias: string;
-    envs: newEnv[];
-  };
-
-  type newEnv = { key: string; value: string };
-
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { error: "Unauthorized", status: 401 };
 

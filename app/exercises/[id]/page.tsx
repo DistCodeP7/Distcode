@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import ExerciseEditor from "@/app/exercises/[id]/components/exerciseEditor";
-import type { Paths } from "@/drizzle/schema";
+import type { Filemap } from "@/types/actionTypes";
 import { getExercise, loadSavedCode } from "./actions";
 
 export default async function ExercisePage({
@@ -18,7 +18,7 @@ export default async function ExercisePage({
   }
 
   const session = await getServerSession(authOptions);
-  let savedCode: Paths | null = null;
+  let savedCode: Filemap | null = null;
 
   if (session?.user?.id) {
     const saved = await loadSavedCode({ params: { id: exerciseParams.id } });

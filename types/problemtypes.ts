@@ -1,14 +1,14 @@
-import type { Paths } from "@/drizzle/schema";
+import type { Filemap } from "./actionTypes";
 
 type NewEnv = { key: string; value: string };
 type NewReplicaConfig = { alias: string; envs: NewEnv[] };
 export type NewProblem = {
   userId: string;
   problemMarkdown: string;
-  studentCode: Paths;
+  studentCode: Filemap;
   solutionCode: string;
-  protocolCode: Paths;
-  testCode: Paths;
+  protocolCode: Filemap;
+  testCode: Filemap;
   isPublished?: boolean;
   title: string;
   description: string;
@@ -31,9 +31,9 @@ export type ActionResult =
 export type SaveProblemParams = {
   id?: number;
   problemMarkdown: string;
-  studentCode: Paths;
+  studentCode: Filemap;
   solutionCode: string;
-  testCode: Paths;
-  protocolCode: Paths;
+  testCode: Filemap;
+  protocolCode: Filemap;
   isPublished?: boolean;
 };

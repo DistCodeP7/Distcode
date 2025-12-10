@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { saveProblem } from "@/app/authorized/[id]/problemActions";
 import { defaultMain } from "@/default_files/defaultMain";
 import { defaultTest } from "@/default_files/defaultTest";
-import type { Paths } from "@/drizzle/schema";
+import type { Filemap } from "@/types/actionTypes";
 
 const getInitialContent = (path: string): string => {
   if (
@@ -45,15 +45,15 @@ type ActionResult =
   | { success: false; error?: string; status?: number };
 
 type ProblemEditorState = {
-  filesContent: Paths;
+  filesContent: Filemap;
   activeFile: string;
   isSubmitting: boolean;
 };
 
 export const useProblemEditor = (
-  files: Paths,
+  files: Filemap,
   initial?: {
-    filesContent?: Paths;
+    filesContent?: Filemap;
     problemId?: number;
   }
 ) => {
@@ -65,7 +65,7 @@ export const useProblemEditor = (
       : Object.keys(files).reduce((acc, key) => {
           acc[key] = files[key] ?? getInitialContent(key);
           return acc;
-        }, {} as Paths);
+        }, {} as Filemap);
 
     return {
       filesContent,
@@ -85,7 +85,7 @@ export const useProblemEditor = (
         acc[key] =
           prev.filesContent[key] ?? files[key] ?? getInitialContent(key);
         return acc;
-      }, {} as Paths);
+      }, {} as Filemap);
       return { ...prev, filesContent: newFilesContent };
     });
   };
@@ -216,7 +216,7 @@ export const useProblemEditor = (
       const studentFilesMap = studentFiles.reduce((acc, k) => {
         acc[k] = state.filesContent[k] || "";
         return acc;
-      }, {} as Paths);
+      }, {} as Filemap);
       const solutionCode =
         solutionFiles.length > 0
           ? state.filesContent[solutionFiles[0]] || ""
@@ -227,13 +227,13 @@ export const useProblemEditor = (
       const testFilesMap = testFiles.reduce((acc, k) => {
         acc[k] = state.filesContent[k] || "";
         return acc;
-      }, {} as Paths);
+      }, {} as Filemap);
 
       const protocolCode = keys.filter((k) => k.startsWith("shared"));
       const protoFilesMap = protocolCode.reduce((acc, k) => {
         acc[k] = state.filesContent[k] || "";
         return acc;
-      }, {} as Paths);
+      }, {} as Filemap);
 
       if (!studentFiles.length || studentCode.some((c) => !c.trim()))
         missingFields.push("Student code");

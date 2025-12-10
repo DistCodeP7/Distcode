@@ -1,10 +1,10 @@
-import type { Paths } from "@/drizzle/schema";
+import type { Filemap } from "./actionTypes";
 
 export type Env = { key: string; value: string; id: string };
 
 export type TestContainerConfig = {
   alias: string;
-  testFiles: Paths;
+  testFiles: Filemap;
   buildCommand: string;
   entryCommand: string;
   envs: Env[];

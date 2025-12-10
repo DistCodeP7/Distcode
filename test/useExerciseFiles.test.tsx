@@ -2,7 +2,7 @@ import { act, renderHook } from "@testing-library/react";
 import { toast } from "sonner";
 import { resetCode, saveCode } from "@/app/exercises/[id]/actions";
 import { useExerciseFiles } from "@/app/exercises/[id]/components/useExerciseFiles";
-import type { Paths } from "@/drizzle/schema";
+import type { Filemap } from "@/types/actionTypes";
 
 // --- Mock server actions ---
 jest.mock("@/app/exercises/[id]/actions", () => ({
@@ -22,12 +22,12 @@ type SaveCodeResult = Awaited<ReturnType<typeof saveCode>>;
 type ResetCodeResult = Awaited<ReturnType<typeof resetCode>>;
 
 describe("useExerciseFiles", () => {
-  const baseInitialContents: Paths = {
+  const baseInitialContents: Filemap = {
     "student/main.go": "// main template",
     "student/helper.go": "// helper",
   };
 
-  const baseStudentCode: Paths = {
+  const baseStudentCode: Filemap = {
     "student/main.go": "// student main",
     "student/extra.go": "// extra",
   };
@@ -53,9 +53,9 @@ describe("useExerciseFiles", () => {
   it("initialises with given contents and order", () => {
     const { result } = renderHook(() => useExerciseFiles(defaultArgs));
 
-    expect(result.current.fileContents).toEqual(baseInitialContents);
-    expect(result.current.fileOrder).toEqual(Object.keys(baseInitialContents));
-    expect(result.current.activeFile).toBe("student/main.go");
+    expect(result.current.file.content).toEqual(baseInitialContents);
+    expect(result.current.file.order).toEqual(Object.keys(baseInitialContents));
+    expect(result.current.file.active).toBe("student/main.go");
   });
 
   it("creates a new .go file and sets it active", () => {
@@ -65,16 +65,16 @@ describe("useExerciseFiles", () => {
       result.current.onCreateFile("foo"); // no extension
     });
 
-    expect(result.current.fileContents["student/foo.go"]).toBe(
+    expect(result.current.file.content["student/foo.go"]).toBe(
       "// New file: foo.go"
     );
-    expect(result.current.fileOrder).toContain("student/foo.go");
-    expect(result.current.activeFile).toBe("student/foo.go");
+    expect(result.current.file.order).toContain("student/foo.go");
+    expect(result.current.file.active).toBe("student/foo.go");
   });
 
   it("prevents creating main.go and shows an error toast", () => {
     const { result } = renderHook(() => useExerciseFiles(defaultArgs));
-    const initialLength = result.current.fileOrder.length;
+    const initialLength = result.current.file.order.length;
 
     act(() => {
       result.current.onCreateFile("main.go");
@@ -83,27 +83,30 @@ describe("useExerciseFiles", () => {
     expect(toastError()).toHaveBeenCalledWith(
       "Cannot create a file named main.go"
     );
-    expect(result.current.fileOrder.length).toBe(initialLength);
+    expect(result.current.file.order.length).toBe(initialLength);
   });
 
   it("deletes a non-main file and updates activeFile correctly", () => {
     const { result } = renderHook(() => useExerciseFiles(defaultArgs));
 
     act(() => {
-      result.current.setActiveFile("student/helper.go");
+      result.current.setFile((prev) => ({
+        ...prev,
+        active: "student/helper.go",
+      }));
     });
 
     act(() => {
       result.current.onDeleteFile("student/helper.go");
     });
 
-    expect(result.current.fileOrder).not.toContain("student/helper.go");
-    expect(result.current.activeFile).toBe("student/main.go");
+    expect(result.current.file.order).not.toContain("student/helper.go");
+    expect(result.current.file.active).toBe("student/main.go");
   });
 
   it("prevents deleting student/main.go and shows error toast", () => {
     const { result } = renderHook(() => useExerciseFiles(defaultArgs));
-    const initialOrder = result.current.fileOrder.slice();
+    const initialOrder = result.current.file.order.slice();
 
     act(() => {
       result.current.onDeleteFile("student/main.go");
@@ -112,7 +115,7 @@ describe("useExerciseFiles", () => {
     expect(toastError()).toHaveBeenCalledWith(
       "Cannot delete the main.go file."
     );
-    expect(result.current.fileOrder).toEqual(initialOrder);
+    expect(result.current.file.order).toEqual(initialOrder);
   });
 
   it("calls onBeforeSave before saving and shows success toast on success", async () => {
@@ -140,7 +143,7 @@ describe("useExerciseFiles", () => {
 
     const [saveMap, options] = saveCodeMock().mock.calls[0];
 
-    expect(saveMap).toEqual(result.current.fileContents);
+    expect(saveMap).toEqual(result.current.file.content);
     expect(options).toEqual({ params: { id: defaultArgs.exerciseId } });
 
     expect(toastSuccess()).toHaveBeenCalledWith("Code saved successfully!");
@@ -172,7 +175,7 @@ describe("useExerciseFiles", () => {
 
     const { result } = renderHook(() => useExerciseFiles(defaultArgs));
 
-    expect(result.current.fileContents).toEqual(baseInitialContents);
+    expect(result.current.file.content).toEqual(baseInitialContents);
 
     await act(async () => {
       await result.current.confirmReset();
@@ -182,8 +185,8 @@ describe("useExerciseFiles", () => {
       params: { id: defaultArgs.exerciseId },
     });
 
-    expect(result.current.fileContents).toEqual(baseStudentCode);
-    expect(result.current.fileOrder).toEqual(Object.keys(baseStudentCode));
+    expect(result.current.file.content).toEqual(baseStudentCode);
+    expect(result.current.file.order).toEqual(Object.keys(baseStudentCode));
 
     expect(toastSuccess()).toHaveBeenCalledWith("Code reset successfully!", {
       description: "Template restored and saved code cleared.",
@@ -216,7 +219,7 @@ describe("useExerciseFiles", () => {
       result.current.setEditorContent("// updated content");
     });
 
-    expect(result.current.fileContents["student/main.go"]).toBe(
+    expect(result.current.file.content["student/main.go"]).toBe(
       "// updated content"
     );
   });

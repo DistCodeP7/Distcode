@@ -3,13 +3,18 @@
 import { type SetStateAction, useState } from "react";
 import { toast } from "sonner";
 import { resetCode, saveCode } from "@/app/exercises/[id]/actions";
-import type { Paths } from "@/drizzle/schema";
+import type { Filemap } from "@/types/actionTypes";
+import type { UseExerciseFilesArgs } from "./editorProps";
 
-type UseExerciseFilesArgs = {
-  exerciseId: number;
-  initialContents: Paths;
-  studentCode: Paths;
-  onBeforeSave?: () => void;
+type File = {
+  content: Filemap;
+  order: string[];
+  active: string;
+};
+
+type Reset = {
+  resetting: boolean;
+  showResetDialog: boolean;
 };
 
 export function useExerciseFiles({
@@ -20,12 +25,16 @@ export function useExerciseFiles({
 }: UseExerciseFilesArgs) {
   const initialOrder = Object.keys(initialContents);
 
-  const [fileContents, setFileContents] = useState<Paths>(initialContents);
-  const [fileOrder, setFileOrder] = useState<string[]>(initialOrder);
-  const [activeFile, setActiveFile] = useState<string>(initialOrder[0] || "");
-  const [resetting, setResetting] = useState(false);
-  const [showResetDialog, setShowResetDialog] = useState(false);
+  const [file, setFile] = useState<File>({
+    content: initialContents,
+    order: initialOrder,
+    active: initialOrder[0] || "",
+  });
 
+  const [reset, setReset] = useState<Reset>({
+    resetting: false,
+    showResetDialog: false,
+  });
   const onCreateFile = (filename: string, parentPath = "student") => {
     if (filename.includes("main.go")) {
       toast.error("Cannot create a file named main.go");
@@ -36,16 +45,15 @@ export function useExerciseFiles({
     const withExt = namePart.includes(".") ? namePart : `${namePart}.go`;
     const fullPath = `${parentPath}/${withExt}`;
 
-    setFileContents((prev) => ({
+    setFile((prev) => ({
       ...prev,
-      [fullPath]: `// New file: ${withExt}`,
+      content: {
+        ...prev.content,
+        [fullPath]: `// New file: ${withExt}`,
+      },
+      order: [...prev.order, fullPath],
+      active: fullPath,
     }));
-
-    setFileOrder((prev) => {
-      const newOrder = [...prev, fullPath];
-      setActiveFile(fullPath);
-      return newOrder;
-    });
   };
 
   const onDeleteFile = (path: string) => {
@@ -54,27 +62,33 @@ export function useExerciseFiles({
       return;
     }
 
-    const newOrder = fileOrder.filter((p) => p !== path);
-    setFileOrder(newOrder);
-    setFileContents((prev) => {
-      const copy = { ...prev };
-      delete copy[path];
-      return copy;
-    });
+    setFile((prev) => {
+      const newOrder = prev.order.filter((p) => p !== path);
+      const newContent = { ...prev.content };
+      delete newContent[path];
 
-    if (activeFile === path) {
-      const index = fileOrder.indexOf(path);
-      const newIndex = Math.max(0, index - 1);
-      setActiveFile(newOrder[newIndex] || "");
-    }
+      let newActive = prev.active;
+      if (prev.active === path) {
+        const index = prev.order.indexOf(path);
+        const newIndex = Math.max(0, index - 1);
+        newActive = newOrder[newIndex] || "";
+      }
+
+      return {
+        ...prev,
+        content: newContent,
+        order: newOrder,
+        active: newActive,
+      };
+    });
   };
 
   const onSave = async () => {
     if (onBeforeSave) onBeforeSave();
 
-    const saveMap: Paths = {};
-    fileOrder.forEach((p) => {
-      saveMap[p] = fileContents[p] ?? "";
+    const saveMap: Filemap = {};
+    file.order.forEach((p) => {
+      saveMap[p] = file.content[p] ?? "";
     });
 
     const result = await saveCode(saveMap, { params: { id: exerciseId } });
@@ -85,16 +99,20 @@ export function useExerciseFiles({
     }
   };
 
-  const onReset = () => setShowResetDialog(true);
+  const onReset = () =>
+    setReset((prev) => ({ ...prev, showResetDialog: true }));
 
   const confirmReset = async () => {
-    setShowResetDialog(false);
-    setResetting(true);
+    setReset((prev) => ({ ...prev, showResetDialog: false, resetting: true }));
     try {
       const result = await resetCode({ params: { id: exerciseId } });
       if (result.success) {
-        setFileContents({ ...studentCode });
-        setFileOrder(Object.keys(studentCode));
+        const newOrder = Object.keys(studentCode);
+        setFile({
+          content: { ...studentCode },
+          order: newOrder,
+          active: newOrder[0] || "",
+        });
         toast.success("Code reset successfully!", {
           description: "Template restored and saved code cleared.",
         });
@@ -106,28 +124,28 @@ export function useExerciseFiles({
     } catch (err) {
       toast.error("Error resetting code", { description: String(err) });
     } finally {
-      setResetting(false);
+      setReset((prev) => ({ ...prev, resetting: false }));
     }
   };
 
   function setEditorContent(value: SetStateAction<string>): void {
-    if (resetting) return;
-    setFileContents((prev) => {
-      const currentPath = activeFile;
-      const currentVal = prev[currentPath] ?? "";
+    if (reset.resetting) return;
+    setFile((prev) => {
+      const currentPath = prev.active;
+      const currentVal = prev.content[currentPath] ?? "";
       const newVal = typeof value === "function" ? value(currentVal) : value;
-      return { ...prev, [currentPath]: newVal };
+      return {
+        ...prev,
+        content: { ...prev.content, [currentPath]: newVal },
+      };
     });
   }
 
   return {
-    fileContents,
-    fileOrder,
-    activeFile,
-    setActiveFile,
-    resetting,
-    showResetDialog,
-    setShowResetDialog,
+    file,
+    setFile,
+    reset,
+    setReset,
     onCreateFile,
     onDeleteFile,
     onSave,

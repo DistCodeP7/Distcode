@@ -1,9 +1,6 @@
 "use client";
 
-import type React from "react";
-import type { SetStateAction } from "react";
-import type { ImperativePanelHandle } from "react-resizable-panels";
-// 1. Import the type
+import type { EditorWithTerminalPanelProps } from "@/app/exercises/[id]/components/editorProps";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import { TerminalOutput } from "@/components/custom/terminal/terminalOutput";
 import {
@@ -11,18 +8,6 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import type { Paths } from "@/drizzle/schema";
-import type { StreamingJobEvent } from "@/types/streamingEvents";
-
-type EditorWithTerminalPanelProps = {
-  activeFile: string;
-  fileContents: Paths;
-  resetting: boolean;
-  setEditorContent: (value: SetStateAction<string>) => void;
-  messages: StreamingJobEvent[];
-  actions: React.ReactNode;
-  terminalPanelRef: React.RefObject<ImperativePanelHandle | null>;
-};
 
 export function EditorWithTerminalPanel({
   activeFile,

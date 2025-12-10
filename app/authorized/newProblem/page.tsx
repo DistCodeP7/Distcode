@@ -4,10 +4,10 @@ import { defaultProblem } from "@/default_files/defaultProblem";
 import { defaultProtocol } from "@/default_files/defaultProtocol";
 import { defaultSolution } from "@/default_files/defaultSolution";
 import { defaultTest } from "@/default_files/defaultTest";
-import type { Paths } from "@/drizzle/schema";
+import type { Filemap } from "@/types/actionTypes";
 
 export default function NewProblemPage() {
-  const files: Paths = {
+  const files: Filemap = {
     "problem.md": defaultProblem,
     "student/main.go": defaultMain,
     "solution.md": defaultSolution,

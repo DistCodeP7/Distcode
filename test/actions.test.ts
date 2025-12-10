@@ -1,5 +1,4 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: <Mock files have any type> */
-import type { Filemap } from "@/app/exercises/[id]/actions";
 
 // --- Shared mocks ---------------------------------------------------------
 
@@ -89,6 +88,7 @@ let submitCode: any;
 let db: any;
 
 import { job_results, userCode } from "@/drizzle/schema";
+import type { Filemap } from "@/types/actionTypes";
 
 // --- Helper utilities -----------------------------------------------------
 

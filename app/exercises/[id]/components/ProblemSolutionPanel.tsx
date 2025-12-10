@@ -5,17 +5,7 @@ import { useState } from "react";
 import { ConfirmDialog } from "@/components/custom/confirmDialog";
 import MarkdownPreview from "@/components/custom/markdown-preview";
 import { Button } from "@/components/ui/button";
-
-type SolutionFile = {
-  name: string;
-  content: string;
-};
-
-type ProblemSolutionPanelProps = {
-  problemMarkdown: string;
-  protocolCode: string;
-  solutionFiles: SolutionFile[];
-};
+import type { ProblemSolutionPanelProps } from "./editorProps";
 
 function appendProtoToMarkdown(markdown: string, protoCode: string) {
   return `${markdown}
@@ -28,37 +18,58 @@ ${protoCode}
 `;
 }
 
+type Solution = {
+  solutionFile: number;
+  solutionDialog: boolean;
+  solutionConfirmed: boolean;
+  leftViewingFile: "problem" | "solution";
+};
+
 export function ProblemSolutionPanel({
   problemMarkdown,
   protocolCode,
   solutionFiles,
 }: ProblemSolutionPanelProps) {
-  const [leftPanelView, setLeftPanelView] = useState<"problem" | "solution">(
-    "problem"
-  );
-  const [activeSolutionFile, setActiveSolutionFile] = useState(0);
-  const [showSolutionDialog, setShowSolutionDialog] = useState(false);
-  const [solutionDialogConfirmed, setSolutionDialogConfirmed] = useState(false);
+  const [solution, setSolution] = useState<Solution>({
+    solutionFile: 0,
+    solutionDialog: false,
+    solutionConfirmed: false,
+    leftViewingFile: "problem",
+  });
 
   const handleSolutionClick = () => {
-    if (solutionDialogConfirmed) {
-      setLeftPanelView("solution");
+    if (solution.solutionConfirmed) {
+      setSolution((prev) => ({
+        ...prev,
+        leftViewingFile: "solution",
+      }));
     } else {
-      setShowSolutionDialog(true);
+      setSolution((prev) => ({
+        ...prev,
+        solutionDialog: true,
+      }));
     }
   };
 
   const confirmSolution = () => {
-    setSolutionDialogConfirmed(true);
-    setShowSolutionDialog(false);
-    setLeftPanelView("solution");
+    setSolution((prev) => ({
+      ...prev,
+      solutionDialog: false,
+      solutionConfirmed: true,
+      leftViewingFile: "solution",
+    }));
   };
 
   return (
     <>
       <ConfirmDialog
-        open={showSolutionDialog}
-        onOpenChange={setShowSolutionDialog}
+        open={solution.solutionDialog}
+        onOpenChange={(value) =>
+          setSolution((prev) => ({
+            ...prev,
+            solutionDialog: value,
+          }))
+        }
         title="View Solution?"
         description="Are you sure you want to view the solution? This will show you the complete answer to the problem."
         confirmLabel="View Solution"
@@ -69,9 +80,16 @@ export function ProblemSolutionPanel({
         {/* Toggle buttons */}
         <div className="flex border-b bg-background">
           <Button
-            variant={leftPanelView === "problem" ? "default" : "ghost"}
+            variant={
+              solution.leftViewingFile === "problem" ? "default" : "ghost"
+            }
             size="sm"
-            onClick={() => setLeftPanelView("problem")}
+            onClick={() =>
+              setSolution((prev) => ({
+                ...prev,
+                leftViewingFile: "problem",
+              }))
+            }
             className="rounded-none border-r"
           >
             <BookOpen className="w-4 h-4 mr-2 hover:cursor-pointer" />
@@ -80,7 +98,9 @@ export function ProblemSolutionPanel({
 
           {solutionFiles.length > 0 && (
             <Button
-              variant={leftPanelView === "solution" ? "default" : "ghost"}
+              variant={
+                solution.leftViewingFile === "solution" ? "default" : "ghost"
+              }
               size="sm"
               onClick={handleSolutionClick}
               className="rounded-none hover:cursor-pointer"
@@ -92,7 +112,7 @@ export function ProblemSolutionPanel({
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          {leftPanelView === "problem" ? (
+          {solution.leftViewingFile === "problem" ? (
             <MarkdownPreview
               content={appendProtoToMarkdown(problemMarkdown, protocolCode)}
             />
@@ -104,10 +124,15 @@ export function ProblemSolutionPanel({
                     <Button
                       key={file.name}
                       variant={
-                        activeSolutionFile === index ? "default" : "ghost"
+                        solution.solutionFile === index ? "default" : "ghost"
                       }
                       size="sm"
-                      onClick={() => setActiveSolutionFile(index)}
+                      onClick={() =>
+                        setSolution({
+                          ...solution,
+                          solutionFile: index,
+                        })
+                      }
                       className="rounded-none border-r"
                     >
                       {file.name}
@@ -117,7 +142,7 @@ export function ProblemSolutionPanel({
               )}
               <div className="flex-1">
                 <MarkdownPreview
-                  content={solutionFiles[activeSolutionFile]?.content || ""}
+                  content={solutionFiles[solution.solutionFile]?.content || ""}
                 />
               </div>
             </div>

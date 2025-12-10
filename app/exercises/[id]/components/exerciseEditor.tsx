@@ -3,7 +3,6 @@
 import { useRef, useState } from "react";
 import type { ImperativePanelHandle } from "react-resizable-panels";
 import { toast } from "sonner";
-import type { Filemap } from "@/app/exercises/[id]/actions";
 import { cancelJobRequest, submitCode } from "@/app/exercises/[id]/actions";
 import { ConfirmDialog } from "@/components/custom/confirmDialog";
 import { FolderSystem } from "@/components/custom/folder-system/folderSystem";
@@ -12,35 +11,24 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import type { Paths } from "@/drizzle/schema";
 import { useSSE } from "@/hooks/useSSE";
+import type { Filemap } from "@/types/actionTypes";
 import type { StreamingJobEvent } from "@/types/streamingEvents";
 import { EditorActions } from "./EditorActions";
 import { EditorWithTerminalPanel } from "./EditorWithTerminalPanel";
+import type { ExerciseEditorProps } from "./editorProps";
 import { ProblemSolutionPanel } from "./ProblemSolutionPanel";
 import { useExerciseFiles } from "./useExerciseFiles";
-
-type ExerciseEditorProps = {
-  exerciseId: number;
-  problemMarkdown: string;
-  studentCode: Paths;
-  solutionCode: string;
-  protocalCode: string;
-  testCasesCode: Paths;
-  savedCode?: Paths | null;
-  canRate?: boolean;
-};
 
 export default function ExerciseEditor({
   exerciseId,
   problemMarkdown,
   studentCode,
-  testCasesCode,
   solutionCode,
   protocalCode,
   savedCode,
 }: ExerciseEditorProps) {
-  const initialContents: Paths = savedCode ?? studentCode;
+  const initialContents: Filemap = savedCode ?? studentCode;
   const terminalRef = useRef<ImperativePanelHandle | null>(null);
 
   const { messages, connect, clearMessages } =
@@ -49,13 +37,10 @@ export default function ExerciseEditor({
   const [currentJobUid, setCurrentJobUid] = useState<string | null>(null);
 
   const {
-    fileContents,
-    fileOrder,
-    activeFile,
-    setActiveFile,
-    resetting,
-    showResetDialog,
-    setShowResetDialog,
+    file,
+    setFile,
+    reset,
+    setReset,
     onCreateFile,
     onDeleteFile,
     onSave,
@@ -72,13 +57,6 @@ export default function ExerciseEditor({
     ? [{ name: "main.go", content: solutionCode }]
     : [];
 
-  const allOtherFiles: Filemap = {
-    ...testCasesCode,
-    "/protocol/protocol.go": protocalCode,
-  };
-
-  // Job is considered "active" while we have a job UID
-  // and NO result event has appeared in the stream yet.
   const hasActiveJob =
     !!currentJobUid && !messages.some((msg) => msg.type === "result");
 
@@ -86,14 +64,9 @@ export default function ExerciseEditor({
     clearMessages();
     connect();
 
-    const _allFiles: Filemap = { ...allOtherFiles };
-    fileOrder.forEach((path) => {
-      _allFiles[path] = fileContents[path];
-    });
-
     const problemContentMap: Filemap = {};
-    fileOrder.forEach((p) => {
-      problemContentMap[p] = fileContents[p] ?? "";
+    file.order.forEach((p) => {
+      problemContentMap[p] = file.content[p] ?? "";
     });
 
     const result = await submitCode(problemContentMap, {
@@ -122,15 +95,17 @@ export default function ExerciseEditor({
       onCancelTests={handleCancelTests}
       onReset={onReset}
       hasActiveJob={hasActiveJob}
-      resetting={resetting}
+      resetting={reset.resetting}
     />
   );
 
   return (
     <>
       <ConfirmDialog
-        open={showResetDialog}
-        onOpenChange={setShowResetDialog}
+        open={reset.showResetDialog}
+        onOpenChange={(open) =>
+          setReset((prev) => ({ ...prev, showResetDialog: open }))
+        }
         title="Reset Code?"
         description="Are you sure you want to reset your code? This will remove your saved progress and restore the original template."
         confirmLabel="Reset"
@@ -145,9 +120,11 @@ export default function ExerciseEditor({
         <ResizablePanel minSize={4} maxSize={20} defaultSize={15} collapsible>
           <div className="flex flex-col h-full overflow-auto">
             <FolderSystem
-              files={fileContents}
+              files={file.content}
               sections={["student"]}
-              onFileChange={setActiveFile}
+              onFileChange={(path) =>
+                setFile((prev) => ({ ...prev, active: path }))
+              }
               onCreateFile={onCreateFile}
               onDeleteFile={onDeleteFile}
             />
@@ -176,9 +153,9 @@ export default function ExerciseEditor({
         <ResizablePanel minSize={30} defaultSize={50} collapsible>
           <EditorWithTerminalPanel
             terminalPanelRef={terminalRef}
-            activeFile={activeFile}
-            fileContents={fileContents}
-            resetting={resetting}
+            activeFile={file.active}
+            fileContents={file.content}
+            resetting={reset.resetting}
             setEditorContent={setEditorContent}
             messages={messages}
             actions={editorActions}

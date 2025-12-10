@@ -4,8 +4,8 @@ import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import ProblemEditorClient from "@/components/custom/problemEditorClient";
-import type { Paths } from "@/drizzle/schema";
 import { db } from "@/lib/db";
+import type { Filemap } from "@/types/actionTypes";
 
 export default async function EditProblemPage({
   params,
@@ -22,11 +22,11 @@ export default async function EditProblemPage({
   });
   if (!exercise || exercise.userId !== session.user.id) return notFound();
 
-  const initialFilesContent: Paths = {
+  const initialFilesContent: Filemap = {
     "problem.md": exercise.problemMarkdown,
   };
 
-  function assignFilesContent(codes: Paths | undefined, target: Paths) {
+  function assignFilesContent(codes: Filemap | undefined, target: Filemap) {
     if (!codes) return;
     Object.entries(codes).forEach(([k, v]) => {
       target[k] = v as string;
