@@ -72,6 +72,20 @@ const StepOneDetails = ({ form, updateField }: StepOneDetailsProps) => {
             </SelectContent>
           </Select>
         </div>
+        <div className="grid gap-2">
+          <Label htmlFor="timeout">Timeout (in seconds)</Label>
+          <Input
+            id={useId()}
+            type="number"
+            min={10}
+            placeholder="e.g. 60"
+            value={form.timeout}
+            onChange={(e) =>
+              updateField("timeout", Number(e.target.value) || 0)
+            }
+            className="h-11 w-full md:w-[240px]"
+          />
+        </div>
       </div>
     </motion.div>
   );
