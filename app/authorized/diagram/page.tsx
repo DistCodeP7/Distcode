@@ -1,5 +1,15 @@
 "use client";
 
+import {
+  Activity,
+  ArrowRight,
+  Columns,
+  Moon,
+  RefreshCw,
+  Search,
+  Sun,
+} from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Plot from "@/components/custom/diagram/Plot";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,16 +36,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Activity,
-  ArrowRight,
-  Columns,
-  Moon,
-  RefreshCw,
-  Search,
-  Sun,
-} from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
 import { getTraceDataAction } from "./actions";
 
 // ==========================================
