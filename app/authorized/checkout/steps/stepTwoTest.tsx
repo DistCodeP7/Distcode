@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import * as motion from "motion/react-client";
 import { useId } from "react";
+import EnvList from "@/app/authorized/checkout/components/envList";
 import {
   Card,
   CardContent,
@@ -18,8 +19,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { TestContainerConfig } from "../../../../types/challenge";
-import EnvList from "../components/EnvList";
+import type { TestContainerConfig } from "@/types/challenge";
 
 const StepTwoTestEnv = ({
   base,

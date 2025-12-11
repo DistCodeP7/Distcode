@@ -2,10 +2,10 @@
 
 import { BookOpen, Code } from "lucide-react";
 import { useState } from "react";
+import type { ProblemSolutionPanelProps } from "@/app/exercises/[id]/components/editorProps";
 import { ConfirmDialog } from "@/components/custom/confirmDialog";
-import MarkdownPreview from "@/components/custom/markdown-preview";
+import MarkdownPreview from "@/components/custom/markdownPreview";
 import { Button } from "@/components/ui/button";
-import type { ProblemSolutionPanelProps } from "./editorProps";
 
 function appendProtoToMarkdown(markdown: string, protoCode: string) {
   return `${markdown}
@@ -19,7 +19,6 @@ ${protoCode}
 }
 
 type Solution = {
-  solutionFile: number;
   solutionDialog: boolean;
   solutionConfirmed: boolean;
   leftViewingFile: "problem" | "solution";
@@ -28,10 +27,9 @@ type Solution = {
 export function ProblemSolutionPanel({
   problemMarkdown,
   protocolCode,
-  solutionFiles,
+  solutionMarkdown,
 }: ProblemSolutionPanelProps) {
   const [solution, setSolution] = useState<Solution>({
-    solutionFile: 0,
     solutionDialog: false,
     solutionConfirmed: false,
     leftViewingFile: "problem",
@@ -39,15 +37,9 @@ export function ProblemSolutionPanel({
 
   const handleSolutionClick = () => {
     if (solution.solutionConfirmed) {
-      setSolution((prev) => ({
-        ...prev,
-        leftViewingFile: "solution",
-      }));
+      setSolution((prev) => ({ ...prev, leftViewingFile: "solution" }));
     } else {
-      setSolution((prev) => ({
-        ...prev,
-        solutionDialog: true,
-      }));
+      setSolution((prev) => ({ ...prev, solutionDialog: true }));
     }
   };
 
@@ -65,10 +57,7 @@ export function ProblemSolutionPanel({
       <ConfirmDialog
         open={solution.solutionDialog}
         onOpenChange={(value) =>
-          setSolution((prev) => ({
-            ...prev,
-            solutionDialog: value,
-          }))
+          setSolution((prev) => ({ ...prev, solutionDialog: value }))
         }
         title="View Solution?"
         description="Are you sure you want to view the solution? This will show you the complete answer to the problem."
@@ -85,10 +74,7 @@ export function ProblemSolutionPanel({
             }
             size="sm"
             onClick={() =>
-              setSolution((prev) => ({
-                ...prev,
-                leftViewingFile: "problem",
-              }))
+              setSolution((prev) => ({ ...prev, leftViewingFile: "problem" }))
             }
             className="rounded-none border-r"
           >
@@ -96,7 +82,7 @@ export function ProblemSolutionPanel({
             Problem
           </Button>
 
-          {solutionFiles.length > 0 && (
+          {solutionMarkdown && (
             <Button
               variant={
                 solution.leftViewingFile === "solution" ? "default" : "ghost"
@@ -117,35 +103,7 @@ export function ProblemSolutionPanel({
               content={appendProtoToMarkdown(problemMarkdown, protocolCode)}
             />
           ) : (
-            <div className="h-full flex flex-col">
-              {solutionFiles.length > 1 && (
-                <div className="flex border-b bg-muted">
-                  {solutionFiles.map((file, index) => (
-                    <Button
-                      key={file.name}
-                      variant={
-                        solution.solutionFile === index ? "default" : "ghost"
-                      }
-                      size="sm"
-                      onClick={() =>
-                        setSolution({
-                          ...solution,
-                          solutionFile: index,
-                        })
-                      }
-                      className="rounded-none border-r"
-                    >
-                      {file.name}
-                    </Button>
-                  ))}
-                </div>
-              )}
-              <div className="flex-1">
-                <MarkdownPreview
-                  content={solutionFiles[solution.solutionFile]?.content || ""}
-                />
-              </div>
-            </div>
+            solutionMarkdown && <MarkdownPreview content={solutionMarkdown} />
           )}
         </div>
       </div>

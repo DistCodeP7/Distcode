@@ -2,7 +2,8 @@ import { and, asc, eq } from "drizzle-orm";
 import { Calendar, Code2, Terminal, Trophy } from "lucide-react";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import NeonLines from "@/components/custom/NeonLine";
+import { SubmissionCard } from "@/app/authorized/profile/submissionCard";
+import NeonLines from "@/components/custom/neonLine";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Card,
@@ -14,7 +15,6 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { job_results, problems, users } from "@/drizzle/schema";
 import { db } from "@/lib/db";
-import { SubmissionCard } from "./SubmissionCard";
 
 const formatDate = (date: Date | null) => {
   if (!date) return "N/A";

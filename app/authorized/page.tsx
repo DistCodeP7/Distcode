@@ -3,7 +3,7 @@ import Link from "next/link";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { deleteProblemFromList } from "@/app/authorized/[id]/listActions";
-import NeonLines from "@/components/custom/NeonLine";
+import NeonLines from "@/components/custom/neonLine";
 import { Button } from "@/components/ui/button";
 import { getProblemsByUserId } from "@/lib/problems";
 

@@ -4,7 +4,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { toast } from "sonner";
-import useShortcut from "@/hooks/useShortcut";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +13,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
+} from "@/components/ui/dropdownMenu";
+import useShortcut from "@/hooks/useShortcut";
 
 export const AuthAvatar = ({ userAvatar }: { userAvatar: string }) => {
   const router = useRouter();

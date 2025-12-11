@@ -1,7 +1,7 @@
 import { Braces, Mountain } from "lucide-react";
 import * as motion from "motion/react-client";
 import Link from "next/link";
-import NeonLines from "@/components/custom/NeonLine";
+import NeonLines from "@/components/custom/neonLine";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {

@@ -6,12 +6,12 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { problems } from "@/drizzle/schema";
 import { db } from "@/lib/db";
 import { getUserById } from "@/lib/user";
-import type { CheckoutFormState } from "../../../types/challenge";
+import type { CheckoutFormState } from "@/types/challenge";
 import type {
   ActionResult,
   NewProblem,
   SaveProblemParams,
-} from "../../../types/problemtypes";
+} from "@/types/problemTypes";
 
 export async function saveProblem(data: SaveProblemParams) {
   const session = await getServerSession(authOptions);
@@ -26,7 +26,7 @@ export async function saveProblem(data: SaveProblemParams) {
       where: (s, { eq: _eq }) => _eq(s.id, id),
     });
     if (!existingProblem) {
-      return { success: false, error: "Problem not found", status: 404 };
+      return { success: false, error: "Exercise not found", status: 404 };
     }
     if (existingProblem.userId !== session.user.id) {
       return { success: false, error: "Forbidden", status: 403 };
@@ -37,7 +37,7 @@ export async function saveProblem(data: SaveProblemParams) {
   const fieldsToValidate = [
     { value: dataToValidate.problemMarkdown, name: "Problem markdown" },
     { value: dataToValidate.studentCode, name: "Student code" },
-    { value: dataToValidate.solutionCode, name: "Solution code" },
+    { value: dataToValidate.solutionMarkdown, name: "Solution markdown" },
     { value: dataToValidate.testCode, name: "Test code" },
   ];
 
@@ -87,7 +87,7 @@ export async function saveProblem(data: SaveProblemParams) {
           userId: session.user.id,
           problemMarkdown: problemData.problemMarkdown,
           studentCode: problemData.studentCode,
-          solutionCode: problemData.solutionCode,
+          solutionMarkdown: problemData.solutionMarkdown,
           protocolCode: problemData.protocolCode,
           testCode: problemData.testCode,
           isPublished: false,
@@ -100,7 +100,7 @@ export async function saveProblem(data: SaveProblemParams) {
           testEntryCommand: "./test_binary",
           testEnvs: [],
           submissionBuildCommand: "go build -o ./stud ./student/main.go",
-          submissionEntryCommand: "./stud",
+          submissionEntryCommand: "./wrapper -cmd ./stud",
           globalEnvs: [],
           replicaConfigs: [{ alias: "replica-1", envs: [] }],
           timeout: 60,
@@ -112,7 +112,7 @@ export async function saveProblem(data: SaveProblemParams) {
     return {
       success: true,
       message: isPublished
-        ? "Problem published successfully!"
+        ? "Exercise published successfully!"
         : "Draft saved successfully.",
       status: 200,
       id: exerciseId,
@@ -139,7 +139,7 @@ export async function updateChallengeForm(
     where: (s, { eq: _eq }) => _eq(s.id, problemId),
   });
   if (!existingProblem) {
-    return { success: false, error: "Problem not found", status: 404 };
+    return { success: false, error: "Exercise not found", status: 404 };
   }
   if (existingProblem.userId !== session.user.id) {
     return { success: false, error: "Forbidden", status: 403 };
@@ -147,21 +147,21 @@ export async function updateChallengeForm(
   if (challengeForm.details.title.trim() === "") {
     return {
       success: false,
-      error: "Title in challenge form is required.",
+      error: "Title in exercise form is required.",
       status: 400,
     };
   }
   if (challengeForm.details.description.trim() === "") {
     return {
       success: false,
-      error: "Description in challenge form is required.",
+      error: "Description in exercise form is required.",
       status: 400,
     };
   }
   if (!["Easy", "Medium", "Hard"].includes(challengeForm.details.difficulty)) {
     return {
       success: false,
-      error: "Difficulty in challenge form is invalid.",
+      error: "Difficulty in exercise form is invalid.",
       status: 400,
     };
   }
@@ -188,7 +188,7 @@ export async function updateChallengeForm(
       .where(eq(problems.id, problemId));
     return {
       success: true,
-      message: "Challenge form updated successfully.",
+      message: "Exercise form updated successfully.",
       status: 200,
     };
   } catch (err) {
@@ -212,14 +212,14 @@ export async function deleteProblem(id: number): Promise<ActionResult> {
   }
 
   if (!Number.isInteger(id)) {
-    return { success: false, error: "Problem ID is required", status: 400 };
+    return { success: false, error: "Exercise ID is required", status: 400 };
   }
 
   const existingProblem = await db.query.problems.findFirst({
     where: (s, { eq: _eq }) => _eq(s.id, id),
   });
   if (!existingProblem) {
-    return { success: false, error: "Problem not found", status: 404 };
+    return { success: false, error: "Exercise not found", status: 404 };
   }
   if (existingProblem.userId !== session.user.id) {
     return { success: false, error: "Forbidden", status: 403 };
@@ -229,7 +229,7 @@ export async function deleteProblem(id: number): Promise<ActionResult> {
     await db.delete(problems).where(eq(problems.id, id));
     return {
       success: true,
-      message: "Problem deleted successfully.",
+      message: "Exercise deleted successfully.",
       status: 200,
     };
   } catch (err) {

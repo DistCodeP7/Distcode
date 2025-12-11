@@ -2,6 +2,7 @@ import { Box, Cpu, Layers } from "lucide-react";
 import * as motion from "motion/react-client";
 import { useId } from "react";
 import { toast } from "sonner";
+import EnvList from "@/app/authorized/checkout/components/envList";
 import {
   Card,
   CardContent,
@@ -14,11 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
-import type {
-  ReplicaConfig,
-  SubmissionConfig,
-} from "../../../../types/challenge";
-import EnvList from "../components/EnvList";
+import type { ReplicaConfig, SubmissionConfig } from "@/types/challenge";
 
 const StepThreeSubmission = ({
   config,

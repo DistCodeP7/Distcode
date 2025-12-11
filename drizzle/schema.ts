@@ -49,7 +49,7 @@ export const problems = pgTable(
       .references(() => users.userid, { onDelete: "cascade" }),
     problemMarkdown: text("problem_markdown").notNull(),
     studentCode: json("student_code").$type<Filemap>().notNull(),
-    solutionCode: text("solution_code").notNull(),
+    solutionMarkdown: text("solutionMarkdown").notNull(),
     protocolCode: json("protocol_code").$type<Filemap>().notNull(),
     testCode: json("test_code").$type<Filemap>().notNull(),
     isPublished: boolean("is_published").default(true).notNull(),

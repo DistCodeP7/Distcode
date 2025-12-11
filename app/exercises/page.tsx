@@ -1,5 +1,5 @@
 import ExercisesTable from "@/components/custom/exercise-table/exerciseTable";
-import NeonLines from "@/components/custom/NeonLine";
+import NeonLines from "@/components/custom/neonLine";
 import { fetchExercises } from "@/lib/fetchExercises";
 
 export default async function ExercisesPage() {

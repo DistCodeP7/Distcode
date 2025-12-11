@@ -1,6 +1,6 @@
 import { CheckCircle2, FileText, Terminal, XCircle } from "lucide-react";
+import type { ViewMode } from "@/components/custom/terminal/useTerminalController";
 import { Button } from "@/components/ui/button";
-import type { ViewMode } from "./useTerminalController";
 
 type TerminalToolbarProps = {
   config: { label: string; color: string; text: string };

@@ -6,7 +6,7 @@ import type {
   DetailsConfig,
   SubmissionConfig,
   TestContainerConfig,
-} from "../../../types/challenge";
+} from "@/types/challenge";
 
 const useCreateChallenge = (
   baseFormParam: CheckoutFormState,

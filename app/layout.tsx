@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "@/app/globals.css";
-import { AppProviders } from "@/components/custom/app-provider";
+import { AppProviders } from "@/components/custom/appProvider";
 import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({

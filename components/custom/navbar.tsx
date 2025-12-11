@@ -2,8 +2,8 @@ import { SquareTerminal } from "lucide-react";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { AuthButtons } from "@/components/custom/authbutton";
-import { AuthAvatar } from "./navbar-client-items";
+import { AuthButtons } from "@/components/custom/authButton";
+import { AuthAvatar } from "@/components/custom/navbarClientItems";
 
 export async function Navbar() {
   const navLinks = [
