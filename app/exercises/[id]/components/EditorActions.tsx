@@ -1,6 +1,6 @@
 "use client";
 
-import { Save, Send, X } from "lucide-react";
+import { Save, Play, X, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type EditorActionsProps = {
@@ -51,7 +51,7 @@ export function EditorActions({
           className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
           disabled={resetting}
         >
-          <Send className="w-4 h-4" />
+          <Play className="w-4 h-4" />
           Submit
         </Button>
       )}
@@ -63,7 +63,7 @@ export function EditorActions({
         className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
         disabled={resetting}
       >
-        <Send className="w-4 h-4" /> Reset Code
+        <RotateCcw className="w-4 h-4" /> Reset Code
       </Button>
     </>
   );

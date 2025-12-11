@@ -72,9 +72,9 @@ export function ProblemSolutionPanel({
             variant={leftPanelView === "problem" ? "default" : "ghost"}
             size="sm"
             onClick={() => setLeftPanelView("problem")}
-            className="rounded-none border-r"
+            className="rounded-none border-r hover:cursor-pointer"
           >
-            <BookOpen className="w-4 h-4 mr-2 hover:cursor-pointer" />
+            <BookOpen className="w-4 h-4 mr-2" />
             Problem
           </Button>
 
