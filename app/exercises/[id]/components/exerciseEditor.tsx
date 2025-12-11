@@ -5,8 +5,8 @@ import type { ImperativePanelHandle } from "react-resizable-panels";
 import { toast } from "sonner";
 import { cancelJobRequest, submitCode } from "@/app/exercises/[id]/actions";
 import { EditorActions } from "@/app/exercises/[id]/components/editorActions";
-import { EditorWithTerminalPanel } from "@/app/exercises/[id]/components/editorWithTerminalPanel";
 import type { ExerciseEditorProps } from "@/app/exercises/[id]/components/editorProps";
+import { EditorWithTerminalPanel } from "@/app/exercises/[id]/components/editorWithTerminalPanel";
 import { ProblemSolutionPanel } from "@/app/exercises/[id]/components/problemSolutionPanel";
 import { useExerciseFiles } from "@/app/exercises/[id]/components/useExerciseFiles";
 import { ConfirmDialog } from "@/components/custom/confirmDialog";
@@ -24,7 +24,7 @@ export default function ExerciseEditor({
   exerciseId,
   problemMarkdown,
   studentCode,
-  solutionCode,
+  solutionMarkdown,
   protocalCode,
   savedCode,
 }: ExerciseEditorProps) {
@@ -52,10 +52,6 @@ export default function ExerciseEditor({
     initialContents,
     studentCode,
   });
-
-  const solutionFiles = solutionCode
-    ? [{ name: "main.go", content: solutionCode }]
-    : [];
 
   const hasActiveJob =
     !!currentJobUid && !messages.some((msg) => msg.type === "result");
@@ -117,7 +113,7 @@ export default function ExerciseEditor({
         className="flex-1 border md:min-w-[450px] overflow-x-hidden"
       >
         {/* Panel 1: Folder System */}
-        <ResizablePanel minSize={4} maxSize={20} defaultSize={15} collapsible>
+        <ResizablePanel minSize={4} maxSize={20} defaultSize={12} collapsible>
           <div className="flex flex-col h-full overflow-auto">
             <FolderSystem
               files={file.content}
@@ -135,7 +131,7 @@ export default function ExerciseEditor({
 
         {/* Panel 2: Problem / Solution */}
         <ResizablePanel
-          minSize={5}
+          minSize={10}
           defaultSize={35}
           collapsible
           className="overflow-y-auto"
@@ -143,7 +139,7 @@ export default function ExerciseEditor({
           <ProblemSolutionPanel
             problemMarkdown={problemMarkdown}
             protocolCode={protocalCode}
-            solutionFiles={solutionFiles}
+            solutionMarkdown={solutionMarkdown}
           />
         </ResizablePanel>
 

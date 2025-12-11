@@ -33,7 +33,7 @@ export default async function ExercisePage({
         exerciseId={exerciseParams.id}
         problemMarkdown={exercise.problemMarkdown}
         studentCode={exercise.studentCode}
-        solutionCode={exercise.solutionMarkdown}
+        solutionMarkdown={exercise.solutionMarkdown}
         testCasesCode={exercise.testCode}
         protocalCode={protocolCode}
         savedCode={savedCode}

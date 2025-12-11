@@ -17,22 +17,17 @@ export type ExerciseEditorProps = {
   exerciseId: number;
   problemMarkdown: string;
   studentCode: Filemap;
-  solutionCode: string;
+  solutionMarkdown: string;
   protocalCode: string;
   testCasesCode: Filemap;
   savedCode?: Filemap | null;
   canRate?: boolean;
 };
 
-type SolutionFile = {
-  name: string;
-  content: string;
-};
-
 export type ProblemSolutionPanelProps = {
   problemMarkdown: string;
   protocolCode: string;
-  solutionFiles: SolutionFile[];
+  solutionMarkdown: string;
 };
 
 export type UseExerciseFilesArgs = {

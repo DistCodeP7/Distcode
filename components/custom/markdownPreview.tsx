@@ -12,99 +12,53 @@ type MarkdownPreviewProps = {
   content?: string;
 };
 
+type CodeComponentProps = React.HTMLAttributes<HTMLElement> & {
+  inline?: boolean;
+  className?: string;
+  children?: React.ReactNode;
+};
+
 const MarkdownPreview = ({ content }: MarkdownPreviewProps) => {
   const components: Components = {
-    h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-      <h1 className="text-3xl font-bold mb-4" {...props}>
-        {props.children}
-      </h1>
+    h1: (props) => <h1 className="text-3xl font-bold mb-4" {...props} />,
+    h2: (props) => (
+      <h2 className="text-2xl font-semibold mt-6 mb-3" {...props} />
     ),
-    h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-      <h2 className="text-2xl font-semibold mt-6 mb-3" {...props}>
-        {props.children}
-      </h2>
+    h3: (props) => (
+      <h3 className="text-xl font-semibold mt-5 mb-2" {...props} />
     ),
-    h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-      <h3 className="text-xl font-semibold mt-5 mb-2" {...props}>
-        {props.children}
-      </h3>
+    h4: (props) => (
+      <h4 className="text-lg font-semibold mt-4 mb-2" {...props} />
     ),
-    h4: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-      <h4 className="text-lg font-semibold mt-4 mb-2" {...props}>
-        {props.children}
-      </h4>
+    h5: (props) => (
+      <h5 className="text-base font-semibold mt-3 mb-1" {...props} />
     ),
-    h5: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-      <h5 className="text-base font-semibold mt-3 mb-1" {...props}>
-        {props.children}
-      </h5>
+    h6: (props) => (
+      <h6 className="text-sm font-semibold mt-2 mb-1" {...props} />
     ),
-    h6: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-      <h6 className="text-sm font-semibold mt-2 mb-1" {...props}>
-        {props.children}
-      </h6>
+    p: (props) => (
+      <p className="leading-7 [&:not(:first-child)]:mt-4" {...props} />
     ),
-    p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
-      <p className="leading-7 [&:not(:first-child)]:mt-4" {...props}>
-        {props.children}
-      </p>
+    ul: (props) => (
+      <ul className="list-disc list-inside my-2 pl-4" {...props} />
     ),
-    ul: (props: React.HTMLAttributes<HTMLUListElement>) => (
-      <ul className="list-disc list-inside my-2 pl-4" {...props}>
-        {props.children}
-      </ul>
+    ol: (props) => (
+      <ol className="list-decimal list-inside my-2 pl-4" {...props} />
     ),
-    ol: (props: React.HTMLAttributes<HTMLOListElement>) => (
-      <ol className="list-decimal list-inside my-2 pl-4" {...props}>
-        {props.children}
-      </ol>
+    li: (props) => <li className="mt-1" {...props} />,
+    td: (props) => <td className="border px-4 py-2" {...props} />,
+    th: (props) => (
+      <th className="border bg-accent px-4 py-2 text-left" {...props} />
     ),
-    li: (props: React.LiHTMLAttributes<HTMLLIElement>) => (
-      <li className="mt-1" {...props}>
-        {props.children}
-      </li>
-    ),
-    td: ({
-      children,
-      ...props
-    }: React.TdHTMLAttributes<HTMLTableDataCellElement>) => (
-      <td className="border px-4 py-2" {...props}>
-        {children}
-      </td>
-    ),
-    th: ({
-      children,
-      ...props
-    }: React.ThHTMLAttributes<HTMLTableHeaderCellElement>) => (
-      <th className="border bg-accent px-4 py-2 text-left" {...props}>
-        {children}
-      </th>
-    ),
-    tr: ({ children, ...props }: React.HTMLAttributes<HTMLTableRowElement>) => (
-      <tr className="odd:bg-muted" {...props}>
-        {children}
-      </tr>
-    ),
+    tr: (props) => <tr className="odd:bg-muted" {...props} />,
     hr: () => <Separator className="my-4" />,
-
-    blockquote: ({
-      children,
-      ...props
-    }: React.BlockquoteHTMLAttributes<HTMLQuoteElement>) => (
+    blockquote: (props) => (
       <blockquote
         className="py-8 border-l-2 pl-6 italic text-muted-foreground"
         {...props}
-      >
-        {children}
-      </blockquote>
+      />
     ),
-    code: ({
-      node,
-      inline,
-      className,
-      children,
-      ...props
-    }: React.ComponentProps<"code"> & { inline?: boolean; node?: unknown }) => {
+    code: ({ inline, className, children, ...props }: CodeComponentProps) => {
       if (inline) {
         return (
           <code
@@ -120,13 +74,15 @@ const MarkdownPreview = ({ content }: MarkdownPreviewProps) => {
       }
 
       return (
-        <div className="rounded-lg overflow-hidden">
+        <div className="grid grid-cols-1 min-w-0 max-w-full rounded-lg overflow-hidden my-4">
           <SyntaxHighlighter
             language={"go"}
             style={vscDarkPlus}
-            showLineNumbers={false}
-            wrapLongLines={true}
-            PreTag="div"
+            wrapLongLines
+            customStyle={{ margin: 0, width: "100%", maxWidth: "100%" }}
+            codeTagProps={{
+              style: {},
+            }}
             {...props}
           >
             {String(children).replace(/\n$/, "")}
@@ -137,14 +93,16 @@ const MarkdownPreview = ({ content }: MarkdownPreviewProps) => {
   };
 
   return (
-    <ScrollArea className="h-full rounded-md border p-8">
-      <ReactMarkdown
-        components={components}
-        remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeRaw]}
-      >
-        {content ? content : ""}
-      </ReactMarkdown>
+    <ScrollArea className="h-full w-full rounded-md border p-8">
+      <div className="prose dark:prose-invert max-w-none w-full min-w-0 break-words">
+        <ReactMarkdown
+          components={components}
+          remarkPlugins={[remarkGfm]}
+          rehypePlugins={[rehypeRaw]}
+        >
+          {content}
+        </ReactMarkdown>
+      </div>
     </ScrollArea>
   );
 };
