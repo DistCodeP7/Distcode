@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { CheckoutFormState, Env } from "../challenge";
+import type { CheckoutFormState, Env } from "@/types/challenge";
 
 const StepFourSummary = ({ form }: { form: CheckoutFormState }) => (
   <motion.div
@@ -19,14 +19,14 @@ const StepFourSummary = ({ form }: { form: CheckoutFormState }) => (
     <CardHeader className="px-0 pt-0">
       <CardTitle className="flex items-center gap-3 text-2xl">
         <FileText className="text-primary" size={24} />
-        Challenge Summary
+        Exercise Summary
       </CardTitle>
     </CardHeader>
 
     <div className="space-y-8 text-sm">
-      {/* Challenge Details */}
+      {/* Exercise Details */}
       <div className="space-y-4">
-        <div className="font-semibold text-base">Challenge Details</div>
+        <div className="font-semibold text-base">Exercise Details</div>
         <div className="grid grid-cols-[140px_1fr] gap-2">
           <span className="text-muted-foreground">Title:</span>
           <span className="font-medium">{form.details.title || "N/A"}</span>

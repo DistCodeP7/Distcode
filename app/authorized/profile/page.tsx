@@ -2,7 +2,8 @@ import { and, asc, eq } from "drizzle-orm";
 import { Calendar, Code2, Terminal, Trophy } from "lucide-react";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import NeonLines from "@/components/custom/NeonLine";
+import { SubmissionCard } from "@/app/authorized/profile/submissionCard";
+import NeonLines from "@/components/custom/neonLine";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Card,
@@ -12,9 +13,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { job_results, problems, ratings, users } from "@/drizzle/schema";
+import { job_results, problems, users } from "@/drizzle/schema";
 import { db } from "@/lib/db";
-import { SubmissionCard } from "./SubmissionCard";
 
 const formatDate = (date: Date | null) => {
   if (!date) return "N/A";
@@ -33,19 +33,12 @@ const getProfileInfo = async (userId: string) => {
     .where(eq(users.userid, userId))
     .limit(1);
 
-  const u = user[0];
-
   const submissions = await db
     .select({
       problem: problems,
-      rating: ratings,
       results: job_results,
     })
     .from(problems)
-    .leftJoin(
-      ratings,
-      and(eq(ratings.problemId, problems.id), eq(ratings.userId, userId))
-    )
     .leftJoin(
       job_results,
       and(
@@ -55,7 +48,7 @@ const getProfileInfo = async (userId: string) => {
     )
     .where(eq(problems.userId, userId))
     .orderBy(asc(job_results.finishedAt));
-  return { user: u, submissions };
+  return { user: user[0], submissions };
 };
 
 export default async function Profile() {

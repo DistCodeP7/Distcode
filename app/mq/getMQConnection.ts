@@ -1,16 +1,8 @@
 import type { Connection } from "amqplib";
 import amqp from "amqplib";
 
-const connection = null;
-
 export async function getMQConnection(): Promise<Connection> {
-  if (connection) {
-    return connection;
-  }
-  const connectionUrl = process.env.RABBITMQ_URL;
-  if (!connectionUrl) {
-    throw new Error("RabbitMQ connection URL is not provided.");
-  }
-  const conn: Connection = await amqp.connect(connectionUrl);
-  return conn;
+  return process.env.RABBITMQ_URL
+    ? await amqp.connect(process.env.RABBITMQ_URL)
+    : Promise.reject("RABBITMQ_URL is not defined");
 }

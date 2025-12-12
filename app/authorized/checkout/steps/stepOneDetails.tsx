@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import type { DetailsConfig, Difficulty } from "../challenge";
+import type { DetailsConfig, Difficulty } from "@/types/challenge";
 
 type StepOneDetailsProps = {
   form: DetailsConfig;
@@ -29,15 +29,13 @@ const StepOneDetails = ({ form, updateField }: StepOneDetailsProps) => {
       className="p-8 space-y-6 max-w-3xl mx-auto"
     >
       <CardHeader className="px-0 pt-0">
-        <CardTitle>Challenge Details</CardTitle>
-        <CardDescription>
-          Basic information about your challenge
-        </CardDescription>
+        <CardTitle>Exercise Details</CardTitle>
+        <CardDescription>Basic information about your exercise</CardDescription>
       </CardHeader>
 
       <div className="space-y-6">
         <div className="grid gap-2">
-          <Label htmlFor="title">Challenge Title</Label>
+          <Label htmlFor="title">Exercise Title</Label>
           <Input
             id={useId()}
             placeholder="e.g. Distributed Caching System"

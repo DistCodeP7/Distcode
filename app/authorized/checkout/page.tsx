@@ -1,11 +1,12 @@
 import { notFound } from "next/navigation";
+import ClientCreateChallenge from "@/app/authorized/checkout/clientCreateChallenge";
 import { getExercise } from "@/app/exercises/[id]/actions";
-import ClientCreateChallenge from "./ClientCreateChallenge";
-import type { CheckoutFormState, Difficulty, Env } from "./challenge";
-
-type SearchParams = {
-  searchParams: Promise<{ id: string }>;
-};
+import type {
+  CheckoutFormState,
+  Difficulty,
+  Env,
+  SearchParams,
+} from "@/types/challenge";
 
 export default async function Page({ searchParams }: SearchParams) {
   const resolved = await searchParams;

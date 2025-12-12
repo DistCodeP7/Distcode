@@ -4,39 +4,42 @@ import { useMemo, useRef } from "react";
 import type { ImperativePanelHandle } from "react-resizable-panels";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import { FolderSystem } from "@/components/custom/folder-system/folderSystem";
-import MarkdownPreview from "@/components/custom/markdown-preview";
+import MarkdownPreview from "@/components/custom/markdownPreview";
 import { Button } from "@/components/ui/button";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import type { Paths } from "@/drizzle/schema";
 import { useProblemEditor } from "@/hooks/useProblemEditor";
+
+import type { Filemap } from "@/types/actionTypes";
 
 export default function ProblemEditorClient({
   files,
   initialFilesContent,
   problemId,
 }: {
-  files: Paths;
-  initialFilesContent?: Paths;
+  files: Filemap;
+  initialFilesContent?: Filemap;
   problemId?: number;
 }) {
+  const initial =
+    initialFilesContent && Object.keys(initialFilesContent).length
+      ? initialFilesContent
+      : files;
+
   const {
     activeFile,
     setActiveFile,
-    handleEditorContentChange,
-    handleSubmit,
-    handleSave,
-    handleCreateFile,
-    handleDeleteFile,
+    updateFileContent,
+    save,
+    submit,
+    createFile,
+    deleteFile,
     filesContent,
     lastMarkdownFile,
-  } = useProblemEditor(files, {
-    filesContent: files ?? initialFilesContent,
-    problemId,
-  });
+  } = useProblemEditor(initial, { problemId });
 
   const folderPanelRef = useRef<ImperativePanelHandle>(null);
   const problemPanelRef = useRef<ImperativePanelHandle>(null);
@@ -61,7 +64,7 @@ export default function ProblemEditorClient({
   const editorActions = (
     <div className="flex items-center gap-2">
       <Button
-        onClick={handleSave}
+        onClick={save}
         type="button"
         variant="secondary"
         className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
@@ -70,13 +73,13 @@ export default function ProblemEditorClient({
         Save
       </Button>
       <Button
-        onClick={handleSubmit}
+        onClick={submit}
         type="button"
         variant="default"
         className="flex items-center gap-1 px-2 py-1 text-base hover:cursor-pointer"
       >
         <Send className="w-4 h-4" />
-        {problemId ? "Update Problem" : "Create Problem"}
+        {problemId ? "Update Exercise" : "Create Exercise"}
       </Button>
     </div>
   );
@@ -87,7 +90,7 @@ export default function ProblemEditorClient({
         direction="horizontal"
         className="flex-1 border h-full w-full min-w-0"
       >
-        {/* Panel 1: Folder System (Collapsible) */}
+        {/* Panel 1: Folder System */}
         <ResizablePanel
           minSize={4}
           maxSize={20}
@@ -99,11 +102,10 @@ export default function ProblemEditorClient({
             files={filesContent}
             onFileChange={setActiveFile}
             activeFilePath={activeFile}
-            onCreateFile={handleCreateFile}
-            onDeleteFile={handleDeleteFile}
+            onCreateFile={createFile}
+            onDeleteFile={deleteFile}
           />
         </ResizablePanel>
-
         {/* Handle 1: Separates Panel 1 and Panel 2 */}
         <ResizableHandle withHandle />
 
@@ -137,7 +139,7 @@ export default function ProblemEditorClient({
               return (
                 <Editor
                   editorContent={content}
-                  setEditorContent={handleEditorContentChange}
+                  setEditorContent={updateFileContent}
                   language={language}
                 />
               );

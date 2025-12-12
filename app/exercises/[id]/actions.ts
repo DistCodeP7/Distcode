@@ -4,14 +4,18 @@ import { and, desc, eq } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 import { v4 as uuid } from "uuid";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { job_results, problems, ratings, userCode } from "@/drizzle/schema";
+import { job_results, problems, userCode } from "@/drizzle/schema";
 import { db } from "@/lib/db";
 import { MQJobsCanceller, MQJobsSender, ready } from "@/lib/mq";
 import { getUserById } from "@/lib/user";
-
-export type Filemap = {
-  [key: string]: string;
-};
+import type {
+  ContainerConfigs,
+  Filemap,
+  fullPayload,
+  SubmissionConfig,
+  TestContainerConfig,
+} from "@/types/actionTypes";
+import { checkUserCode } from "@/utils/validateCode";
 
 export async function getExercise({ params }: { params: { id: number } }) {
   const id = Number(params.id);
@@ -40,41 +44,6 @@ export async function submitCode(
   submissionCode: Filemap,
   { params }: { params: { id: number } }
 ) {
-  type fullPayload = {
-    jobUid: string;
-    nodes: ContainerConfigs;
-    userId: string;
-    timeout: number;
-  };
-
-  type ContainerConfigs = {
-    testContainer: TestContainerConfig;
-    submission: SubmissionConfig;
-  };
-
-  type SubmissionConfig = {
-    submissionCode: Filemap;
-    buildCommand: string;
-    entryCommand: string;
-    globalEnvs: newEnv[];
-    replicaConfigs: newReplicaConfig[];
-  };
-
-  type TestContainerConfig = {
-    alias: string;
-    testFiles: Filemap;
-    buildCommand: string;
-    entryCommand: string;
-    envs: newEnv[];
-  };
-
-  type newReplicaConfig = {
-    alias: string;
-    envs: newEnv[];
-  };
-
-  type newEnv = { key: string; value: string };
-
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { error: "Unauthorized", status: 401 };
 
@@ -91,6 +60,16 @@ export async function submitCode(
 
   if (!exercise) {
     return { error: "Exercise not found.", status: 404 };
+  }
+
+  const unusedImports = await checkUserCode(submissionCode);
+  if (unusedImports) {
+    return {
+      error: `All imports must be used. Unused import(s): ${unusedImports.join(
+        ", "
+      )}`,
+      status: 400,
+    };
   }
 
   const testFiles: Filemap = Object.fromEntries(
@@ -195,7 +174,7 @@ export async function saveCode(
 
   const problemId = Number(params.id);
   if (Number.isNaN(problemId))
-    return { error: "Invalid problem id", status: 400 };
+    return { error: "Invalid exercise id", status: 400 };
 
   const [foundProblem] = await db
     .select()
@@ -203,7 +182,7 @@ export async function saveCode(
     .where(eq(problems.id, problemId))
     .limit(1);
 
-  if (!foundProblem) return { error: "Problem not found.", status: 404 };
+  if (!foundProblem) return { error: "Exercise not found.", status: 404 };
 
   const [existing] = await db
     .select()
@@ -278,31 +257,6 @@ export async function cancelJobRequest(jobUid: string) {
   });
 }
 
-export async function loadUserRating({ params }: { params: { id: number } }) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) return null;
-
-  const exerciseId = Number(params.id);
-
-  const [problem] = await db
-    .select()
-    .from(problems)
-    .where(
-      and(eq(problems.userId, session.user.id), eq(problems.id, exerciseId))
-    )
-    .limit(1);
-
-  if (!problem) return null;
-
-  const [rating] = await db
-    .select()
-    .from(ratings)
-    .where(eq(ratings.problemId, problem.id))
-    .limit(1);
-
-  return rating ? (rating.liked ? "up" : "down") : null;
-}
-
 export async function resetCode({ params }: { params: { id: number } }) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { error: "Unauthorized", status: 401 };
@@ -321,81 +275,4 @@ export async function resetCode({ params }: { params: { id: number } }) {
     );
 
   return { success: true, message: "Code reset successfully." };
-}
-
-export async function rateExercise(
-  { params }: { params: { id: number } },
-  liked: boolean
-) {
-  //TODO: Change to look if exercise is completed instead of this
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) return { error: "Unauthorized", status: 401 };
-
-  const exerciseId = Number(params.id);
-  if (Number.isNaN(exerciseId))
-    return { error: "Invalid exercise id", status: 400 };
-
-  const [problem] = await db
-    .select()
-    .from(problems)
-    .where(eq(problems.id, exerciseId))
-    .limit(1);
-
-  if (!problem) {
-    return {
-      error: "Then exercise doesnt exist",
-      status: 403,
-    };
-  }
-
-  const [alreadyRated] = await db
-    .select()
-    .from(ratings)
-    .where(
-      and(
-        eq(ratings.userId, session.user.id),
-        eq(ratings.problemId, problem.id)
-      )
-    )
-    .limit(1);
-
-  if (alreadyRated) {
-    await db
-      .update(ratings)
-      .set({ liked })
-      .where(eq(ratings.id, alreadyRated.id));
-  } else {
-    await db.insert(ratings).values({
-      userId: session.user.id,
-      problemId: problem.id,
-      liked,
-    });
-  }
-
-  return { success: true };
-}
-
-export async function hasUserSubmitted({ params }: { params: { id: number } }) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) return false;
-
-  const problem = await db
-    .select()
-    .from(problems)
-    .where(eq(problems.id, params.id))
-    .limit(1);
-
-  if (!problem.length) return false;
-
-  const UserCode = await db
-    .select()
-    .from(userCode)
-    .where(
-      and(
-        eq(userCode.userId, session.user.id),
-        eq(userCode.problemId, params.id)
-      )
-    )
-    .limit(1);
-  return UserCode.length > 0;
 }

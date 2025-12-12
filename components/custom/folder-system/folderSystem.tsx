@@ -2,10 +2,10 @@
 
 import { FileSection } from "@/components/custom/folder-system/fileSection";
 import type { Section } from "@/components/custom/folder-system/fileUtils";
-import type { Paths } from "@/drizzle/schema";
+import type { Filemap } from "@/types/actionTypes";
 
 interface FolderSystemProps {
-  files: Paths;
+  files: Filemap;
   onFileChange: (path: string) => void;
   onCreateFile?: (filename: string, parentPath: string) => void;
   onDeleteFile?: (path: string) => void;

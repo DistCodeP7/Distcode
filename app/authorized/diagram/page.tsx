@@ -10,7 +10,8 @@ import {
   Sun,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Plot from "@/components/custom/diagram/Plot";
+import { getTraceDataAction } from "@/app/authorized/diagram/actions";
+import Plot from "@/components/custom/diagram/plot";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,7 +27,7 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/dropdownMenu";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -36,12 +37,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getTraceDataAction } from "./actions";
 
-// ==========================================
 // 1. TYPES
-// ==========================================
-
 export type VClock = Record<string, number>;
 
 export type TJob_Process_Messages = {
@@ -69,10 +66,7 @@ type PairedTransmission = {
   payload: unknown;
 };
 
-// ==========================================
 // 2. LOGIC (TRANSFORMER)
-// ==========================================
-
 // Helper to convert Vector Clock to Scalar Logical Time (Sum of components)
 // This ensures that if A -> B, then Scalar(A) < Scalar(B)
 function getLogicalTime(clock: VClock | undefined): number {
@@ -118,17 +112,14 @@ function pairEvents(events: TJob_Process_Messages[]): PairedTransmission[] {
     .filter(hasSendAndRecv)
     .map((x) => ({
       ...x,
-      // We still calculate Latency in MS for the Table/Tooltip, even if plot is logical
+      // Calculate Latency in MS for the Table/Tooltip, even if plot is logical
       latency: parseFloat(
         (x.recvEvent.timestamp - x.sendEvent.timestamp).toFixed(3)
       ),
     }));
 }
 
-// ==========================================
 // 3. TABLE COMPONENT
-// ==========================================
-
 type ColumnKey = "type" | "flow" | "clock" | "latency" | "payload";
 
 function EventTable({
@@ -155,7 +146,7 @@ function EventTable({
     for (let i = 0; i < actor.length; i++)
       hash = actor.charCodeAt(i) + ((hash << 5) - hash);
     const c = (hash & 0x00ffffff).toString(16).toUpperCase();
-    return "#" + "00000".substring(0, 6 - c.length) + c;
+    return `#${"00000".substring(0, 6 - c.length)}${c}`;
   };
 
   return (
@@ -282,10 +273,7 @@ function EventTable({
   );
 }
 
-// ==========================================
 // 4. MAIN PAGE
-// ==========================================
-
 export default function SpaceTimeDiagram({
   initialJobId,
 }: {
@@ -349,7 +337,7 @@ export default function SpaceTimeDiagram({
       for (let i = 0; i < actor.length; i++)
         hash = actor.charCodeAt(i) + ((hash << 5) - hash);
       const c = (hash & 0x00ffffff).toString(16).toUpperCase();
-      return "#" + "00000".substring(0, 6 - c.length) + c;
+      return `#${"00000".substring(0, 6 - c.length)}${c}`;
     };
 
     // Swimlanes (vertical lines)
@@ -407,7 +395,6 @@ export default function SpaceTimeDiagram({
         gridcolor: theme.grid,
       },
       yaxis: {
-        // Changed from 'date' to 'linear' for logical ticks
         type: "linear",
         title: "Logical Time (Σ Vector Clock)",
         autorange: "reversed", // Time flows down
@@ -474,6 +461,7 @@ export default function SpaceTimeDiagram({
             {plotData.length > 0 ? (
               <Plot
                 data={plotData}
+                // biome-ignore lint/suspicious/noExplicitAny: <Plotty dont exist>
                 layout={layout as any}
                 config={{
                   responsive: true,

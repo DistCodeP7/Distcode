@@ -1,10 +1,10 @@
-import type { Paths } from "@/drizzle/schema";
+import type { Filemap } from "@/types/actionTypes";
 
 export type Env = { key: string; value: string; id: string };
 
 export type TestContainerConfig = {
   alias: string;
-  testFiles: Paths;
+  testFiles: Filemap;
   buildCommand: string;
   entryCommand: string;
   envs: Env[];
@@ -38,4 +38,8 @@ export type CheckoutFormState = {
   details: DetailsConfig;
   testContainer: TestContainerConfig;
   submission: SubmissionConfig;
+};
+
+export type SearchParams = {
+  searchParams: Promise<{ id: string }>;
 };

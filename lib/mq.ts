@@ -1,6 +1,6 @@
 ﻿// app/mq/index.ts
-import { RabbitMQReceiver } from "@/app/mq/RabbitMQReceiver";
-import { RabbitMQSender } from "@/app/mq/RabbitMQSender";
+import { RabbitMQReceiver } from "@/app/mq/rabbitMQReceiver";
+import { RabbitMQSender } from "@/app/mq/rabbitMQSender";
 
 const sender = new RabbitMQSender({
   queue: "jobs",

@@ -2,21 +2,18 @@
 
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import NeonLines from "@/components/custom/NeonLine";
+import { updateChallengeForm } from "@/app/authorized/[id]/problemActions";
+import FooterNav from "@/app/authorized/checkout/components/footer";
+import Header from "@/app/authorized/checkout/components/header";
+import StepFourSummary from "@/app/authorized/checkout/steps/stepFourSummary";
+import StepOneDetails from "@/app/authorized/checkout/steps/stepOneDetails";
+import StepThreeSubmission from "@/app/authorized/checkout/steps/stepThreeSubmission";
+import StepTwoTestEnv from "@/app/authorized/checkout/steps/stepTwoTest";
+import useCreateChallenge from "@/app/authorized/checkout/useCreateChallenge";
+import NeonLines from "@/components/custom/neonLine";
 import { Card, CardContent } from "@/components/ui/card";
-import { updateChallengeForm } from "../[id]/problemActions";
-import type { CheckoutFormState } from "./challenge";
-import FooterNav from "./components/Footer";
-import Header from "./components/Header";
-import StepFourSummary from "./steps/StepFourSummary";
-import StepOneDetails from "./steps/StepOneDetails";
-import StepThreeSubmission from "./steps/StepThreeSubmission";
-import StepTwoTestEnv from "./steps/StepTwoTest";
-import useCreateChallenge from "./useCreateChallenge";
-
-type ActionResult =
-  | { success: true; message?: string; status?: number; id?: number }
-  | { success: false; error?: string; status?: number };
+import type { CheckoutFormState } from "@/types/challenge";
+import type { ActionResult } from "@/types/problemTypes";
 
 export default function ClientCreateChallenge({
   baseForm,
@@ -42,11 +39,11 @@ export default function ClientCreateChallenge({
     if (!exerciseId) return;
     const result: ActionResult = await updateChallengeForm(exerciseId, form);
     if (result.success) {
-      toast.success("Challenge form saved successfully!");
+      toast.success("Exercise submitted successfully!");
       router.push(`/authorized/`);
     } else
       toast.error(
-        `Failed to save challenge form. ${
+        `Failed to save exercise form. ${
           result.error ? `Error: ${result.error}` : ""
         }`
       );

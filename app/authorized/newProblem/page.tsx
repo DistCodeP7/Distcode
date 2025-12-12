@@ -1,14 +1,16 @@
-import ProblemEditorClient from "@/components/custom/problemEditorClient";
+import ProblemEditorClient from "@/components/custom/problem/problemEditorClient";
 import { defaultMain } from "@/default_files/defaultMain";
+import { defaultProblem } from "@/default_files/defaultProblem";
 import { defaultProtocol } from "@/default_files/defaultProtocol";
+import { defaultSolution } from "@/default_files/defaultSolution";
 import { defaultTest } from "@/default_files/defaultTest";
-import type { Paths } from "@/drizzle/schema";
+import type { Filemap } from "@/types/actionTypes";
 
 export default function NewProblemPage() {
-  const files: Paths = {
-    "problem.md": "# Problem Description\n\nDescribe the problem here.\n",
+  const files: Filemap = {
+    "problem.md": defaultProblem,
     "student/main.go": defaultMain,
-    "solution.md": "# Solution Explanation\n\nDescribe the solution here.\n",
+    "solution.md": defaultSolution,
     "test/main_test.go": defaultTest,
     "shared/protocol.go": defaultProtocol,
   };

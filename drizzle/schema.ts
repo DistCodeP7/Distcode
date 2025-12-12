@@ -1,3 +1,4 @@
+import { Filemap } from "@/types/actionTypes";
 import { LogEventPayload, Outcome, TestResult } from "@/types/streamingEvents";
 import {
   bigint,
@@ -32,8 +33,6 @@ export const NewUserSchema = createInsertSchema(users).omit({ id: true });
 export type TUser = zod.infer<typeof UsersSchema>;
 
 
-export type Paths = { [key: string]: string };
-
   type newReplicaConfig = {
     alias: string;
     envs: newEnv[];
@@ -49,10 +48,10 @@ export const problems = pgTable(
       .notNull()
       .references(() => users.userid, { onDelete: "cascade" }),
     problemMarkdown: text("problem_markdown").notNull(),
-    studentCode: json("student_code").$type<Paths>().notNull(),
-    solutionCode: text("solution_code").notNull(),
-    protocolCode: json("protocol_code").$type<Paths>().notNull(),
-    testCode: json("test_code").$type<Paths>().notNull(),
+    studentCode: json("student_code").$type<Filemap>().notNull(),
+    solutionMarkdown: text("solutionMarkdown").notNull(),
+    protocolCode: json("protocol_code").$type<Filemap>().notNull(),
+    testCode: json("test_code").$type<Filemap>().notNull(),
     isPublished: boolean("is_published").default(true).notNull(),
     title: varchar("title", { length: 255 }).notNull(),
     description: text("description").notNull(),
@@ -88,29 +87,13 @@ export const userCode = pgTable("userCode", {
     problemId: integer("problem_id")
         .notNull()
         .references(() => problems.id, { onDelete: "cascade" }),
-    codeSubmitted: json("code_submitted").$type<Paths>().notNull(),
+    codeSubmitted: json("code_submitted").$type<Filemap>().notNull(),
 });
 
 export const UserCodeSchema = createSelectSchema(userCode);
 export const NewUserCodeSchema = createInsertSchema(userCode).omit({ id: true });
 
 export type TUserCode = zod.infer<typeof UserCodeSchema>;
-
-export const ratings = pgTable("ratings", {
-    id: serial("id").primaryKey(),
-    userId: varchar("user_id")
-        .notNull()
-        .references(() => users.userid, { onDelete: "cascade" }),
-    problemId: integer("problem_id")
-        .notNull()
-        .references(() => problems.id, { onDelete: "cascade" }),
-    liked: boolean("liked").notNull(),
-});
-
-export const RatingsSchema = createSelectSchema(ratings);
-export const NewRatingSchema = createInsertSchema(ratings).omit({ id: true });
-
-export type TRating = zod.infer<typeof RatingsSchema>;
 
 export const job_results = pgTable("job_results", {
   id: serial("id").primaryKey(),

@@ -120,6 +120,20 @@
       "when": 1765123799654,
       "tag": "0016_clean_outlaw_kid",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1765123799654,
+      "tag": "0017_overrated_wild_child",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1765403215644,
+      "tag": "0018_odd_stryfe",
+      "breakpoints": true
     }
   ]
 }
