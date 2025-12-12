@@ -81,9 +81,9 @@ describe("saveProblem", () => {
 
   const baseSaveData: SaveProblemData = {
     problemMarkdown: "Some markdown",
-    studentCode: { "student/main.go": "// main" },
+    studentCode: { "student/main.go": "package main func main()" },
     solutionMarkdown: "// solution",
-    testCode: { "test/main_test.go": "// test" },
+    testCode: { "test/main_test.go": "package test func test()" },
     protocolCode: { "protocol.go": "// protocol" },
     isPublished: false,
   };

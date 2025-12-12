@@ -12,6 +12,7 @@ import type {
   NewProblem,
   SaveProblemParams,
 } from "@/types/problemTypes";
+import { checkUserCode } from "@/utils/validateCode";
 
 export async function saveProblem(data: SaveProblemParams) {
   const session = await getServerSession(authOptions);
@@ -59,6 +60,14 @@ export async function saveProblem(data: SaveProblemParams) {
         return {
           success: false,
           error: `${field.name} is required (empty).`,
+          status: 400,
+        };
+      }
+      const codeErrors = await checkUserCode(field.value);
+      if (codeErrors) {
+        return {
+          success: false,
+          error: `${field.name} validation errors: ${codeErrors.join(", ")}`,
           status: 400,
         };
       }

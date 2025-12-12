@@ -199,8 +199,8 @@ describe("getExercise", () => {
 describe("submitCode", () => {
   const baseExercise = {
     id: 42,
-    testCode: { "test/main_test.go": "test code" } as Filemap,
-    selectedTestPath: ["test/main_test.go"],
+    testCode: { "test.go": "package test func test()" } as Filemap,
+    selectedTestPath: ["test.go"],
     protocolCode: { "protocol.go": "protocol code" } as Filemap,
     submissionBuildCommand: "go build ./...",
     submissionEntryCommand: "./app",
@@ -246,7 +246,10 @@ describe("submitCode", () => {
     getUserByIdMock.mockResolvedValueOnce({ userid: "user-id" });
     findFirstMock.mockResolvedValueOnce(undefined);
 
-    const res = await submitCode({}, { params: { id: 1 } });
+    const res = await submitCode(
+      { "main.go": "package main \n func main() {}" },
+      { params: { id: 1 } }
+    );
 
     expect(res).toEqual({ error: "Exercise not found.", status: 404 });
   });
@@ -260,7 +263,7 @@ describe("submitCode", () => {
     mockSelectChainOnce<any>([]);
 
     const submissionCode: Filemap = {
-      "main.go": "package main\nfunc main() {}",
+      "main.go": "package main \n func main() {}",
     };
 
     const res = await submitCode(submissionCode, {
@@ -285,8 +288,8 @@ describe("submitCode", () => {
     expect(sentPayload.nodes.submission.submissionCode["protocol.go"]).toBe(
       "protocol code"
     );
-    expect(sentPayload.nodes.testContainer.testFiles["test/main_test.go"]).toBe(
-      "test code"
+    expect(sentPayload.nodes.testContainer.testFiles["test.go"]).toBe(
+      "package test func test()"
     );
 
     expect(res).toEqual({
@@ -304,7 +307,10 @@ describe("submitCode", () => {
 
     mockSelectChainOnce([{ id: 1 }]);
 
-    const res = await submitCode({}, { params: { id: baseExercise.id } });
+    const res = await submitCode(
+      { "main.go": "package main func main()" },
+      { params: { id: baseExercise.id } }
+    );
 
     expect(updateMock).toHaveBeenCalledWith(job_results);
     expect(updateSetMock).toHaveBeenCalledWith({ jobUid: "test-uuid" });
@@ -347,7 +353,10 @@ describe("saveCode", () => {
 
     mockSelectChainOnce<any>([]);
 
-    const res = await saveCode({ "/main.go": "code" }, { params: { id: 1 } });
+    const res = await saveCode(
+      { "main.go": "package main func main()" },
+      { params: { id: 1 } }
+    );
 
     expect(res).toEqual({ error: "Problem not found.", status: 404 });
   });
