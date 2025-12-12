@@ -308,7 +308,7 @@ describe("submitCode", () => {
     mockSelectChainOnce([{ id: 1 }]);
 
     const res = await submitCode(
-      { "main.go": "package main func main()" },
+      { "student/main.go": "package main func main(){}" },
       { params: { id: baseExercise.id } }
     );
 
@@ -344,7 +344,7 @@ describe("saveCode", () => {
 
     const res = await saveCode({}, { params: { id: Number("NaN") as any } });
 
-    expect(res).toEqual({ error: "Invalid problem id", status: 400 });
+    expect(res).toEqual({ error: "Invalid exercise id", status: 400 });
   });
 
   it("returns 404 if problem not found", async () => {
@@ -358,7 +358,7 @@ describe("saveCode", () => {
       { params: { id: 1 } }
     );
 
-    expect(res).toEqual({ error: "Problem not found.", status: 404 });
+    expect(res).toEqual({ error: "Exercise not found.", status: 404 });
   });
 
   it("inserts userCode and returns success", async () => {

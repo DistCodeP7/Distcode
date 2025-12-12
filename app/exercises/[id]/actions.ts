@@ -54,6 +54,14 @@ export async function submitCode(
   if (Number.isNaN(ProblemId))
     return { error: "Invalid exercise id", status: 400 };
 
+  const exercise = await db.query.problems.findFirst({
+    where: (s, { eq }) => eq(s.id, ProblemId),
+  });
+
+  if (!exercise) {
+    return { error: "Exercise not found.", status: 404 };
+  }
+
   const unusedImports = await checkUserCode(submissionCode);
   if (unusedImports) {
     return {
@@ -62,14 +70,6 @@ export async function submitCode(
       )}`,
       status: 400,
     };
-  }
-
-  const exercise = await db.query.problems.findFirst({
-    where: (s, { eq }) => eq(s.id, ProblemId),
-  });
-
-  if (!exercise) {
-    return { error: "Exercise not found.", status: 404 };
   }
 
   const testFiles: Filemap = Object.fromEntries(
@@ -174,7 +174,7 @@ export async function saveCode(
 
   const problemId = Number(params.id);
   if (Number.isNaN(problemId))
-    return { error: "Invalid problem id", status: 400 };
+    return { error: "Invalid exercise id", status: 400 };
 
   const [foundProblem] = await db
     .select()
@@ -182,7 +182,7 @@ export async function saveCode(
     .where(eq(problems.id, problemId))
     .limit(1);
 
-  if (!foundProblem) return { error: "Problem not found.", status: 404 };
+  if (!foundProblem) return { error: "Exercise not found.", status: 404 };
 
   const [existing] = await db
     .select()

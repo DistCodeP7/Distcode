@@ -28,7 +28,7 @@ export function useExerciseFiles({
   const [file, setFile] = useState<File>({
     content: initialContents,
     order: initialOrder,
-    active: initialOrder[0] || "",
+    active: initialOrder[0],
   });
 
   const [reset, setReset] = useState<Reset>({
@@ -46,7 +46,6 @@ export function useExerciseFiles({
     const fullPath = `${parentPath}/${withExt}`;
 
     setFile((prev) => ({
-      ...prev,
       content: {
         ...prev.content,
         [fullPath]: `// New file: ${withExt}`,
@@ -71,11 +70,10 @@ export function useExerciseFiles({
       if (prev.active === path) {
         const index = prev.order.indexOf(path);
         const newIndex = Math.max(0, index - 1);
-        newActive = newOrder[newIndex] || "";
+        newActive = newOrder[newIndex];
       }
 
       return {
-        ...prev,
         content: newContent,
         order: newOrder,
         active: newActive,
@@ -111,7 +109,7 @@ export function useExerciseFiles({
         setFile({
           content: { ...studentCode },
           order: newOrder,
-          active: newOrder[0] || "",
+          active: newOrder[0],
         });
         toast.success("Code reset successfully!", {
           description: "Template restored and saved code cleared.",
