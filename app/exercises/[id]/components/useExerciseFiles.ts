@@ -2,7 +2,11 @@
 
 import { type SetStateAction, useState } from "react";
 import { toast } from "sonner";
-import { resetCode, saveCode } from "@/app/exercises/[id]/actions";
+import {
+  rateExercise,
+  resetCode,
+  saveCode,
+} from "@/app/exercises/[id]/actions";
 import type { UseExerciseFilesArgs } from "@/app/exercises/[id]/components/editorProps";
 import type { Filemap } from "@/types/actionTypes";
 
@@ -126,6 +130,15 @@ export function useExerciseFiles({
     }
   };
 
+  function handleRate(bool: boolean) {
+    try {
+      rateExercise(bool, { params: { id: exerciseId } });
+      toast.success("Exercise rated successfully.");
+    } catch (err) {
+      toast.error("Error rating exercise", { description: String(err) });
+    }
+  }
+
   function setEditorContent(value: SetStateAction<string>): void {
     if (reset.resetting) return;
     setFile((prev) => {
@@ -150,5 +163,6 @@ export function useExerciseFiles({
     onReset,
     confirmReset,
     setEditorContent,
+    handleRate,
   };
 }

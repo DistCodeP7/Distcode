@@ -71,6 +71,7 @@ export function EditorHeader({ actions }: EditorHeaderProps) {
     <div className="border-b bg-background flex flex-col">
       <div className="flex items-center justify-end px-2 py-1">
         {/* Render the actions passed from the parent */}
+        <div>{/* Placeholder for left-aligned rating */}</div>
         <div className="flex items-center gap-2 flex-shrink-0 ml-2 relative z-10">
           {actions}
         </div>
