@@ -22,7 +22,7 @@ export default function ExercisesTable({
   return (
     <DataTable
       columns={columns}
-      data={exercises}
+      data={exercises.map(({ isCompleted, ...rest }) => rest)}
       onRowClick={(row) => handleSelectExercise(row.id)}
     />
   );

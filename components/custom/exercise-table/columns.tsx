@@ -10,6 +10,7 @@ export type exercises = {
   name: string;
   description: string;
   difficulty: Difficulty;
+  rating: number;
 };
 export const columns: ColumnDef<exercises>[] = [
   {
@@ -78,5 +79,24 @@ export const columns: ColumnDef<exercises>[] = [
         </div>
       );
     },
+  },
+  {
+    accessorKey: "rating",
+    size: 100,
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        className="flex items-center justify-center"
+      >
+        <span>Rating</span>
+        <ArrowUpDown className="h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => (
+      <div className="font-medium text-center">
+        {(row.getValue("rating") as number).toFixed(0)}
+      </div>
+    ),
   },
 ];
