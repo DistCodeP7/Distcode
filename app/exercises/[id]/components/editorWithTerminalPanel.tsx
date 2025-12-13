@@ -1,5 +1,6 @@
 "use client";
 
+import { useParams } from "next/navigation";
 import type { EditorWithTerminalPanelProps } from "@/app/exercises/[id]/components/editorProps";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import { TerminalOutput } from "@/components/custom/terminal/terminalOutput";
@@ -18,6 +19,7 @@ export function EditorWithTerminalPanel({
   actions,
   terminalPanelRef,
 }: EditorWithTerminalPanelProps) {
+  const exerciseId = parseInt(useParams().id as string, 10);
   return (
     <ResizablePanelGroup direction="vertical" className="h-full min-h-0">
       <ResizablePanel defaultSize={50}>
@@ -47,7 +49,7 @@ export function EditorWithTerminalPanel({
         <div className="h-full">
           <div className="h-full flex flex-col min-h-0">
             <div className="flex-1 min-h-0">
-              <TerminalOutput messages={messages} />
+              <TerminalOutput messages={messages} exerciseId={exerciseId} />
             </div>
           </div>
         </div>

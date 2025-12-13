@@ -1,5 +1,6 @@
 import { Filemap } from "@/types/actionTypes";
 import { LogEventPayload, Outcome, TestResult } from "@/types/streamingEvents";
+import { is } from "drizzle-orm";
 import {
   bigint,
   boolean,
@@ -139,3 +140,21 @@ export const Job_Process_MessagesSchema = createSelectSchema(job_process_message
 export const NewJob_Process_MessagesSchema = createInsertSchema(job_process_messages).omit({ id: true });
 
 export type TJob_Process_Messages = zod.infer<typeof Job_Process_MessagesSchema>;
+
+export const user_exercise_stats = pgTable("user_exercise_stats", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.userid, { onDelete: "cascade" }),
+  problemId: integer("problem_id")
+    .notNull()
+    .references(() => problems.id, { onDelete: "cascade" }),
+  rating: integer("rating").default(0).notNull(),
+  isCompleted: boolean("is_completed").default(false).notNull(),
+  completedAt: timestamp("completed_at")
+});
+
+export const User_Exercise_StatsSchema = createSelectSchema(user_exercise_stats);
+export const NewUser_Exercise_StatsSchema = createInsertSchema(user_exercise_stats).omit({ id: true });
+
+export type TUser_Exercise_Stats = zod.infer<typeof User_Exercise_StatsSchema>;

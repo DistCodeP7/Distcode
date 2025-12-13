@@ -1,4 +1,7 @@
 import { CheckCircle2, FileText, Terminal, XCircle } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { useEffect } from "react";
+import { saveUserExerciseStat } from "@/app/exercises/actions";
 import type { ViewMode } from "@/components/custom/terminal/useTerminalController";
 import { Button } from "@/components/ui/button";
 
@@ -12,6 +15,7 @@ type TerminalToolbarProps = {
   selectedWorker: string | null;
   onSetView: (mode: ViewMode) => void;
   onSelectWorker: (workerId: string | null) => void;
+  exerciseId: number;
 };
 
 export function TerminalToolbar({
@@ -24,7 +28,16 @@ export function TerminalToolbar({
   selectedWorker,
   onSetView,
   onSelectWorker,
+  exerciseId,
 }: TerminalToolbarProps) {
+  const session = useSession();
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <Only thing that changes is config.label>
+  useEffect(() => {
+    if (session.data?.user) {
+      saveUserExerciseStat(exerciseId, config.label, session.data.user.id);
+    }
+  }, [config.label]);
+
   return (
     <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 bg-muted/30 px-3 py-2 border-b border-border">
       <div className="flex items-center gap-4">
