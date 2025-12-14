@@ -1,8 +1,9 @@
 "use server";
 
 import { asc, eq } from "drizzle-orm";
-import { job_process_messages, job_results } from "@/drizzle/schema";
+import { job_process_messages, job_results, problems } from "@/drizzle/schema";
 import { db } from "@/lib/db";
+import type { JobInfo } from "./page";
 
 export async function getTraceDataAction(jobUid: string) {
   try {
@@ -68,11 +69,19 @@ export async function getExerciseJobUid(userid: string) {
     .from(job_process_messages)
     .groupBy(job_process_messages.jobUid);
 
-  const jobUids: string[] = [];
+  const exercises = await db.select().from(problems);
+
+  const jobUids: JobInfo[] = [];
 
   result.forEach((job) => {
     if (jobUidMessageResult.some((item) => item.jobUid === job.jobUid)) {
-      jobUids.push(job.jobUid);
+      jobUids.push({
+        jobUid: job.jobUid,
+        exerciseId: job.problemId,
+        exerciseTitle:
+          exercises.find((ex) => ex.id === job.problemId)?.title ||
+          "Untitled Exercise",
+      });
     }
   });
 

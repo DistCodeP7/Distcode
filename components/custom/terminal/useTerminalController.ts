@@ -78,7 +78,6 @@ export function useTerminalController(messages: StreamingJobEvent[]) {
   const logs: Array<{ phase: Phase; message: string; workerId?: string }> = [];
   let finalResult: ResultEventPayload | null = null;
   const workerIds = new Set<string>();
-  let jobUid = "";
 
   for (const msg of messages) {
     if (msg.type === "status") {
@@ -90,10 +89,8 @@ export function useTerminalController(messages: StreamingJobEvent[]) {
     } else if (msg.type === "result") {
       currentPhase = "COMPLETED";
       finalResult = msg.result;
-      jobUid = msg.job_uid;
     }
   }
-
   // --- 2. Derived Data ---
   const uniqueWorkers = Array.from(workerIds).sort();
   const config = getStatusConfig(currentPhase, finalResult?.outcome);
@@ -122,6 +119,5 @@ export function useTerminalController(messages: StreamingJobEvent[]) {
     selectedWorker,
     setUserOverride,
     setSelectedWorker,
-    jobUid,
   };
 }

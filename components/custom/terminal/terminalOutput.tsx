@@ -6,9 +6,10 @@ import type { StreamingJobEvent } from "@/types/streamingEvents";
 
 type TerminalOutputProps = {
   messages: StreamingJobEvent[];
+  exerciseId: number;
 };
 
-export function TerminalOutput({ messages }: TerminalOutputProps) {
+export function TerminalOutput({ messages, exerciseId }: TerminalOutputProps) {
   const ctrl = useTerminalController(messages);
 
   return (
@@ -23,7 +24,7 @@ export function TerminalOutput({ messages }: TerminalOutputProps) {
         selectedWorker={ctrl.selectedWorker}
         onSetView={ctrl.setUserOverride}
         onSelectWorker={ctrl.setSelectedWorker}
-        jobUid={ctrl.jobUid}
+        exerciseId={exerciseId}
       />
       <div className="relative flex-1 min-h-0 w-full">
         {ctrl.viewMode === "CONSOLE" && (
