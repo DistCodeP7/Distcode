@@ -1,8 +1,6 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import type { Difficulty } from "@/types/challenge";
 
 export type exercises = {
@@ -12,22 +10,14 @@ export type exercises = {
   difficulty: Difficulty;
   rating: number;
 };
+
 export const columns: ColumnDef<exercises>[] = [
   {
     accessorKey: "name",
     size: 200,
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="flex items-center space-x-1"
-      >
-        <span>Name</span>
-        <ArrowUpDown className="h-4 w-4" />
-      </Button>
-    ),
+    header: "Name",
     cell: ({ row }) => (
-      <div className="font-medium break-words whitespace-normal">
+      <div className="font-medium break-words whitespace-normal text-left">
         {row.getValue("name")}
       </div>
     ),
@@ -38,7 +28,7 @@ export const columns: ColumnDef<exercises>[] = [
     header: "Description",
     enableSorting: false,
     cell: ({ row }) => (
-      <div className="italic text-gray-500 break-words whitespace-normal">
+      <div className="italic text-gray-500 break-words whitespace-normal text-left">
         {row.getValue("description")}
       </div>
     ),
@@ -46,16 +36,7 @@ export const columns: ColumnDef<exercises>[] = [
   {
     accessorKey: "difficulty",
     size: 120,
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="flex items-center justify-center"
-      >
-        <span>Difficulty</span>
-        <ArrowUpDown className="h-4 w-4" />
-      </Button>
-    ),
+    header: "Difficulty",
     sortingFn: (rowA, rowB, columnId) => {
       const order: Record<Difficulty, number> = {
         Easy: 1,
@@ -74,7 +55,7 @@ export const columns: ColumnDef<exercises>[] = [
         Hard: "text-primary",
       };
       return (
-        <div className={`font-semibold text-center ${difficultyColors[value]}`}>
+        <div className={`font-semibold text-left ${difficultyColors[value]}`}>
           {value}
         </div>
       );
@@ -83,18 +64,9 @@ export const columns: ColumnDef<exercises>[] = [
   {
     accessorKey: "rating",
     size: 100,
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        className="flex items-center justify-center"
-      >
-        <span>Rating</span>
-        <ArrowUpDown className="h-4 w-4" />
-      </Button>
-    ),
+    header: "Rating",
     cell: ({ row }) => (
-      <div className="font-medium text-center">
+      <div className="font-medium text-left">
         {(row.getValue("rating") as number).toFixed(0)}
       </div>
     ),

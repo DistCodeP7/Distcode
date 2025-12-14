@@ -38,6 +38,7 @@ interface DataTableProps<TData, TValue> {
   selectedRows?: number[];
   onRowClick?: (row: TData) => void;
   rowSelection?: { [key: number]: boolean };
+  completedRows?: number[];
 }
 
 export function DataTable<TData extends { id: number }, TValue>({
@@ -45,6 +46,7 @@ export function DataTable<TData extends { id: number }, TValue>({
   data,
   selectedRows = [],
   onRowClick,
+  completedRows = [],
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "name", desc: true },
@@ -115,10 +117,11 @@ export function DataTable<TData extends { id: number }, TValue>({
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
-                    className="cursor-pointer select-none py-4 px-6 text-left text-sm font-semibold text-foreground"
+                    className="cursor-pointer select-none py-4 px-6 text-sm font-semibold text-foreground"
+                    style={{ textAlign: "left" }}
                     onClick={header.column.getToggleSortingHandler()}
                   >
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 justify-start">
                       {flexRender(
                         header.column.columnDef.header,
                         header.getContext()
@@ -137,12 +140,15 @@ export function DataTable<TData extends { id: number }, TValue>({
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => {
                 const isSelected = selectedRows.includes(row.original.id);
+                const isCompleted = completedRows.includes(row.original.id);
                 return (
                   <TableRow
                     key={row.id}
-                    className={`hover:bg-accent/30 transition-colors cursor-pointer ${
-                      isSelected ? "bg-accent/20" : ""
-                    }`}
+                    className={`hover:bg-accent/30 transition-colors cursor-pointer
+            ${isSelected ? "bg-accent/20" : ""}
+            ${isCompleted ? "bg-green-900" : ""}
+           
+          `}
                     onClick={() => handleRowClick(row.original)}
                   >
                     {row.getVisibleCells().map((cell) => (

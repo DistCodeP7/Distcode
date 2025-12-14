@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { columns } from "@/components/custom/exercise-table/columns";
 import { DataTable } from "@/components/custom/exercise-table/dataTable";
 import type { ExerciseRow } from "@/lib/fetchExercises";
+import { useSession } from "next-auth/react";
 
 export default function ExercisesTable({
   exercises,
@@ -19,11 +20,26 @@ export default function ExercisesTable({
     }
   };
 
+  const session = useSession();
+
+  console.log("Session Data:", exercises);
+
+  const completedRows = exercises
+    .filter(
+      (exercises) =>
+        exercises.userId?.includes(session.data?.user.id ?? "") &&
+        exercises.isCompleted
+    )
+    .map((exercise) => exercise.id);
+
+  console.log("Completed Rows:", completedRows);
+
   return (
     <DataTable
       columns={columns}
-      data={exercises.map(({ isCompleted, ...rest }) => rest)}
+      data={exercises}
       onRowClick={(row) => handleSelectExercise(row.id)}
+      completedRows={completedRows}
     />
   );
 }

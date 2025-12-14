@@ -10,6 +10,7 @@ export type ExerciseRow = {
   difficulty: Difficulty;
   rating: number;
   isCompleted: boolean;
+  userId?: string[];
 };
 
 export async function fetchExercises(): Promise<ExerciseRow[]> {
@@ -32,6 +33,8 @@ export async function fetchExercises(): Promise<ExerciseRow[]> {
       exerciseRatings.reduce((acc, curr) => acc + (curr.rating || 0), 0) /
       (exerciseRatings.length || 1);
     const isCompleted = exerciseRatings.some((r) => r.isCompleted);
+    const userId = exerciseRatings.map((r) => r.userId);
+
     return {
       id: ex.id,
       name: ex.title,
@@ -39,6 +42,7 @@ export async function fetchExercises(): Promise<ExerciseRow[]> {
       difficulty: ex.difficulty as Difficulty,
       rating,
       isCompleted,
+      userId,
     };
   });
 
