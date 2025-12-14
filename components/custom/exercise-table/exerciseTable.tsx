@@ -24,8 +24,8 @@ export default function ExercisesTable({
   if (session.data?.user) {
     exercises = exercises.filter((exercise) => {
       return (
-        exercise.userId?.includes(session.data?.user?.id) ||
-        exercise.userId?.length === 0
+        exercise.userIds?.includes(session.data?.user?.id) ||
+        exercise.userIds?.length === 0
       );
     });
   }

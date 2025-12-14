@@ -42,7 +42,7 @@ export async function fetchExercises(): Promise<ExerciseRow[]> {
     const isCompleted = completedExercises.some(
       (ce) => ce.problemId === ex.id && ce.isCompleted
     );
-    const userId = exerciseRatings.map((r) => r.userId);
+    const userId = completedExercises.map((r) => r.userId);
 
     return {
       id: ex.id,
