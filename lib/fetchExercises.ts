@@ -29,9 +29,10 @@ export async function fetchExercises(): Promise<ExerciseRow[]> {
 
   const exerciseRows = dbExercises.map(async (ex) => {
     const exerciseRatings = ratings.filter((r) => r.problemId === ex.id);
-    const rating =
-      exerciseRatings.reduce((acc, curr) => acc + (curr.rating || 0), 0) /
-      (exerciseRatings.length || 1);
+    const rating = exerciseRatings.reduce(
+      (acc, curr) => acc + (curr.rating || 0),
+      0
+    );
     const isCompleted = exerciseRatings.some((r) => r.isCompleted);
     const userId = exerciseRatings.map((r) => r.userId);
 
