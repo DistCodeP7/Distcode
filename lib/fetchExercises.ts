@@ -14,7 +14,7 @@ export type ExerciseRow = {
   difficulty: Difficulty;
   rating: number;
   isCompleted: boolean;
-  userId?: string[];
+  userIds?: string[];
 };
 
 export async function fetchExercises(): Promise<ExerciseRow[]> {
@@ -42,7 +42,7 @@ export async function fetchExercises(): Promise<ExerciseRow[]> {
     const isCompleted = completedExercises.some(
       (ce) => ce.problemId === ex.id && ce.isCompleted
     );
-    const userId = completedExercises.map((r) => r.userId);
+    const userIds = completedExercises.map((r) => r.userId);
 
     return {
       id: ex.id,
@@ -51,7 +51,7 @@ export async function fetchExercises(): Promise<ExerciseRow[]> {
       difficulty: ex.difficulty as Difficulty,
       rating,
       isCompleted,
-      userId,
+      userIds,
     };
   });
 
