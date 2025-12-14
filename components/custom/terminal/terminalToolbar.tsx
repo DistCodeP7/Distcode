@@ -5,9 +5,9 @@ import {
   Terminal,
   XCircle,
 } from "lucide-react";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { saveCompletedExercises } from "@/app/exercises/actions";
 import type { ViewMode } from "@/components/custom/terminal/useTerminalController";
 import { Button } from "@/components/ui/button";
@@ -39,13 +39,19 @@ export function TerminalToolbar({
   exerciseId,
 }: TerminalToolbarProps) {
   const session = useSession();
-
-  if (
-    session.data?.user &&
-    (config.label === "Passed" || config.label === "Failed")
-  ) {
-    saveCompletedExercises(exerciseId, config.label, session.data.user.id);
-  }
+  const router = useRouter();
+  useEffect(() => {
+    if (
+      session.data?.user &&
+      (config.label === "Passed" || config.label === "Failed")
+    ) {
+      void saveCompletedExercises(
+        exerciseId,
+        config.label,
+        session.data.user.id
+      );
+    }
+  }, [session.data?.user, config.label, exerciseId]);
 
   const [openDialog, setOpenDialog] = useState(false);
   return (
@@ -124,9 +130,10 @@ export function TerminalToolbar({
             onOpenChange={setOpenDialog}
             title="Leave Page?"
             description="You are about to leave this page and go to the Message Viewer. Are you sure you want to proceed?"
-            onConfirm={() =>
-              redirect(`/authorized/diagram/?exerciseId=${exerciseId}`)
-            }
+            onConfirm={() => {
+              setOpenDialog(false);
+              router.push(`/authorized/diagram/?exerciseId=${exerciseId}`);
+            }}
           />
         </div>
       </div>
