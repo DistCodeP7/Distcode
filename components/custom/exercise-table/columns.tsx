@@ -84,7 +84,7 @@ export const columns: ColumnDef<exercises>[] = [
           {rowValue ? (
             <CircleCheck className="w-4 h-4 text-green-500" />
           ) : (
-            <CircleX className="w-4 h-4 text-red-500" />
+            <CircleX className="w-4 h-4 text-gray-600 dark:text-gray-400" />
           )}
         </div>
       );
