@@ -1,6 +1,13 @@
-import { CheckCircle2, FileText, Terminal, XCircle } from "lucide-react";
+import {
+  ArrowLeftRight,
+  CheckCircle2,
+  FileText,
+  Terminal,
+  XCircle,
+} from "lucide-react";
 import type { ViewMode } from "@/components/custom/terminal/useTerminalController";
 import { Button } from "@/components/ui/button";
+import { redirect } from "next/navigation";
 
 type TerminalToolbarProps = {
   config: { label: string; color: string; text: string };
@@ -12,6 +19,7 @@ type TerminalToolbarProps = {
   selectedWorker: string | null;
   onSetView: (mode: ViewMode) => void;
   onSelectWorker: (workerId: string | null) => void;
+  jobUid: string;
 };
 
 export function TerminalToolbar({
@@ -24,6 +32,7 @@ export function TerminalToolbar({
   selectedWorker,
   onSetView,
   onSelectWorker,
+  jobUid,
 }: TerminalToolbarProps) {
   return (
     <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 bg-muted/30 px-3 py-2 border-b border-border">
@@ -81,6 +90,20 @@ export function TerminalToolbar({
                 )}
               </div>
             )}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={!hasTests}
+            className={`flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] transition-all ${
+              hasTests
+                ? "bg-background shadow-sm text-foreground font-medium"
+                : "text-muted-foreground hover:text-foreground disabled:opacity-50"
+            }`}
+            onClick={() => redirect(`/authorized/diagram/?jobuid=${jobUid}`)}
+          >
+            <ArrowLeftRight className="w-3 h-3 mr-1" />
+            MessageViewer
           </Button>
         </div>
       </div>

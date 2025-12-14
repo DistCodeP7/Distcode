@@ -37,6 +37,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useSearchParams } from "next/navigation";
 
 // 1. TYPES
 export type VClock = Record<string, number>;
@@ -274,14 +275,10 @@ function EventTable({
 }
 
 // 4. MAIN PAGE
-export default function SpaceTimeDiagram({
-  initialJobId,
-}: {
-  initialJobId?: string;
-}) {
-  const [jobUid, setJobUid] = useState<string>(
-    initialJobId || "ab873177-6580-4fca-a65b-260422823078"
-  );
+export default function SpaceTimeDiagram() {
+  const searchParams = useSearchParams();
+  const initialJobId = searchParams.get("jobuid") || "";
+  const [jobUid, setJobUid] = useState<string>(initialJobId);
   const [rawEvents, setRawEvents] = useState<TJob_Process_Messages[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
