@@ -21,21 +21,19 @@ export default function ExercisesTable({
   };
 
   const session = useSession();
-
-  const completedRows = exercises
-    .filter(
-      (exercises) =>
-        exercises.userId?.includes(session.data?.user.id ?? "") &&
-        exercises.isCompleted
-    )
-    .map((exercise) => exercise.id);
-
+  if (session.data?.user) {
+    exercises = exercises.filter((exercise) => {
+      return (
+        exercise.userId?.includes(session.data?.user?.id) ||
+        exercise.userId?.length === 0
+      );
+    });
+  }
   return (
     <DataTable
       columns={columns}
       data={exercises}
       onRowClick={(row) => handleSelectExercise(row.id)}
-      completedRows={completedRows}
     />
   );
 }

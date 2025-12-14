@@ -9,7 +9,7 @@ export async function saveUserExerciseStat(
   label: string,
   userid: string
 ) {
-  const existing = await db
+  const existingUserStats = await db
     .select()
     .from(user_exercise_stats)
     .where(
@@ -19,7 +19,7 @@ export async function saveUserExerciseStat(
       )
     );
 
-  if (existing.length > 0) {
+  if (existingUserStats.length > 0) {
     if (label === "Passed") {
       await db
         .update(user_exercise_stats)

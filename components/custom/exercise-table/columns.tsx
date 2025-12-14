@@ -1,6 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
+import { CircleCheck, CircleX } from "lucide-react";
 import type { Difficulty } from "@/types/challenge";
 
 export type exercises = {
@@ -9,6 +10,7 @@ export type exercises = {
   description: string;
   difficulty: Difficulty;
   rating: number;
+  isCompleted: boolean;
 };
 
 export const columns: ColumnDef<exercises>[] = [
@@ -70,5 +72,22 @@ export const columns: ColumnDef<exercises>[] = [
         {(row.getValue("rating") as number).toFixed(0)}
       </div>
     ),
+  },
+  {
+    accessorKey: "isCompleted",
+    size: 100,
+    header: "Completed",
+    cell: ({ row }) => {
+      const rowValue = row.getValue("isCompleted") as boolean;
+      return (
+        <div className="font-medium text-left">
+          {rowValue ? (
+            <CircleCheck className="w-4 h-4 text-green-500" />
+          ) : (
+            <CircleX className="w-4 h-4 text-red-500" />
+          )}
+        </div>
+      );
+    },
   },
 ];

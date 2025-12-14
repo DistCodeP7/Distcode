@@ -25,19 +25,17 @@ export function EditorActions({
   canRate,
   onRate,
 }: EditorActionsProps) {
-  const [currentRated, setCurrentRated] = useState<
-    "Up" | "Down" | "Not rated yet"
-  >("Not rated yet");
+  const [currentRated, setCurrentRated] = useState<boolean | null>(null);
 
   return (
     <>
       <Button
         type="button"
-        variant={currentRated === "Up" ? "destructive" : "outline"}
+        variant={currentRated ? "destructive" : "outline"}
         size="icon"
         onClick={() => {
           onRate(true);
-          setCurrentRated("Up");
+          setCurrentRated(true);
         }}
         disabled={canRate}
       >
@@ -46,11 +44,13 @@ export function EditorActions({
 
       <Button
         type="button"
-        variant={currentRated === "Down" ? "destructive" : "outline"}
+        variant={
+          !currentRated && currentRated !== null ? "destructive" : "outline"
+        }
         size="icon"
         onClick={() => {
           onRate(false);
-          setCurrentRated("Down");
+          setCurrentRated(false);
         }}
         disabled={canRate}
       >

@@ -46,7 +46,6 @@ export function DataTable<TData extends { id: number }, TValue>({
   data,
   selectedRows = [],
   onRowClick,
-  completedRows = [],
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "name", desc: true },
@@ -140,13 +139,12 @@ export function DataTable<TData extends { id: number }, TValue>({
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => {
                 const isSelected = selectedRows.includes(row.original.id);
-                const isCompleted = completedRows.includes(row.original.id);
                 return (
                   <TableRow
                     key={row.id}
                     className={`hover:bg-accent/30 transition-colors cursor-pointer
             ${isSelected ? "bg-accent/20" : ""}
-            ${isCompleted ? "bg-green-900" : ""}
+
            
           `}
                     onClick={() => handleRowClick(row.original)}

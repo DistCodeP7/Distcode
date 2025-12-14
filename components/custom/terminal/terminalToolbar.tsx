@@ -1,5 +1,3 @@
-import { useSession } from "next-auth/react";
-import { saveUserExerciseStat } from "@/app/exercises/actions";
 import {
   ArrowLeftRight,
   CheckCircle2,
@@ -8,7 +6,9 @@ import {
   XCircle,
 } from "lucide-react";
 import { redirect } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useState } from "react";
+import { saveUserExerciseStat } from "@/app/exercises/actions";
 import type { ViewMode } from "@/components/custom/terminal/useTerminalController";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "../confirmDialog";
@@ -39,13 +39,9 @@ export function TerminalToolbar({
   exerciseId,
 }: TerminalToolbarProps) {
   const session = useSession();
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <Only thing that changes is config.label>
-  useEffect(() => {
-    if (session.data?.user) {
-      saveUserExerciseStat(exerciseId, config.label, session.data.user.id);
-    }
-  }, [config.label]);
-
+  if (session.data?.user) {
+    saveUserExerciseStat(exerciseId, config.label, session.data.user.id);
+  }
   const [openDialog, setOpenDialog] = useState(false);
   return (
     <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 bg-muted/30 px-3 py-2 border-b border-border">
