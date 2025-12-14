@@ -277,32 +277,60 @@ function EventTable({
   );
 }
 
+export type JobInfo = {
+  jobUid: string;
+  exerciseId: number;
+  exerciseTitle: string;
+};
 // 4. MAIN PAGE
 export default function SpaceTimeDiagram() {
   const session = useSession();
   const searchParams = useSearchParams();
-  const initialJobId = searchParams.get("jobuid") || "";
-  const [jobUid, setJobUid] = useState<string>(initialJobId);
+  const initialexerciseId = searchParams.get("exerciseId") || "";
+  const [userJobInfo, setUserJobInfo] = useState<JobInfo[]>([
+    {
+      jobUid: "null",
+      exerciseId: -1,
+      exerciseTitle: "Loading...",
+    },
+  ]);
+
+  const [jobInfo, setJobInfo] = useState<JobInfo>({
+    jobUid: "none",
+    exerciseId: -1,
+    exerciseTitle: "Loading...",
+  });
+
   const [rawEvents, setRawEvents] = useState<TJob_Process_Messages[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
 
-  const [userJobUids, setUserJobUids] = useState<string[]>(["loading..."]);
-
   const fetchJobUids = useCallback(async () => {
     const result = await getExerciseJobUid(session.data?.user?.id || "");
     if (result.length === 0) {
-      setUserJobUids(["no jobs found"]);
+      setUserJobInfo([
+        {
+          jobUid: "none",
+          exerciseId: -1,
+          exerciseTitle: "No jobs found",
+        },
+      ]);
     } else {
-      setUserJobUids(result);
+      setUserJobInfo(result);
+      if (jobInfo.jobUid === "none") {
+        const initialJob =
+          result.find((j) => j.exerciseId.toString() === initialexerciseId) ||
+          result[0];
+        setJobInfo(initialJob);
+      }
     }
-  }, [session.data?.user?.id]);
+  }, [session.data?.user?.id, initialexerciseId, jobInfo.jobUid]);
 
   // FETCH DATA
   const fetchData = useCallback(async () => {
-    if (!jobUid) return;
+    if (!jobInfo) return;
     setIsLoading(true);
-    const result = await getTraceDataAction(jobUid);
+    const result = await getTraceDataAction(jobInfo.jobUid);
     if (result.success && result.data) {
       setRawEvents(result.data as TJob_Process_Messages[]);
     } else {
@@ -310,7 +338,7 @@ export default function SpaceTimeDiagram() {
       setRawEvents([]);
     }
     setIsLoading(false);
-  }, [jobUid]);
+  }, [jobInfo]);
 
   useEffect(() => {
     fetchData();
@@ -432,8 +460,10 @@ export default function SpaceTimeDiagram() {
               Trace Visualizer (Logical Time)
             </CardTitle>
             <CardDescription>
-              Job UID:{" "}
-              <span className="font-mono text-foreground">{jobUid}</span>
+              Exercise:{" "}
+              <span className="font-mono text-foreground">
+                {jobInfo.exerciseTitle}
+              </span>
             </CardDescription>
           </div>
           <div className="flex items-center gap-3">
@@ -452,23 +482,27 @@ export default function SpaceTimeDiagram() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm">
-                    Select Job
+                    Select Exercise
                     <Columns className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-[200px]">
                   <div className="p-2 space-y-1">
-                    <p className="text-sm font-medium">Select Job UID</p>
+                    <p className="text-sm font-medium">Select Exercise</p>
                     <div className="flex flex-col gap-1 max-h-60 overflow-auto">
-                      {userJobUids.map((jid) => (
+                      {userJobInfo.map((jid) => (
                         <Button
-                          key={jid}
-                          variant={jid === jobUid ? "secondary" : "ghost"}
+                          key={jid.jobUid}
+                          variant={
+                            jid.jobUid === jobInfo.jobUid
+                              ? "secondary"
+                              : "ghost"
+                          }
                           size="sm"
                           className="justify-start font-mono text-xs"
-                          onClick={() => setJobUid(jid)}
+                          onClick={() => setJobInfo(jid)}
                         >
-                          {jid}
+                          {jid.exerciseTitle}
                         </Button>
                       ))}
                     </div>

@@ -21,7 +21,7 @@ type TerminalToolbarProps = {
   selectedWorker: string | null;
   onSetView: (mode: ViewMode) => void;
   onSelectWorker: (workerId: string | null) => void;
-  jobUid: string;
+  exerciseId: number;
 };
 
 export function TerminalToolbar({
@@ -34,7 +34,7 @@ export function TerminalToolbar({
   selectedWorker,
   onSetView,
   onSelectWorker,
-  jobUid,
+  exerciseId,
 }: TerminalToolbarProps) {
   const [openDialog, setOpenDialog] = useState(false);
   return (
@@ -111,9 +111,9 @@ export function TerminalToolbar({
               open={openDialog}
               onOpenChange={(open: boolean): void => setOpenDialog(open)}
               title="Leave Page?"
-              description="Ypu are about to leave this page and go to the Message Viewer. Are you sure you want to proceed?"
+              description="You are about to leave this page and go to the Message Viewer. Are you sure you want to proceed?"
               onConfirm={() =>
-                redirect(`/authorized/diagram/?jobuid=${jobUid}`)
+                redirect(`/authorized/diagram/?exerciseId=${exerciseId}`)
               }
             />
           </Button>

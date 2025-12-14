@@ -17,6 +17,7 @@ export function EditorWithTerminalPanel({
   messages,
   actions,
   terminalPanelRef,
+  exerciseId,
 }: EditorWithTerminalPanelProps) {
   return (
     <ResizablePanelGroup direction="vertical" className="h-full min-h-0">
@@ -47,7 +48,7 @@ export function EditorWithTerminalPanel({
         <div className="h-full">
           <div className="h-full flex flex-col min-h-0">
             <div className="flex-1 min-h-0">
-              <TerminalOutput messages={messages} />
+              <TerminalOutput messages={messages} exerciseId={exerciseId} />
             </div>
           </div>
         </div>
