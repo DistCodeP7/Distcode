@@ -7,7 +7,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import {
   job_results,
   problems,
-  user_exercise_stats,
+  user_ratings,
   userCode,
 } from "@/drizzle/schema";
 import { db } from "@/lib/db";
@@ -294,15 +294,35 @@ export async function rateExercise(
   if (Number.isNaN(problemId))
     return { error: "Invalid problem id", status: 400 };
 
-  await db
-    .update(user_exercise_stats)
-    .set({ rating: rating ? 1 : -1 })
-    .where(
-      and(
-        eq(user_exercise_stats.userId, userId),
-        eq(user_exercise_stats.problemId, problemId)
+  if (
+    await db
+      .select()
+      .from(user_ratings)
+      .where(
+        and(
+          eq(user_ratings.userId, userId),
+          eq(user_ratings.problemId, problemId)
+        )
       )
-    );
+      .limit(1)
+      .then((res) => res.length > 0)
+  ) {
+    await db
+      .update(user_ratings)
+      .set({ rating: rating ? 1 : -1 })
+      .where(
+        and(
+          eq(user_ratings.userId, userId),
+          eq(user_ratings.problemId, problemId)
+        )
+      );
+  } else {
+    await db.insert(user_ratings).values({
+      userId: userId,
+      problemId: problemId,
+      rating: rating ? 1 : -1,
+    });
+  }
 
   return { success: true, message: "Exercise rated successfully." };
 }

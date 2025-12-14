@@ -1,6 +1,6 @@
 {
-  "id": "005a2482-6664-4bc9-aa23-556e8c92762b",
-  "prevId": "88cd2a19-fc95-4fb0-a0d0-55f7f3a3e14c",
+  "id": "eeb1dba3-3ad0-4413-a722-c7f709031654",
+  "prevId": "005a2482-6664-4bc9-aa23-556e8c92762b",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -424,8 +424,80 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.user_exercise_stats": {
-      "name": "user_exercise_stats",
+    "public.user_completed_exercises": {
+      "name": "user_completed_exercises",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "problem_id": {
+          "name": "problem_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_completed": {
+          "name": "is_completed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "completed_at": {
+          "name": "completed_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "user_completed_exercises_user_id_users_userid_fk": {
+          "name": "user_completed_exercises_user_id_users_userid_fk",
+          "tableFrom": "user_completed_exercises",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "userid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "user_completed_exercises_problem_id_problems_id_fk": {
+          "name": "user_completed_exercises_problem_id_problems_id_fk",
+          "tableFrom": "user_completed_exercises",
+          "tableTo": "problems",
+          "columnsFrom": [
+            "problem_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.user_ratings": {
+      "name": "user_ratings",
       "schema": "",
       "columns": {
         "id": {
@@ -450,28 +522,14 @@
           "name": "rating",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "is_completed": {
-          "name": "is_completed",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "completed_at": {
-          "name": "completed_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false
+          "notNull": true
         }
       },
       "indexes": {},
       "foreignKeys": {
-        "user_exercise_stats_user_id_users_userid_fk": {
-          "name": "user_exercise_stats_user_id_users_userid_fk",
-          "tableFrom": "user_exercise_stats",
+        "user_ratings_user_id_users_userid_fk": {
+          "name": "user_ratings_user_id_users_userid_fk",
+          "tableFrom": "user_ratings",
           "tableTo": "users",
           "columnsFrom": [
             "user_id"
@@ -482,9 +540,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "user_exercise_stats_problem_id_problems_id_fk": {
-          "name": "user_exercise_stats_problem_id_problems_id_fk",
-          "tableFrom": "user_exercise_stats",
+        "user_ratings_problem_id_problems_id_fk": {
+          "name": "user_ratings_problem_id_problems_id_fk",
+          "tableFrom": "user_ratings",
           "tableTo": "problems",
           "columnsFrom": [
             "problem_id"

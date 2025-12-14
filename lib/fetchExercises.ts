@@ -1,5 +1,9 @@
 import { eq } from "drizzle-orm";
-import { problems, user_exercise_stats } from "@/drizzle/schema";
+import {
+  problems,
+  user_completed_exercises,
+  user_ratings,
+} from "@/drizzle/schema";
 import { db } from "@/lib/db";
 import type { Difficulty } from "@/types/challenge";
 
@@ -25,7 +29,9 @@ export async function fetchExercises(): Promise<ExerciseRow[]> {
     .from(problems)
     .where(eq(problems.isPublished, true));
 
-  const ratings = await db.select().from(user_exercise_stats);
+  const ratings = await db.select().from(user_ratings);
+
+  const completedExercises = await db.select().from(user_completed_exercises);
 
   const exerciseRows = dbExercises.map(async (ex) => {
     const exerciseRatings = ratings.filter((r) => r.problemId === ex.id);
@@ -33,7 +39,9 @@ export async function fetchExercises(): Promise<ExerciseRow[]> {
       (acc, curr) => acc + (curr.rating || 0),
       0
     );
-    const isCompleted = exerciseRatings.some((r) => r.isCompleted);
+    const isCompleted = completedExercises.some(
+      (ce) => ce.problemId === ex.id && ce.isCompleted
+    );
     const userId = exerciseRatings.map((r) => r.userId);
 
     return {

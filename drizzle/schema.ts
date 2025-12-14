@@ -141,7 +141,7 @@ export const NewJob_Process_MessagesSchema = createInsertSchema(job_process_mess
 
 export type TJob_Process_Messages = zod.infer<typeof Job_Process_MessagesSchema>;
 
-export const user_exercise_stats = pgTable("user_exercise_stats", {
+export const user_ratings = pgTable("user_ratings", {
   id: serial("id").primaryKey(),
   userId: varchar("user_id")
     .notNull()
@@ -149,12 +149,27 @@ export const user_exercise_stats = pgTable("user_exercise_stats", {
   problemId: integer("problem_id")
     .notNull()
     .references(() => problems.id, { onDelete: "cascade" }),
-  rating: integer("rating").default(0).notNull(),
-  isCompleted: boolean("is_completed").default(false).notNull(),
-  completedAt: timestamp("completed_at")
+  rating: integer("rating").notNull(),
 });
 
-export const User_Exercise_StatsSchema = createSelectSchema(user_exercise_stats);
-export const NewUser_Exercise_StatsSchema = createInsertSchema(user_exercise_stats).omit({ id: true });
+export const User_Ratings_StatsSchema = createSelectSchema(user_ratings);
+export const NewUser_Ratings_StatsSchema = createInsertSchema(user_ratings).omit({ id: true });
 
-export type TUser_Exercise_Stats = zod.infer<typeof User_Exercise_StatsSchema>;
+export type TUser_Exercise_Stats = zod.infer<typeof User_Ratings_StatsSchema>;
+
+export const user_completed_exercises = pgTable("user_completed_exercises", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.userid, { onDelete: "cascade" }),
+  problemId: integer("problem_id")
+    .notNull()
+    .references(() => problems.id, { onDelete: "cascade" }),
+  isCompleted: boolean("is_completed").default(false).notNull(),
+  completedAt: timestamp("completed_at").defaultNow().notNull(),
+});
+
+export const User_Completed_ExercisesSchema = createSelectSchema(user_completed_exercises);
+export const NewUser_Completed_ExercisesSchema = createInsertSchema(user_completed_exercises).omit({ id: true });
+
+export type TUser_Completed_Exercises = zod.infer<typeof User_Completed_ExercisesSchema>;

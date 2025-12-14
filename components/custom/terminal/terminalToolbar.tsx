@@ -8,7 +8,7 @@ import {
 import { redirect } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
-import { saveUserExerciseStat } from "@/app/exercises/actions";
+import { saveCompletedExercises } from "@/app/exercises/actions";
 import type { ViewMode } from "@/components/custom/terminal/useTerminalController";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "../confirmDialog";
@@ -39,9 +39,14 @@ export function TerminalToolbar({
   exerciseId,
 }: TerminalToolbarProps) {
   const session = useSession();
-  if (session.data?.user) {
-    saveUserExerciseStat(exerciseId, config.label, session.data.user.id);
+
+  if (
+    session.data?.user &&
+    (config.label === "Passed" || config.label === "Failed")
+  ) {
+    saveCompletedExercises(exerciseId, config.label, session.data.user.id);
   }
+
   const [openDialog, setOpenDialog] = useState(false);
   return (
     <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 bg-muted/30 px-3 py-2 border-b border-border">
