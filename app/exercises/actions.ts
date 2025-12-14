@@ -9,15 +9,6 @@ export async function saveUserExerciseStat(
   label: string,
   userid: string
 ) {
-  console.log(
-    "Saving stat for user:",
-    userid,
-    "exerciseId:",
-    exerciseId,
-    "label:",
-    label
-  );
-
   const existing = await db
     .select()
     .from(user_exercise_stats)

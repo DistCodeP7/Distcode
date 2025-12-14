@@ -22,8 +22,6 @@ export default function ExercisesTable({
 
   const session = useSession();
 
-  console.log("Session Data:", exercises);
-
   const completedRows = exercises
     .filter(
       (exercises) =>
@@ -31,8 +29,6 @@ export default function ExercisesTable({
         exercises.isCompleted
     )
     .map((exercise) => exercise.id);
-
-  console.log("Completed Rows:", completedRows);
 
   return (
     <DataTable
