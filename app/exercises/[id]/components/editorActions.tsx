@@ -1,8 +1,8 @@
 "use client";
 
 import { Save, Send, ThumbsDown, ThumbsUp, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 type EditorActionsProps = {
   onSave: () => void;

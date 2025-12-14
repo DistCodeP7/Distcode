@@ -1,10 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { columns } from "@/components/custom/exercise-table/columns";
 import { DataTable } from "@/components/custom/exercise-table/dataTable";
 import type { ExerciseRow } from "@/lib/fetchExercises";
-import { useSession } from "next-auth/react";
 
 export default function ExercisesTable({
   exercises,

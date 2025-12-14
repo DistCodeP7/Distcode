@@ -167,7 +167,7 @@ export function SubmissionCard({ problem, results }: SubmissionCardProps) {
           {showLogs && (
             <div className="animate-in slide-in-from-top-1 fade-in duration-200 border-t border-border">
               <div className="h-[450px] w-full bg-background">
-                <TerminalOutput messages={events} />
+                <TerminalOutput messages={events} exerciseId={0} />
               </div>
             </div>
           )}
