@@ -2,6 +2,7 @@
 
 import { Save, Send, ThumbsDown, ThumbsUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 type EditorActionsProps = {
   onSave: () => void;
@@ -24,22 +25,33 @@ export function EditorActions({
   canRate,
   onRate,
 }: EditorActionsProps) {
+  const [currentRated, setCurrentRated] = useState<
+    "Up" | "Down" | "Not rated yet"
+  >("Not rated yet");
+
   return (
     <>
       <Button
         type="button"
-        variant="outline"
-        size="icon" // A common size prop for icon-only buttons
-        onClick={() => onRate(true)}
+        variant={currentRated === "Up" ? "destructive" : "outline"}
+        size="icon"
+        onClick={() => {
+          onRate(true);
+          setCurrentRated("Up");
+        }}
         disabled={canRate}
       >
         <ThumbsUp className="h-4 w-4" />
       </Button>
+
       <Button
         type="button"
-        variant="outline"
+        variant={currentRated === "Down" ? "destructive" : "outline"}
         size="icon"
-        onClick={() => onRate(false)}
+        onClick={() => {
+          onRate(false);
+          setCurrentRated("Down");
+        }}
         disabled={canRate}
       >
         <ThumbsDown className="h-4 w-4" />
