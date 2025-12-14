@@ -9,6 +9,7 @@ import {
   Search,
   Sun,
 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getTraceDataAction } from "@/app/authorized/diagram/actions";
 import Plot from "@/components/custom/diagram/plot";
@@ -37,7 +38,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useSearchParams } from "next/navigation";
 
 // 1. TYPES
 export type VClock = Record<string, number>;
