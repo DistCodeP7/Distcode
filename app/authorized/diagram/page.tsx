@@ -9,8 +9,13 @@ import {
   Search,
   Sun,
 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { getTraceDataAction } from "@/app/authorized/diagram/actions";
+import {
+  getExerciseJobUid,
+  getTraceDataAction,
+} from "@/app/authorized/diagram/actions";
 import Plot from "@/components/custom/diagram/plot";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,7 +33,6 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdownMenu";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -274,17 +278,25 @@ function EventTable({
 }
 
 // 4. MAIN PAGE
-export default function SpaceTimeDiagram({
-  initialJobId,
-}: {
-  initialJobId?: string;
-}) {
-  const [jobUid, setJobUid] = useState<string>(
-    initialJobId || "ab873177-6580-4fca-a65b-260422823078"
-  );
+export default function SpaceTimeDiagram() {
+  const session = useSession();
+  const searchParams = useSearchParams();
+  const initialJobId = searchParams.get("jobuid") || "";
+  const [jobUid, setJobUid] = useState<string>(initialJobId);
   const [rawEvents, setRawEvents] = useState<TJob_Process_Messages[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
+
+  const [userJobUids, setUserJobUids] = useState<string[]>(["loading..."]);
+
+  const fetchJobUids = useCallback(async () => {
+    const result = await getExerciseJobUid(session.data?.user?.id || "");
+    if (result.length === 0) {
+      setUserJobUids(["no jobs found"]);
+    } else {
+      setUserJobUids(result);
+    }
+  }, [session.data?.user?.id]);
 
   // FETCH DATA
   const fetchData = useCallback(async () => {
@@ -302,7 +314,8 @@ export default function SpaceTimeDiagram({
 
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+    fetchJobUids();
+  }, [fetchData, fetchJobUids]);
 
   const pairedTransmissions = useMemo(() => pairEvents(rawEvents), [rawEvents]);
 
@@ -412,7 +425,7 @@ export default function SpaceTimeDiagram({
   return (
     <div className="w-full max-w-7xl mx-auto p-6 space-y-8 animate-in fade-in duration-500">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-4">
+        <CardHeader className="flex flex-row items-center justify-between pb-4 ">
           <div className="space-y-1">
             <CardTitle className="text-2xl flex items-center gap-2">
               <Activity className="h-6 w-6 text-primary" />
@@ -426,7 +439,7 @@ export default function SpaceTimeDiagram({
           <div className="flex items-center gap-3">
             <Button
               variant="outline"
-              size="icon"
+              size="sm"
               onClick={() => setIsDarkMode(!isDarkMode)}
             >
               {isDarkMode ? (
@@ -436,13 +449,34 @@ export default function SpaceTimeDiagram({
               )}
             </Button>
             <div className="flex items-center gap-2">
-              <Input
-                value={jobUid}
-                onChange={(e) => setJobUid(e.target.value)}
-                className="w-[300px]"
-                placeholder="Enter Job UID..."
-              />
-              <Button onClick={fetchData} disabled={isLoading}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    Select Job
+                    <Columns className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[200px]">
+                  <div className="p-2 space-y-1">
+                    <p className="text-sm font-medium">Select Job UID</p>
+                    <div className="flex flex-col gap-1 max-h-60 overflow-auto">
+                      {userJobUids.map((jid) => (
+                        <Button
+                          key={jid}
+                          variant={jid === jobUid ? "secondary" : "ghost"}
+                          size="sm"
+                          className="justify-start font-mono text-xs"
+                          onClick={() => setJobUid(jid)}
+                        >
+                          {jid}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <Button onClick={fetchData} disabled={isLoading} size="sm">
                 {isLoading ? (
                   <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
