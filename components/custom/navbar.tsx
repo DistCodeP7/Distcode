@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { AuthButtons } from "@/components/custom/authButton";
 import { AuthAvatar } from "@/components/custom/navbarClientItems";
+import { ThemeToggle } from "@/components/custom/themeToggle";
 
 export async function Navbar() {
   const navLinks = [
@@ -33,6 +34,7 @@ export async function Navbar() {
           </Link>
         ))}
       </nav>
+      <ThemeToggle />
       {session?.user?.image ? (
         <AuthAvatar userAvatar={session.user.image} />
       ) : session?.user?.email ? (

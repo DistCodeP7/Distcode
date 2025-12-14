@@ -1,17 +1,10 @@
 "use client";
 
-import {
-  Activity,
-  ArrowRight,
-  Columns,
-  Moon,
-  RefreshCw,
-  Search,
-  Sun,
-} from "lucide-react";
+import { Activity, ArrowRight, Columns, RefreshCw, Search } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTheme } from "next-themes";
 import {
   getExerciseJobUid,
   getTraceDataAction,
@@ -303,7 +296,8 @@ export default function SpaceTimeDiagram() {
 
   const [rawEvents, setRawEvents] = useState<TJob_Process_Messages[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme === "dark";
 
   const fetchJobUids = useCallback(async () => {
     const result = await getExerciseJobUid(session.data?.user?.id || "");
@@ -369,7 +363,7 @@ export default function SpaceTimeDiagram() {
     // Height calculation based on logical depth could be useful, but fixed is fine for now
     const dynamicHeight = 600;
 
-    const theme = isDarkMode
+    const colors = isDarkMode
       ? { bg: "#09090b", text: "#e4e4e7", grid: "#27272a", line: "#3f3f46" }
       : { bg: "#ffffff", text: "#333333", grid: "#f3f4f6", line: "#e5e7eb" };
 
@@ -388,7 +382,7 @@ export default function SpaceTimeDiagram() {
       x1: actor,
       y0: minLogical - 1,
       y1: maxLogical + 1,
-      line: { color: theme.line, width: 1, dash: "longdash" },
+      line: { color: colors.line, width: 1, dash: "longdash" },
       layer: "below",
     }));
 
@@ -409,7 +403,7 @@ export default function SpaceTimeDiagram() {
           color: [color, color],
           size: [8, 12],
           symbol: ["circle", "triangle-up"],
-          line: { color: theme.bg, width: 1 },
+          line: { color: colors.bg, width: 1 },
         },
         hoverinfo: "text",
         text: [
@@ -424,23 +418,23 @@ export default function SpaceTimeDiagram() {
     const layoutConfig = {
       margin: { l: 60, r: 50, t: 50, b: 50 },
       height: dynamicHeight,
-      plot_bgcolor: theme.bg,
-      paper_bgcolor: theme.bg,
+      plot_bgcolor: colors.bg,
+      paper_bgcolor: colors.bg,
       xaxis: {
         type: "category",
         categoryarray: actors,
         categoryorder: "array",
         fixedrange: true,
         side: "top",
-        tickfont: { size: 14, color: theme.text },
-        gridcolor: theme.grid,
+        tickfont: { size: 14, color: colors.text },
+        gridcolor: colors.grid,
       },
       yaxis: {
         type: "linear",
         title: "Logical Time (Σ Vector Clock)",
         autorange: "reversed", // Time flows down
-        gridcolor: theme.grid,
-        tickfont: { color: theme.text },
+        gridcolor: colors.grid,
+        tickfont: { color: colors.text },
         dtick: 1, // Ensure we see integer steps if range allows
       },
       shapes: shapes,
@@ -467,17 +461,6 @@ export default function SpaceTimeDiagram() {
             </CardDescription>
           </div>
           <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsDarkMode(!isDarkMode)}
-            >
-              {isDarkMode ? (
-                <Sun className="h-4 w-4" />
-              ) : (
-                <Moon className="h-4 w-4" />
-              )}
-            </Button>
             <div className="flex items-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
