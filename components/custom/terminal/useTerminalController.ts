@@ -91,7 +91,6 @@ export function useTerminalController(messages: StreamingJobEvent[]) {
       finalResult = msg.result;
     }
   }
-
   // --- 2. Derived Data ---
   const uniqueWorkers = Array.from(workerIds).sort();
   const config = getStatusConfig(currentPhase, finalResult?.outcome);

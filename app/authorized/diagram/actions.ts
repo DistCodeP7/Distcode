@@ -1,8 +1,9 @@
 "use server";
 
 import { asc, eq } from "drizzle-orm";
-import { job_process_messages } from "@/drizzle/schema";
+import { job_process_messages, job_results, problems } from "@/drizzle/schema";
 import { db } from "@/lib/db";
+import type { JobInfo } from "./page";
 
 export async function getTraceDataAction(jobUid: string) {
   try {
@@ -54,4 +55,35 @@ export async function getTraceDataAction(jobUid: string) {
     console.error("Failed to fetch trace:", error);
     return { success: false, error: "Failed to fetch trace data" };
   }
+}
+
+export async function getExerciseJobUid(userid: string) {
+  if (!userid) return [];
+  const result = await db
+    .select()
+    .from(job_results)
+    .where(eq(job_results.userId, userid));
+
+  const jobUidMessageResult = await db
+    .select({ jobUid: job_process_messages.jobUid })
+    .from(job_process_messages)
+    .groupBy(job_process_messages.jobUid);
+
+  const exercises = await db.select().from(problems);
+
+  const jobUids: JobInfo[] = [];
+
+  result.forEach((job) => {
+    if (jobUidMessageResult.some((item) => item.jobUid === job.jobUid)) {
+      jobUids.push({
+        jobUid: job.jobUid,
+        exerciseId: job.problemId,
+        exerciseTitle:
+          exercises.find((ex) => ex.id === job.problemId)?.title ||
+          "Untitled Exercise",
+      });
+    }
+  });
+
+  return jobUids;
 }

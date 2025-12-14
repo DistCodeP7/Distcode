@@ -18,6 +18,7 @@ export function EditorWithTerminalPanel({
   messages,
   actions,
   terminalPanelRef,
+  exerciseId,
 }: EditorWithTerminalPanelProps) {
   const exerciseId = parseInt(useParams().id as string, 10);
   return (

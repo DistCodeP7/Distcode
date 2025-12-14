@@ -1,9 +1,17 @@
-import { CheckCircle2, FileText, Terminal, XCircle } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useEffect } from "react";
 import { saveUserExerciseStat } from "@/app/exercises/actions";
+import {
+  ArrowLeftRight,
+  CheckCircle2,
+  FileText,
+  Terminal,
+  XCircle,
+} from "lucide-react";
+import { redirect } from "next/navigation";
+import { useState, useEffect } from "react";
 import type { ViewMode } from "@/components/custom/terminal/useTerminalController";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "../confirmDialog";
 
 type TerminalToolbarProps = {
   config: { label: string; color: string; text: string };
@@ -38,6 +46,7 @@ export function TerminalToolbar({
     }
   }, [config.label]);
 
+  const [openDialog, setOpenDialog] = useState(false);
   return (
     <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 bg-muted/30 px-3 py-2 border-b border-border">
       <div className="flex items-center gap-4">
@@ -94,6 +103,29 @@ export function TerminalToolbar({
                 )}
               </div>
             )}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={!hasTests}
+            className={`flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] transition-all ${
+              hasTests
+                ? "bg-background shadow-sm text-foreground font-medium"
+                : "text-muted-foreground hover:text-foreground disabled:opacity-50"
+            }`}
+            onClick={() => setOpenDialog(true)}
+          >
+            <ArrowLeftRight className="w-3 h-3 mr-1" />
+            MessageViewer
+            <ConfirmDialog
+              open={openDialog}
+              onOpenChange={(open: boolean): void => setOpenDialog(open)}
+              title="Leave Page?"
+              description="You are about to leave this page and go to the Message Viewer. Are you sure you want to proceed?"
+              onConfirm={() =>
+                redirect(`/authorized/diagram/?exerciseId=${exerciseId}`)
+              }
+            />
           </Button>
         </div>
       </div>

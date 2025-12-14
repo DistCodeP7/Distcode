@@ -161,6 +161,7 @@ export default function ExerciseEditor({
             setEditorContent={setEditorContent}
             messages={messages}
             actions={editorActions}
+            exerciseId={exerciseId}
           />
         </ResizablePanel>
       </ResizablePanelGroup>

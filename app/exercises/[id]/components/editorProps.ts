@@ -11,6 +11,7 @@ export type EditorWithTerminalPanelProps = {
   messages: StreamingJobEvent[];
   actions: React.ReactNode;
   terminalPanelRef: React.RefObject<ImperativePanelHandle | null>;
+  exerciseId: number;
 };
 
 export type ExerciseEditorProps = {
