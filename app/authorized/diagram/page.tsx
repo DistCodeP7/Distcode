@@ -10,6 +10,7 @@ import {
   Sun,
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   getExerciseJobUid,
@@ -32,7 +33,6 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdownMenu";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -41,7 +41,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useSession } from "next-auth/react";
 
 // 1. TYPES
 export type VClock = Record<string, number>;
