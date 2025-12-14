@@ -134,6 +134,13 @@
       "when": 1765403215644,
       "tag": "0018_odd_stryfe",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1765741661711,
+      "tag": "0019_good_tattoo",
+      "breakpoints": true
     }
   ]
 }

@@ -1,5 +1,4 @@
 "use client";
-
 import type { EditorWithTerminalPanelProps } from "@/app/exercises/[id]/components/editorProps";
 import Editor, { EditorHeader } from "@/components/custom/editor";
 import { TerminalOutput } from "@/components/custom/terminal/terminalOutput";

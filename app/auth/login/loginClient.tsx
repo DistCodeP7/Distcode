@@ -110,7 +110,7 @@ export default function LoginPage() {
               }}
             >
               <Image
-                src="/github-mark-white.svg"
+                src="/githubMarkWhite.svg"
                 alt="GitHub"
                 width={32}
                 height={32}
@@ -135,7 +135,7 @@ export default function LoginPage() {
               }}
             >
               <Image
-                src="/google-login.svg"
+                src="/googleLogin.svg"
                 alt="Google"
                 width={32}
                 height={32}

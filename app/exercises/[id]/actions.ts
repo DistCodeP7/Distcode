@@ -4,7 +4,12 @@ import { and, desc, eq } from "drizzle-orm";
 import { getServerSession } from "next-auth";
 import { v4 as uuid } from "uuid";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { job_results, problems, userCode } from "@/drizzle/schema";
+import {
+  job_results,
+  problems,
+  user_ratings,
+  userCode,
+} from "@/drizzle/schema";
 import { db } from "@/lib/db";
 import { MQJobsCanceller, MQJobsSender, ready } from "@/lib/mq";
 import { getUserById } from "@/lib/user";
@@ -275,4 +280,49 @@ export async function resetCode({ params }: { params: { id: number } }) {
     );
 
   return { success: true, message: "Code reset successfully." };
+}
+
+export async function rateExercise(
+  rating: boolean,
+  { params }: { params: { id: number } }
+) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) return { error: "Unauthorized", status: 401 };
+  const userId = session.user.id;
+
+  const problemId = Number(params.id);
+  if (Number.isNaN(problemId))
+    return { error: "Invalid problem id", status: 400 };
+
+  if (
+    await db
+      .select()
+      .from(user_ratings)
+      .where(
+        and(
+          eq(user_ratings.userId, userId),
+          eq(user_ratings.problemId, problemId)
+        )
+      )
+      .limit(1)
+      .then((res) => res.length > 0)
+  ) {
+    await db
+      .update(user_ratings)
+      .set({ rating: rating ? 1 : -1 })
+      .where(
+        and(
+          eq(user_ratings.userId, userId),
+          eq(user_ratings.problemId, problemId)
+        )
+      );
+  } else {
+    await db.insert(user_ratings).values({
+      userId: userId,
+      problemId: problemId,
+      rating: rating ? 1 : -1,
+    });
+  }
+
+  return { success: true, message: "Exercise rated successfully." };
 }

@@ -47,11 +47,14 @@ export default function ExerciseEditor({
     onReset,
     confirmReset,
     setEditorContent,
+    handleRate,
   } = useExerciseFiles({
     exerciseId,
     initialContents,
     studentCode,
   });
+
+  const [canRate, setCanRate] = useState(true);
 
   const hasActiveJob =
     !!currentJobUid && !messages.some((msg) => msg.type === "result");
@@ -72,6 +75,7 @@ export default function ExerciseEditor({
       toast.error("Failed to submit code", { description: result.error });
       return;
     }
+    setCanRate(false);
     terminalRef.current?.resize(80);
     if (result?.jobUid) {
       setCurrentJobUid(result.jobUid);
@@ -92,6 +96,8 @@ export default function ExerciseEditor({
       onReset={onReset}
       hasActiveJob={hasActiveJob}
       resetting={reset.resetting}
+      canRate={canRate}
+      onRate={handleRate}
     />
   );
 

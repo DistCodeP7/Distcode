@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { columns } from "@/components/custom/exercise-table/columns";
 import { DataTable } from "@/components/custom/exercise-table/dataTable";
 import type { ExerciseRow } from "@/lib/fetchExercises";
@@ -19,6 +20,15 @@ export default function ExercisesTable({
     }
   };
 
+  const session = useSession();
+  if (session.data?.user) {
+    exercises = exercises.filter((exercise) => {
+      return (
+        exercise.userIds?.includes(session.data?.user?.id) ||
+        exercise.userIds?.length === 0
+      );
+    });
+  }
   return (
     <DataTable
       columns={columns}

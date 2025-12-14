@@ -38,6 +38,7 @@ interface DataTableProps<TData, TValue> {
   selectedRows?: number[];
   onRowClick?: (row: TData) => void;
   rowSelection?: { [key: number]: boolean };
+  completedRows?: number[];
 }
 
 export function DataTable<TData extends { id: number }, TValue>({
@@ -115,10 +116,11 @@ export function DataTable<TData extends { id: number }, TValue>({
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
-                    className="cursor-pointer select-none py-4 px-6 text-left text-sm font-semibold text-foreground"
+                    className="cursor-pointer select-none py-4 px-6 text-sm font-semibold text-foreground"
+                    style={{ textAlign: "left" }}
                     onClick={header.column.getToggleSortingHandler()}
                   >
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 justify-start">
                       {flexRender(
                         header.column.columnDef.header,
                         header.getContext()
@@ -140,9 +142,11 @@ export function DataTable<TData extends { id: number }, TValue>({
                 return (
                   <TableRow
                     key={row.id}
-                    className={`hover:bg-accent/30 transition-colors cursor-pointer ${
-                      isSelected ? "bg-accent/20" : ""
-                    }`}
+                    className={`hover:bg-accent/30 transition-colors cursor-pointer
+            ${isSelected ? "bg-accent/20" : ""}
+
+           
+          `}
                     onClick={() => handleRowClick(row.original)}
                   >
                     {row.getVisibleCells().map((cell) => (
