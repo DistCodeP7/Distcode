@@ -118,16 +118,16 @@ export function TerminalToolbar({
           >
             <ArrowLeftRight className="w-3 h-3 mr-1" />
             MessageViewer
-            <ConfirmDialog
-              open={openDialog}
-              onOpenChange={(open: boolean): void => setOpenDialog(open)}
-              title="Leave Page?"
-              description="You are about to leave this page and go to the Message Viewer. Are you sure you want to proceed?"
-              onConfirm={() =>
-                redirect(`/authorized/diagram/?exerciseId=${exerciseId}`)
-              }
-            />
           </Button>
+          <ConfirmDialog
+            open={openDialog}
+            onOpenChange={setOpenDialog}
+            title="Leave Page?"
+            description="You are about to leave this page and go to the Message Viewer. Are you sure you want to proceed?"
+            onConfirm={() =>
+              redirect(`/authorized/diagram/?exerciseId=${exerciseId}`)
+            }
+          />
         </div>
       </div>
 
