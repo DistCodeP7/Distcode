@@ -3,8 +3,8 @@
 import { Activity, ArrowRight, Columns, RefreshCw, Search } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTheme } from "next-themes";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   getExerciseJobUid,
   getTraceDataAction,
