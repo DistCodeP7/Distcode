@@ -1,5 +1,6 @@
 export type fullPayload = {
   jobUid: string;
+  problemId: number;
   nodes: ContainerConfigs;
   userId: string;
   timeout: number;
