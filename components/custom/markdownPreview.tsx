@@ -3,10 +3,12 @@ import ReactMarkdown, { type Components } from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import rehypeRaw from "rehype-raw";
+import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import { ScrollArea } from "@/components/ui/scrollArea";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import { Button } from "../ui/button";
 
 type MarkdownPreviewProps = {
   content?: string;
@@ -58,6 +60,26 @@ const MarkdownPreview = ({ content }: MarkdownPreviewProps) => {
         {...props}
       />
     ),
+    a: ({ href, children, ...props }) => {
+      const isExternal = href?.startsWith("http");
+
+      return (
+        <Button
+          asChild
+          variant="destructive"
+          size="default"
+        >
+          <a
+            href={href}
+            target={isExternal ? "_blank" : undefined}
+            rel={isExternal ? "noopener noreferrer" : undefined}
+            {...props}
+          >
+            {children}
+          </a>
+        </Button>
+      );
+    },
     code: ({ inline, className, children, ...props }: CodeComponentProps) => {
       if (inline) {
         return (
@@ -98,7 +120,7 @@ const MarkdownPreview = ({ content }: MarkdownPreviewProps) => {
         <ReactMarkdown
           components={components}
           remarkPlugins={[remarkGfm]}
-          rehypePlugins={[rehypeRaw]}
+          rehypePlugins={[rehypeRaw, rehypeSlug]}
         >
           {content}
         </ReactMarkdown>
