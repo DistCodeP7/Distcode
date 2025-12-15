@@ -8,15 +8,6 @@ export default function DocsPage() {
       <div>
         <NeonLines count={80} />
       </div>
-
-      {/* <h1 className="text-4xl sm:text-5xl font-bold text-center sm:text-left text-foreground">
-        DistCode
-      </h1>
-      <p className="text-muted-foreground text-lg sm:text-xl max-w-3xl text-center sm:text-left mt-4">
-        Welcome to the documentation page. Here you will find guides and
-        references to help you get started with our platform.
-        https://pkg.go.dev/github.com/distcodep7/dsnet
-      </p> */}
       <MarkdownPreview
         content={generateDocs(
           exampleProtocolCode,
