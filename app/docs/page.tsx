@@ -43,17 +43,17 @@ DistCode uses a three-part code structure for exercises: Protocol Code, Test Cod
 
 ## Table of Contents
 
-[Protocol Code](#protocol-code)
+[Communication Protocol](#communication-protocol)
 
-[Test Code](#test-code)
+[Testing Harness](#testing-harness)
 
-[User Code](#user-code)
+[User Submission](#user-submission)
 
 [Full Example: Echo Broadcast Exercise](#full-example-echo-broadcast-exercise)
 
 </div>
 
-## Protocol Code
+## Comunnication Protocol
 [Back to Top](#distcode-documentation)
 
 The protocol defines the message types and structures used in the exercise. DistCode exercises usually go with a internal-external message flow design, 
@@ -66,7 +66,7 @@ This defines the sender, receiver, and type of the message.
 ${exampleProtocolCode()}
 \`\`\`
 
-## Test Code
+## Testing Harness
 [Back to Top](#distcode-documentation)
 
 The test code (***Testing harness***) sets up the testing environment, creates nodes needed to handle testing communication, and defines the test logic and topology of the exercise network.
@@ -81,7 +81,7 @@ The testing harness also has the capability to manipulate the network topology d
 ${exampleTestCode()}
 \`\`\`
 
-## User Code
+## User Submission
 [Back to Top](#distcode-documentation)
 
 The user code is where the user implements the logic for their DSnet node(s) based on the provided protocol and environment.
