@@ -2,7 +2,6 @@
 import MarkdownPreview from "@/components/custom/markdownPreview";
 import NeonLines from "@/components/custom/neonLine";
 
-
 export default function DocsPage() {
   return (
     <div className="container mx-auto py-10">
@@ -18,13 +17,19 @@ export default function DocsPage() {
         references to help you get started with our platform.
         https://pkg.go.dev/github.com/distcodep7/dsnet
       </p> */}
-      <MarkdownPreview content={generateDocs(exampleProtocolCode, exampleTestCode, exampleuserCode)} />
+      <MarkdownPreview
+        content={generateDocs(
+          exampleProtocolCode,
+          exampleTestCode,
+          exampleuserCode
+        )}
+      />
     </div>
   );
 }
 
 function generateDocs(...args: any[]) {
-    return `
+  return `
 # DistCode Documentation
 
 Welcome to the documentation page. Here you will find a guide and references to help you get started with our platform.
@@ -124,9 +129,23 @@ The testing harness for the above protocol can be seen below:
 DistCode uses a ***Disttest*** wrapper using the built-in Golang testing package to manage the lifecycle of the test.
 This wrapper wraps all tests of a single exercise, handling logging of test results.
 
+Additionally, DistCode uses a ***WrapperManager*** to manage docker containers for each node in the network.
+This manager handles starting, stopping, and checking the readiness of each container.
+
 All exercises have a set of environment variables passed to each docker container at startup. This includes the list of peers in the network and the unique ID of the node.
 Test authors can set up environment variables either globally for all nodes or individually per node. 
-In the main function of the example below, the testing harness sets up a docker wrapper to handle network topology manipulation and readies all nodes before starting the test.
+In the main function of the example below, the testing harness sets up a docker wrapperManager to handle network topology manipulation and readies all nodes before starting the test.
+
+Additionally, not seen in the the example, the wrapperManager can be used to simulate network partitions, node crashes, and restarts during the test as seen in the snippet below:
+
+\`\`\`go
+WM.Stop(ctx, "NodeID") // Simulate crash
+WM.Start(ctx, "NodeID") // Simulate restart
+WM.Reset(ctx, "NodeID") // Reset node
+
+controller.CreatePartition(group1, group2 []string) // Create partition
+controller.UnblockCommunication(nodeA, nodeB string) // Heal partition
+\`\`\`
 
 In the test, the testing harness creates controller with an empty testConfig (testConfig parameters can be found in on the DSnet package page), 
 a tester node and sends a SendTrigger message to one of the worker nodes to initiate the echo broadcast.
@@ -150,11 +169,11 @@ ${echoUser()}
 \`\`\`
 
 [Back to Top](#distcode-documentation)
-    `
+    `;
 }
 
 function exampleProtocolCode() {
-    return `
+  return `
     type EchoMessage struct {
         BaseMessage
         EchoID  string
@@ -182,7 +201,7 @@ function exampleProtocolCode() {
 }
 
 function exampleTestCode() {
-    return `
+  return `
     TestConfig:
         message event probabilities
     
@@ -212,7 +231,7 @@ function exampleTestCode() {
 }
 
 function exampleuserCode() {
-    return `
+  return `
     ExampleNode:
         DSnet node interface
         id: NodeID
@@ -235,7 +254,7 @@ function exampleuserCode() {
 }
 
 function echoProtocol() {
-return `
+  return `
     package shared
 
     import "github.com/distcodep7/dsnet/dsnet"
@@ -369,8 +388,8 @@ func TestEchoTwoNodes(t *testing.T) {
 		}
 	})
 }
-    `
-} 
+    `;
+}
 
 function echoUser() {
   return `
