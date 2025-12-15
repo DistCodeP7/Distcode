@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef } from "react";
-import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,7 +10,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "../ui/alertDialog";
+} from "@/components/ui/alertDialog";
+import { Input } from "@/components/ui/input";
 
 interface FileAlertDialogProps {
   open: boolean;

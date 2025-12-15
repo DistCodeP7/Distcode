@@ -27,7 +27,6 @@ export const useSSE = <T>(url: string) => {
     eventSource.onmessage = (event: MessageEvent) => {
       try {
         const data: T = JSON.parse(event.data);
-        console.log("[SSE] incoming message:", data);
         setMessages((prev) => [...prev, data]);
         lastMsgRef.current = data;
       } catch (e) {

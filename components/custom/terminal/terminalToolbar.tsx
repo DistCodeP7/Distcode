@@ -9,9 +9,9 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { saveCompletedExercises } from "@/app/exercises/actions";
+import { ConfirmDialog } from "@/components/custom/confirmDialog";
 import type { ViewMode } from "@/components/custom/terminal/useTerminalController";
 import { Button } from "@/components/ui/button";
-import { ConfirmDialog } from "../confirmDialog";
 
 type TerminalToolbarProps = {
   config: { label: string; color: string; text: string };

@@ -270,6 +270,36 @@ describe("saveProblem", () => {
       expect(res.error).toContain("Insert failed");
     }
   });
+
+  it("returns aggregated validation errors for invalid code fields", async () => {
+    getServerSessionMock.mockResolvedValue({ user: { id: "user-1" } });
+
+    findFirstMock.mockResolvedValue(null);
+
+    const res = await saveProblem({
+      problemMarkdown: "Valid markdown",
+      studentCode: {
+        "student/main.go": "   ",
+      },
+      solutionMarkdown: "// solution",
+      testCode: {
+        "test/main_test.go": "invalid test code",
+      },
+      protocolCode: {
+        "protocol.go": "invalid protocol code",
+      },
+      isPublished: false,
+    });
+
+    expect(res).toEqual({
+      success: false,
+      error: expect.stringContaining("validation errors"),
+      status: 400,
+    });
+
+    expect(insertMock).not.toHaveBeenCalled();
+    expect(updateMock).not.toHaveBeenCalled();
+  });
 });
 
 describe("updateExerciseForm", () => {

@@ -5,9 +5,11 @@
 const getServerSessionMock = jest.fn();
 const getUserByIdMock = jest.fn();
 
+// validateCode mock
+const checkUserCodeMock = jest.fn();
+
 // Drizzle "builder" style mocks
 const findFirstMock = jest.fn();
-
 const selectMock = jest.fn();
 
 const insertMock = jest.fn();
@@ -37,6 +39,10 @@ jest.mock("@/app/api/auth/[...nextauth]/route", () => ({
 
 jest.mock("@/lib/user", () => ({
   getUserById: getUserByIdMock,
+}));
+
+jest.mock("@/utils/validateCode", () => ({
+  checkUserCode: (...args: any[]) => checkUserCodeMock(...args),
 }));
 
 jest.mock("@/lib/mq", () => ({
@@ -75,6 +81,7 @@ jest.mock("@/drizzle/schema", () => ({
   job_results: { table: "job_results" },
   problems: { table: "problems" },
   userCode: { table: "userCode" },
+  user_ratings: { table: "user_ratings" },
 }));
 
 let cancelJobRequest: any;
@@ -83,10 +90,11 @@ let loadSavedCode: any;
 let resetCode: any;
 let saveCode: any;
 let submitCode: any;
+let rateExercise: any;
 
 let db: any;
 
-import { job_results, userCode } from "@/drizzle/schema";
+import { job_results, user_ratings, userCode } from "@/drizzle/schema";
 import type { Filemap } from "@/types/actionTypes";
 
 // --- Helper utilities -----------------------------------------------------
@@ -127,14 +135,17 @@ beforeEach(async () => {
   resetCode = actions.resetCode;
   saveCode = actions.saveCode;
   submitCode = actions.submitCode;
+  rateExercise = actions.rateExercise;
 
   const dbModule = await import("@/lib/db");
   db = dbModule.db;
 
   (db.select as unknown as jest.Mock) = selectMock;
+
   (db.insert as unknown as jest.Mock) = insertMock.mockReturnValue({
     values: insertValuesMock,
   });
+
   (db.update as unknown as jest.Mock) = updateMock.mockReturnValue({
     set: updateSetMock,
   });
@@ -145,7 +156,11 @@ beforeEach(async () => {
   });
 
   (db.query.problems.findFirst as jest.Mock) = findFirstMock;
+
+  // default: code passes validation unless overridden per test
+  checkUserCodeMock.mockResolvedValue(null);
 });
+
 describe("getExercise", () => {
   it("returns 400 for invalid id", async () => {
     const result = await getExercise({ params: { id: Number("NaN") as any } });
@@ -199,6 +214,7 @@ describe("getExercise", () => {
 describe("submitCode", () => {
   const baseExercise = {
     id: 42,
+    timeout: 60,
     testCode: { "test.go": "package test func test()" } as Filemap,
     selectedTestPath: ["test.go"],
     protocolCode: { "protocol.go": "protocol code" } as Filemap,
@@ -365,9 +381,8 @@ describe("saveCode", () => {
     getServerSessionMock.mockResolvedValueOnce({ user: { id: "u1" } });
     getUserByIdMock.mockResolvedValueOnce({ userid: "db-u1" });
 
-    mockSelectChainOnce([{ id: 1 }]);
-
-    mockSelectChainOnce([] as any);
+    mockSelectChainOnce([{ id: 1 }]); // foundProblem
+    mockSelectChainOnce([] as any); // existing userCode empty
 
     const content: Filemap = { "/main.go": "code" };
 
@@ -379,6 +394,34 @@ describe("saveCode", () => {
       problemId: 1,
       codeSubmitted: content,
     });
+
+    expect(res).toEqual({ success: true, message: "Code saved successfully." });
+  });
+
+  it("updates userCode when an existing row is found", async () => {
+    getServerSessionMock.mockResolvedValueOnce({ user: { id: "u1" } });
+    getUserByIdMock.mockResolvedValueOnce({ userid: "db-u1" });
+
+    mockSelectChainOnce([{ id: 1 }]);
+
+    mockSelectChainOnce([
+      {
+        id: 99,
+        userId: "db-u1",
+        problemId: 1,
+        codeSubmitted: { "/main.go": "old" },
+      },
+    ]);
+
+    const content: Filemap = { "/main.go": "new code" };
+
+    const res = await saveCode(content, { params: { id: 1 } });
+
+    expect(updateMock).toHaveBeenCalledWith(userCode);
+    expect(updateSetMock).toHaveBeenCalledWith({ codeSubmitted: content });
+    expect(updateWhereMock).toHaveBeenCalledTimes(1);
+
+    expect(insertMock).not.toHaveBeenCalled();
 
     expect(res).toEqual({ success: true, message: "Code saved successfully." });
   });
@@ -422,8 +465,7 @@ describe("loadSavedCode", () => {
   it("falls back to problem.studentCode if no saved code", async () => {
     getServerSessionMock.mockResolvedValueOnce({ user: { id: "u1" } });
 
-    mockSelectChainOnce<any>([]);
-
+    mockSelectChainOnce<any>([]); // no user code
     mockSelectChainOnce([
       {
         id: 1,
@@ -442,9 +484,8 @@ describe("loadSavedCode", () => {
   it("returns 404 if neither userCode nor problem exists", async () => {
     getServerSessionMock.mockResolvedValueOnce({ user: { id: "u1" } });
 
-    mockSelectChainOnce<any>([]);
-
-    mockSelectChainOnce<any>([]);
+    mockSelectChainOnce<any>([]); // no user code
+    mockSelectChainOnce<any>([]); // no problem
 
     const res = await loadSavedCode({ params: { id: 1 } });
 
@@ -500,5 +541,66 @@ describe("resetCode", () => {
     expect(deleteMock).toHaveBeenCalledWith(userCode);
     expect(deleteWhereMock).toHaveBeenCalledTimes(1);
     expect(res).toEqual({ success: true, message: "Code reset successfully." });
+  });
+});
+
+describe("rateExercise", () => {
+  it("returns 401 if unauthorised", async () => {
+    getServerSessionMock.mockResolvedValueOnce(null);
+
+    const res = await rateExercise(true, { params: { id: 1 } });
+
+    expect(res).toEqual({ error: "Unauthorized", status: 401 });
+    expect(insertMock).not.toHaveBeenCalled();
+    expect(updateMock).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 for invalid problem id", async () => {
+    getServerSessionMock.mockResolvedValueOnce({ user: { id: "u1" } });
+
+    const res = await rateExercise(true, {
+      params: { id: Number("NaN") as any },
+    });
+
+    expect(res).toEqual({ error: "Invalid problem id", status: 400 });
+  });
+
+  it("inserts rating when none exists", async () => {
+    getServerSessionMock.mockResolvedValueOnce({ user: { id: "u1" } });
+
+    // first select: check if rating exists -> []
+    mockSelectChainOnce<any>([]);
+
+    const res = await rateExercise(true, { params: { id: 42 } });
+
+    expect(insertMock).toHaveBeenCalledWith(user_ratings);
+    expect(insertValuesMock).toHaveBeenCalledWith({
+      userId: "u1",
+      problemId: 42,
+      rating: 1,
+    });
+
+    expect(res).toEqual({
+      success: true,
+      message: "Exercise rated successfully.",
+    });
+  });
+
+  it("updates rating when one already exists", async () => {
+    getServerSessionMock.mockResolvedValueOnce({ user: { id: "u1" } });
+
+    // first select: check if rating exists -> non-empty
+    mockSelectChainOnce<any>([{ id: 1 }]);
+
+    const res = await rateExercise(false, { params: { id: 42 } });
+
+    expect(updateMock).toHaveBeenCalledWith(user_ratings);
+    expect(updateSetMock).toHaveBeenCalledWith({ rating: -1 });
+    expect(updateWhereMock).toHaveBeenCalledTimes(1);
+
+    expect(res).toEqual({
+      success: true,
+      message: "Exercise rated successfully.",
+    });
   });
 });

@@ -92,7 +92,6 @@ export async function saveProblem(data: SaveProblemParams) {
       const result = await db
         .insert(problems)
         .values({
-          ...problemData,
           userId: session.user.id,
           problemMarkdown: problemData.problemMarkdown,
           studentCode: problemData.studentCode,
