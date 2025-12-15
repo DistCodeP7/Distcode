@@ -1,6 +1,10 @@
 import { act, renderHook } from "@testing-library/react";
 import { toast } from "sonner";
-import { resetCode, saveCode } from "@/app/exercises/[id]/actions";
+import {
+  rateExercise,
+  resetCode,
+  saveCode,
+} from "@/app/exercises/[id]/actions";
 import { useExerciseFiles } from "@/app/exercises/[id]/components/useExerciseFiles";
 import type { Filemap } from "@/types/actionTypes";
 
@@ -8,6 +12,7 @@ import type { Filemap } from "@/types/actionTypes";
 jest.mock("@/app/exercises/[id]/actions", () => ({
   saveCode: jest.fn(),
   resetCode: jest.fn(),
+  rateExercise: jest.fn(),
 }));
 
 // --- Mock sonner toast ---
@@ -45,6 +50,8 @@ describe("useExerciseFiles", () => {
     toast.success as jest.MockedFunction<typeof toast.success>;
   const toastError = () =>
     toast.error as jest.MockedFunction<typeof toast.error>;
+  const rateExerciseMock = () =>
+    rateExercise as jest.MockedFunction<typeof rateExercise>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -222,5 +229,73 @@ describe("useExerciseFiles", () => {
     expect(result.current.file.content["student/main.go"]).toBe(
       "// updated content"
     );
+  });
+
+  it("onReset sets showResetDialog to true", () => {
+    const { result } = renderHook(() => useExerciseFiles(defaultArgs));
+
+    expect(result.current.reset.showResetDialog).toBe(false);
+
+    act(() => {
+      result.current.onReset();
+    });
+
+    expect(result.current.reset.showResetDialog).toBe(true);
+  });
+
+  it("confirmReset shows 'Error resetting code' toast when resetCode throws", async () => {
+    resetCodeMock().mockRejectedValueOnce(new Error("network died"));
+
+    const { result } = renderHook(() => useExerciseFiles(defaultArgs));
+
+    // open the dialog first (optional but realistic)
+    act(() => {
+      result.current.onReset();
+    });
+    expect(result.current.reset.showResetDialog).toBe(true);
+
+    await act(async () => {
+      await result.current.confirmReset();
+    });
+
+    expect(toastError()).toHaveBeenCalledWith("Error resetting code", {
+      description: "Error: network died",
+    });
+
+    // ensure resetting flag is cleaned up
+    expect(result.current.reset.resetting).toBe(false);
+    // dialog is closed at the start of confirmReset
+    expect(result.current.reset.showResetDialog).toBe(false);
+  });
+
+  it("handleRate calls rateExercise and shows success toast", () => {
+    rateExerciseMock().mockImplementationOnce(() => undefined as any);
+
+    const { result } = renderHook(() => useExerciseFiles(defaultArgs));
+
+    act(() => {
+      result.current.handleRate(true);
+    });
+
+    expect(rateExerciseMock()).toHaveBeenCalledWith(true, {
+      params: { id: defaultArgs.exerciseId },
+    });
+    expect(toastSuccess()).toHaveBeenCalledWith("Exercise rated successfully.");
+  });
+
+  it("handleRate shows error toast when rateExercise throws", () => {
+    rateExerciseMock().mockImplementationOnce(() => {
+      throw new Error("rate failed");
+    });
+
+    const { result } = renderHook(() => useExerciseFiles(defaultArgs));
+
+    act(() => {
+      result.current.handleRate(false);
+    });
+
+    expect(toastError()).toHaveBeenCalledWith("Error rating exercise", {
+      description: "Error: rate failed",
+    });
   });
 });

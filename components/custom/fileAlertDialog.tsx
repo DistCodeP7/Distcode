@@ -11,7 +11,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "../ui/alertDialog";
+} from "@/components/ui/alertDialog";
 
 interface FileAlertDialogProps {
   open: boolean;

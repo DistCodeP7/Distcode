@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 import { saveCompletedExercises } from "@/app/exercises/actions";
 import type { ViewMode } from "@/components/custom/terminal/useTerminalController";
 import { Button } from "@/components/ui/button";
-import { ConfirmDialog } from "../confirmDialog";
+import {ConfirmDialog} from "@/components/custom/confirmDialog";
 
 type TerminalToolbarProps = {
   config: { label: string; color: string; text: string };
