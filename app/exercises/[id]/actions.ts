@@ -1,15 +1,7 @@
 "use server";
 
-import { and, desc, eq } from "drizzle-orm";
-import { getServerSession } from "next-auth";
-import { v4 as uuid } from "uuid";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import {
-  job_results,
-  problems,
-  user_ratings,
-  userCode,
-} from "@/drizzle/schema";
+import { problems, user_ratings, userCode } from "@/drizzle/schema";
 import { db } from "@/lib/db";
 import { MQJobsCanceller, MQJobsSender, ready } from "@/lib/mq";
 import { getUserById } from "@/lib/user";
@@ -21,6 +13,9 @@ import type {
   TestContainerConfig,
 } from "@/types/actionTypes";
 import { checkUserCode } from "@/utils/validateCode";
+import { and, desc, eq } from "drizzle-orm";
+import { getServerSession } from "next-auth";
+import { v4 as uuid } from "uuid";
 
 export async function getExercise({ params }: { params: { id: number } }) {
   const id = Number(params.id);
@@ -115,50 +110,10 @@ export async function submitCode(
     nodes: contentArray,
     userId: user.userid,
     timeout: exercise.timeout,
+    problemId: exercise.id,
     submittedAt: new Date(Date.now()),
   };
-
-  console.log(payload);
-  await db
-    .delete(job_results)
-    .where(
-      and(
-        eq(job_results.problemId, exercise.id),
-        eq(job_results.userId, user.userid)
-      )
-    );
-
-  if (
-    (
-      await db
-        .select()
-        .from(job_results)
-        .where(
-          and(
-            eq(job_results.problemId, exercise.id),
-            eq(job_results.userId, user.userid)
-          )
-        )
-    ).length === 0
-  ) {
-    await db.insert(job_results).values({
-      jobUid: payload.jobUid,
-      userId: user.userid,
-      problemId: exercise.id,
-    });
-  } else {
-    // Update jobId to new submission
-    await db
-      .update(job_results)
-      .set({ jobUid: payload.jobUid })
-      .where(
-        and(
-          eq(job_results.problemId, exercise.id),
-          eq(job_results.userId, user.userid)
-        )
-      );
-  }
-
+  
   await ready;
   MQJobsSender.sendMessage(payload);
 

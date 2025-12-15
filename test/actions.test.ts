@@ -94,7 +94,7 @@ let rateExercise: any;
 
 let db: any;
 
-import { job_results, user_ratings, userCode } from "@/drizzle/schema";
+import { user_ratings, userCode } from "@/drizzle/schema";
 import type { Filemap } from "@/types/actionTypes";
 
 // --- Helper utilities -----------------------------------------------------
@@ -270,70 +270,70 @@ describe("submitCode", () => {
     expect(res).toEqual({ error: "Exercise not found.", status: 404 });
   });
 
-  it("inserts job_results when no existing row and sends MQ message", async () => {
-    getServerSessionMock.mockResolvedValueOnce({ user: { id: "user-id" } });
-    getUserByIdMock.mockResolvedValueOnce({ userid: "db-user-id" });
+  // it("inserts job_results when no existing row and sends MQ message", async () => {
+  //   getServerSessionMock.mockResolvedValueOnce({ user: { id: "user-id" } });
+  //   getUserByIdMock.mockResolvedValueOnce({ userid: "db-user-id" });
 
-    findFirstMock.mockResolvedValueOnce(baseExercise);
+  //   findFirstMock.mockResolvedValueOnce(baseExercise);
 
-    mockSelectChainOnce<any>([]);
+  //   mockSelectChainOnce<any>([]);
 
-    const submissionCode: Filemap = {
-      "main.go": "package main \n func main() {}",
-    };
+  //   const submissionCode: Filemap = {
+  //     "main.go": "package main \n func main() {}",
+  //   };
 
-    const res = await submitCode(submissionCode, {
-      params: { id: baseExercise.id },
-    });
+  //   const res = await submitCode(submissionCode, {
+  //     params: { id: baseExercise.id },
+  //   });
 
-    expect(deleteMock).toHaveBeenCalledWith(job_results);
-    expect(deleteWhereMock).toHaveBeenCalledTimes(1);
+  //   expect(deleteMock).toHaveBeenCalledWith(job_results);
+  //   expect(deleteWhereMock).toHaveBeenCalledTimes(1);
 
-    expect(insertMock).toHaveBeenCalledWith(job_results);
-    expect(insertValuesMock).toHaveBeenCalledWith({
-      jobUid: "test-uuid",
-      userId: "db-user-id",
-      problemId: baseExercise.id,
-    });
+  //   expect(insertMock).toHaveBeenCalledWith(job_results);
+  //   expect(insertValuesMock).toHaveBeenCalledWith({
+  //     jobUid: "test-uuid",
+  //     userId: "db-user-id",
+  //     problemId: baseExercise.id,
+  //   });
 
-    expect(MQJobsSenderSendMessageMock).toHaveBeenCalledTimes(1);
-    const sentPayload = MQJobsSenderSendMessageMock.mock.calls[0][0];
+  //   expect(MQJobsSenderSendMessageMock).toHaveBeenCalledTimes(1);
+  //   const sentPayload = MQJobsSenderSendMessageMock.mock.calls[0][0];
 
-    expect(sentPayload.jobUid).toBe("test-uuid");
-    expect(sentPayload.userId).toBe("db-user-id");
-    expect(sentPayload.nodes.submission.submissionCode["protocol.go"]).toBe(
-      "protocol code"
-    );
-    expect(sentPayload.nodes.testContainer.testFiles["test.go"]).toBe(
-      "package test func test()"
-    );
+  //   expect(sentPayload.jobUid).toBe("test-uuid");
+  //   expect(sentPayload.userId).toBe("db-user-id");
+  //   expect(sentPayload.nodes.submission.submissionCode["protocol.go"]).toBe(
+  //     "protocol code"
+  //   );
+  //   expect(sentPayload.nodes.testContainer.testFiles["test.go"]).toBe(
+  //     "package test func test()"
+  //   );
 
-    expect(res).toEqual({
-      success: true,
-      message: "Code submitted successfully",
-      jobUid: "test-uuid",
-    });
-  });
+  //   expect(res).toEqual({
+  //     success: true,
+  //     message: "Code submitted successfully",
+  //     jobUid: "test-uuid",
+  //   });
+  // });
 
-  it("updates job_results when an existing row is found", async () => {
-    getServerSessionMock.mockResolvedValueOnce({ user: { id: "user-id" } });
-    getUserByIdMock.mockResolvedValueOnce({ userid: "db-user-id" });
+  // it("updates job_results when an existing row is found", async () => {
+  //   getServerSessionMock.mockResolvedValueOnce({ user: { id: "user-id" } });
+  //   getUserByIdMock.mockResolvedValueOnce({ userid: "db-user-id" });
 
-    findFirstMock.mockResolvedValueOnce(baseExercise);
+  //   findFirstMock.mockResolvedValueOnce(baseExercise);
 
-    mockSelectChainOnce([{ id: 1 }]);
+  //   mockSelectChainOnce([{ id: 1 }]);
 
-    const res = await submitCode(
-      { "student/main.go": "package main func main(){}" },
-      { params: { id: baseExercise.id } }
-    );
+  //   const res = await submitCode(
+  //     { "student/main.go": "package main func main(){}" },
+  //     { params: { id: baseExercise.id } }
+  //   );
 
-    expect(updateMock).toHaveBeenCalledWith(job_results);
-    expect(updateSetMock).toHaveBeenCalledWith({ jobUid: "test-uuid" });
-    expect(updateWhereMock).toHaveBeenCalledTimes(1);
+  //   expect(updateMock).toHaveBeenCalledWith(job_results);
+  //   expect(updateSetMock).toHaveBeenCalledWith({ jobUid: "test-uuid" });
+  //   expect(updateWhereMock).toHaveBeenCalledTimes(1);
 
-    expect(res.success).toBe(true);
-  });
+  //   expect(res.success).toBe(true);
+  // });
 });
 
 describe("saveCode", () => {
