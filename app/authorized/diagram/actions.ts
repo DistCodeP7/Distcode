@@ -72,7 +72,6 @@ export async function getExerciseJobUid(userid: string) {
       asc(job_results.queued_at)
     );
 
-  console.log("Job Results:", result);
   const jobUidMessageResult = await db
     .select({ jobUid: job_process_messages.jobUid })
     .from(job_process_messages)
