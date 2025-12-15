@@ -157,8 +157,31 @@ export async function submitCode(
       );
   }
 
-  await ready;
-  MQJobsSender.sendMessage(payload);
+  // Ensure MQ is available; provide friendly errors instead of throwing
+  if (!process.env.RABBITMQ_URL) {
+    return {
+      error: "Message queue URL not configured. Is RABBITMQ_URL set?",
+      status: 503,
+    };
+  }
+
+  try {
+    await ready;
+  } catch (e) {
+    return {
+      error: "Message queue not connected. Is RabbitMQ running?",
+      status: 503,
+    };
+  }
+
+  try {
+    MQJobsSender.sendMessage(payload);
+  } catch (e) {
+    return {
+      error: "Failed to enqueue job. Please try again shortly.",
+      status: 503,
+    };
+  }
 
   return {
     success: true,

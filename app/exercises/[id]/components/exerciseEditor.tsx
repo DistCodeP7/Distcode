@@ -60,25 +60,31 @@ export default function ExerciseEditor({
     !!currentJobUid && !messages.some((msg) => msg.type === "result");
 
   const handleSubmit = async () => {
-    clearMessages();
-    connect();
+    try {
+      clearMessages();
+      connect();
 
-    const problemContentMap: Filemap = {};
-    file.order.forEach((p) => {
-      problemContentMap[p] = file.content[p] ?? "";
-    });
+      const problemContentMap: Filemap = {};
+      file.order.forEach((p) => {
+        problemContentMap[p] = file.content[p] ?? "";
+      });
 
-    const result = await submitCode(problemContentMap, {
-      params: { id: exerciseId },
-    });
-    if (result.error) {
-      toast.error("Failed to submit code", { description: result.error });
-      return;
-    }
-    setCanRate(false);
-    terminalRef.current?.resize(80);
-    if (result?.jobUid) {
-      setCurrentJobUid(result.jobUid);
+      const result = await submitCode(problemContentMap, {
+        params: { id: exerciseId },
+      });
+      if (result.error) {
+        toast.error("Failed to submit code", { description: result.error });
+        return;
+      }
+      setCanRate(false);
+      terminalRef.current?.resize(80);
+      if (result?.jobUid) {
+        setCurrentJobUid(result.jobUid);
+      }
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Unexpected error occurred.";
+      toast.error("Submit failed", { description: message });
     }
   };
 
