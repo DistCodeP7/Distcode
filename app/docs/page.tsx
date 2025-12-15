@@ -94,7 +94,7 @@ As seen in the example below, users are free to extend the DSnet Node interface 
 ${exampleuserCode()}
 \`\`\`
 
-
+---
 
 # Full Example: Echo Broadcast Exercise
 ## Description
@@ -259,7 +259,7 @@ return `
     }
 
     type ReplyReceived struct {
-        dsnet.BaseMessage
+        dsnet.BaseMessage     // Type: "ReplyReceived"
         EchoID 				string
         Success 			bool
     }
