@@ -141,6 +141,13 @@
       "when": 1765741661711,
       "tag": "0019_good_tattoo",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1765812700136,
+      "tag": "0020_faithful_mentor",
+      "breakpoints": true
     }
   ]
 }

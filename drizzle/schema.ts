@@ -15,6 +15,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
+import { q } from "motion/react-client";
 import * as zod from "zod";
 
 export const users = pgTable("users", {
@@ -108,6 +109,7 @@ export const job_results = pgTable("job_results", {
   outcome: json("outcome").$type<Outcome>(),
   test_results: json("test_results").$type<TestResult[]>(),
   duration: integer("duration"),
+  queued_at: timestamp("queued_at"), //For stress testing
   finishedAt: timestamp("finished_at"),
   logs: jsonb("logs").$type<LogEventPayload[]>(),
 });

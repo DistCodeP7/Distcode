@@ -115,6 +115,7 @@ export async function submitCode(
     nodes: contentArray,
     userId: user.userid,
     timeout: exercise.timeout,
+    submittedAt: new Date(),
   };
 
   await db
