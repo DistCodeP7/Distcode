@@ -7,7 +7,7 @@ import { AuthAvatar } from "@/components/custom/navbarClientItems";
 
 export async function Navbar() {
   const navLinks = [
-    { href: "#", label: "Features" },
+    { href: "/docs", label: "Documentation" },
     { href: "/exercises", label: "Exercises" },
     { href: "/authorized", label: "Create New Exercise" },
     { href: "/authorized/diagram", label: "Diagram" },
