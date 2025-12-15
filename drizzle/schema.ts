@@ -107,7 +107,8 @@ export const job_results = pgTable("job_results", {
     .references(() => problems.id, { onDelete: "cascade" }),
   outcome: json("outcome").$type<Outcome>(),
   test_results: json("test_results").$type<TestResult[]>(),
-  duration: integer("duration"),
+  duration: bigint("duration", { mode: "bigint" }),
+  queued_at: timestamp("queued_at"), //For stress testing
   finishedAt: timestamp("finished_at"),
   logs: jsonb("logs").$type<LogEventPayload[]>(),
 });

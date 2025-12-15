@@ -40,7 +40,7 @@ export type StatusEventPayload = {
 // 3. Result Payload
 export type ResultEventPayload = {
   outcome: Outcome;
-  duration_ms: number;
+  duration_ms: number | bigint;
   test_results?: TestResult[];
   failed_worker_id?: string;
   error?: string;

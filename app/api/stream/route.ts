@@ -83,8 +83,6 @@ class ClientManager {
   }
 
   dispatchJobResultToClients(msg: StreamingJobEvent) {
-    console.log("Dispatching job result to clients:", msg);
-
     const userId = msg.user_id;
     if (!userId) return;
 

@@ -1,0 +1,1 @@
+ALTER TABLE "job_results" ALTER COLUMN "duration" SET DATA TYPE bigint;

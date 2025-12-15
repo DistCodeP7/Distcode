@@ -115,8 +115,10 @@ export async function submitCode(
     nodes: contentArray,
     userId: user.userid,
     timeout: exercise.timeout,
+    submittedAt: new Date(Date.now()),
   };
 
+  console.log(payload);
   await db
     .delete(job_results)
     .where(
