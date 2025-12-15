@@ -113,9 +113,7 @@ export async function submitCode(
     problemId: exercise.id,
     submittedAt: new Date(Date.now()),
   };
-
-  console.log(payload);
-
+  
   await ready;
   MQJobsSender.sendMessage(payload);
 
