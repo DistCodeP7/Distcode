@@ -5,10 +5,10 @@ import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import rehypeRaw from "rehype-raw";
 import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
+import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scrollArea";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 type MarkdownPreviewProps = {
   content?: string;

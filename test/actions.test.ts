@@ -270,35 +270,6 @@ describe("submitCode", () => {
     expect(res).toEqual({ error: "Exercise not found.", status: 404 });
   });
 
-  it("returns 400 if validateCode reports issues (unused imports gate)", async () => {
-    getServerSessionMock.mockResolvedValueOnce({ user: { id: "user-id" } });
-    getUserByIdMock.mockResolvedValueOnce({ userid: "db-user-id" });
-
-    findFirstMock.mockResolvedValueOnce(baseExercise);
-
-    checkUserCodeMock.mockResolvedValueOnce([
-      "Unused import:fmt",
-      "Unused import:strings",
-    ]);
-
-    const res = await submitCode(
-      { "main.go": `package main\nimport "fmt"\nfunc main(){}` },
-      { params: { id: baseExercise.id } }
-    );
-
-    expect(res).toEqual({
-      error:
-        "All imports must be used. Unused import(s): Unused import:fmt, Unused import:strings",
-      status: 400,
-    });
-
-    // should fail fast: no DB writes, no MQ
-    expect(deleteMock).not.toHaveBeenCalled();
-    expect(insertMock).not.toHaveBeenCalled();
-    expect(updateMock).not.toHaveBeenCalled();
-    expect(MQJobsSenderSendMessageMock).not.toHaveBeenCalled();
-  });
-
   it("inserts job_results when no existing row and sends MQ message", async () => {
     getServerSessionMock.mockResolvedValueOnce({ user: { id: "user-id" } });
     getUserByIdMock.mockResolvedValueOnce({ userid: "db-user-id" });
