@@ -1,6 +1,6 @@
 "use server";
 
-import { asc, eq, getTableColumns } from "drizzle-orm";
+import { asc, desc, eq, getTableColumns } from "drizzle-orm";
 import { job_process_messages, job_results, problems } from "@/drizzle/schema";
 import { db } from "@/lib/db";
 import type { JobInfo } from "./page";
@@ -69,7 +69,7 @@ export async function getExerciseJobUid(userid: string) {
     .orderBy(
       job_results.userId,
       job_results.problemId,
-      asc(job_results.queued_at)
+      desc(job_results.queued_at)
     );
 
   const jobUidMessageResult = await db
