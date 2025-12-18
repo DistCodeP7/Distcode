@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type {
   CheckoutFormState,
   DetailsConfig,
@@ -15,7 +15,7 @@ const useCreateChallenge = (
 ) => {
   const key = storageKey ?? "challengeForm";
 
-  const [form, setForm] = useState<CheckoutFormState>(() => {
+  const buildInitialForm = (): CheckoutFormState => {
     const base = baseFormParam;
     const baseTestFiles = { ...base.testContainer.testFiles };
 
@@ -34,55 +34,21 @@ const useCreateChallenge = (
       ...base,
       testContainer: { ...base.testContainer, testFiles: baseTestFiles },
     };
+  };
+
+  // Initialize state directly from LocalStorage
+  const [form, setForm] = useState<CheckoutFormState>(() => {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) : buildInitialForm();
   });
 
-  const hasRestoredRef = useRef(false);
-
-  useLayoutEffect(() => {
-    const saved = localStorage.getItem(key);
-
-    if (saved) {
-      try {
-        const restored = JSON.parse(saved) as CheckoutFormState;
-        setForm(restored);
-        hasRestoredRef.current = true;
-        return;
-      } catch (err) {
-        console.warn(`Invalid ${key} in localStorage, clearing it:`, err);
-        localStorage.removeItem(key);
-      }
-    }
-
-    const base = baseFormParam;
-    const baseTestFiles = { ...base.testContainer.testFiles };
-
-    if (base.testContainer.testFiles?.["test/main_test.go"]) {
-      baseTestFiles["test/main_test.go"] =
-        base.testContainer.testFiles["test/main_test.go"];
-    }
-
-    Object.keys(baseTestFiles).forEach((f) => {
-      if (f !== "test/main_test.go" && !current.includes(f)) {
-        delete baseTestFiles[f];
-      }
-    });
-
-    setForm({
-      ...base,
-      testContainer: { ...base.testContainer, testFiles: baseTestFiles },
-    });
-
-    hasRestoredRef.current = true;
-  }, [key, baseFormParam, current]);
-
+  // Persist state to LocalStorage whenever it changes
   useEffect(() => {
-    if (!hasRestoredRef.current) return;
     localStorage.setItem(key, JSON.stringify(form));
   }, [form, key]);
 
-  const setCurrentStep = (step: number) => {
+  const setCurrentStep = (step: number) =>
     setForm((prev) => ({ ...prev, step }));
-  };
 
   const nextStep = () =>
     setForm((prev) => ({ ...prev, step: Math.min(prev.step + 1, 4) }));
@@ -117,9 +83,7 @@ const useCreateChallenge = (
       submission: { ...prev.submission, [field]: value },
     }));
 
-  const clearDraft = () => {
-    localStorage.removeItem(key);
-  };
+  const clearDraft = () => localStorage.removeItem(key);
 
   return {
     form,
