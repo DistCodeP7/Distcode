@@ -1,6 +1,6 @@
 "use server";
 
-import { asc, eq } from "drizzle-orm";
+import { asc, desc, eq, getTableColumns } from "drizzle-orm";
 import { job_process_messages, job_results, problems } from "@/drizzle/schema";
 import { db } from "@/lib/db";
 import type { JobInfo } from "./page";
@@ -59,10 +59,18 @@ export async function getTraceDataAction(jobUid: string) {
 
 export async function getExerciseJobUid(userid: string) {
   if (!userid) return [];
+
   const result = await db
-    .select()
+    .selectDistinctOn([job_results.userId, job_results.problemId], {
+      ...getTableColumns(job_results),
+    })
     .from(job_results)
-    .where(eq(job_results.userId, userid));
+    .where(eq(job_results.userId, userid))
+    .orderBy(
+      job_results.userId,
+      job_results.problemId,
+      desc(job_results.queued_at)
+    );
 
   const jobUidMessageResult = await db
     .select({ jobUid: job_process_messages.jobUid })
