@@ -40,7 +40,7 @@ export default async function Page({ searchParams }: SearchParams) {
     ...replica,
     envs: replica.envs.map((env, eIndex) => ({
       ...env,
-      id: `replica-${rIndex}-env-${eIndex}`,
+      id: `${replica.alias}-env-${eIndex}`,
     })),
   }));
 

@@ -13,6 +13,8 @@ import type {
   SaveProblemParams,
 } from "@/types/problemTypes";
 import { checkUserCode } from "@/utils/validateCode";
+import { uniqueNamesGenerator } from "unique-names-generator";
+import { customConfig } from "@/utils/randomName";
 
 export async function saveProblem(data: SaveProblemParams) {
   const session = await getServerSession(authOptions);
@@ -111,7 +113,9 @@ export async function saveProblem(data: SaveProblemParams) {
           submissionBuildCommand: "go build -o ./stud ./student/main.go",
           submissionEntryCommand: "./wrapper -cmd ./stud",
           globalEnvs: [],
-          replicaConfigs: [{ alias: "replica-1", envs: [] }],
+          replicaConfigs: [
+            { alias: uniqueNamesGenerator(customConfig), envs: [] },
+          ],
           timeout: 60,
           lastModified: new Date(),
         } as NewProblem)

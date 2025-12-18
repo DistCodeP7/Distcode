@@ -1,9 +1,9 @@
 "use server";
 
 import { asc, desc, eq, getTableColumns } from "drizzle-orm";
+import type { JobInfo } from "@/app/authorized/diagram/components/traceHeaderCard";
 import { job_process_messages, job_results, problems } from "@/drizzle/schema";
 import { db } from "@/lib/db";
-import {JobInfo} from "@/app/authorized/diagram/components/traceHeaderCard";
 
 export async function getTraceDataAction(jobUid: string) {
   try {

@@ -16,6 +16,8 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import type { ReplicaConfig, SubmissionConfig } from "@/types/challenge";
+import { uniqueNamesGenerator } from "unique-names-generator";
+import { customConfig } from "@/utils/randomName";
 
 const StepThreeSubmission = ({
   config,
@@ -42,7 +44,7 @@ const StepThreeSubmission = ({
       return;
     }
     const current = config.replicaConfigs[index] || {
-      alias: `replica-${index + 1}`,
+      alias: uniqueNamesGenerator(customConfig),
       envs: [],
     };
     update("replicaConfigs", {
@@ -59,7 +61,7 @@ const StepThreeSubmission = ({
     for (let i = 0; i < newCount; i++) {
       if (!newReplicaConfigs[i]) {
         newReplicaConfigs[i] = {
-          alias: `replica-${i + 1}`,
+          alias: uniqueNamesGenerator(customConfig),
           envs: [],
           id: i,
         };
@@ -164,7 +166,7 @@ const StepThreeSubmission = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: config.replicas }).map((_, i) => {
             const rep = config.replicaConfigs[i] || {
-              alias: `replica-${i + 1}`,
+              alias: uniqueNamesGenerator(customConfig),
               envs: [],
             };
             return (
