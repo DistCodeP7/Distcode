@@ -1,5 +1,8 @@
 "use server";
 
+import { and, desc, eq } from "drizzle-orm";
+import { getServerSession } from "next-auth";
+import { v4 as uuid } from "uuid";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { problems, user_ratings, userCode } from "@/drizzle/schema";
 import { db } from "@/lib/db";
@@ -13,9 +16,6 @@ import type {
   TestContainerConfig,
 } from "@/types/actionTypes";
 import { checkUserCode } from "@/utils/validateCode";
-import { and, desc, eq } from "drizzle-orm";
-import { getServerSession } from "next-auth";
-import { v4 as uuid } from "uuid";
 
 export async function getExercise({ params }: { params: { id: number } }) {
   const id = Number(params.id);
@@ -113,7 +113,7 @@ export async function submitCode(
     problemId: exercise.id,
     submittedAt: new Date(Date.now()),
   };
-  
+
   await ready;
   MQJobsSender.sendMessage(payload);
 
