@@ -83,13 +83,13 @@ export function SubmissionCard({ problem, results }: SubmissionCardProps) {
           <div className="space-y-1.5">
             <div className="flex items-center gap-2">
               <h3 className="font-semibold text-base leading-none tracking-tight">
-                {problem.title}
+                {problem.title || "Draft Problem"}
               </h3>
               <Badge
                 variant="outline"
                 className="text-[10px] h-5 px-1.5 font-normal uppercase tracking-wider opacity-70"
               >
-                {problem.difficulty}
+                {problem.difficulty || "N/A"}
               </Badge>
             </div>
             <p className="text-xs text-muted-foreground line-clamp-1 max-w-md">
@@ -148,6 +148,7 @@ export function SubmissionCard({ problem, results }: SubmissionCardProps) {
               variant="ghost"
               size="sm"
               onClick={() => setShowLogs(!showLogs)}
+              disabled={status.label === "Pending"}
               className={cn(
                 "h-7 text-xs gap-1.5 transition-all",
                 showLogs
