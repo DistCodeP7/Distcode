@@ -1,31 +1,30 @@
 "use client";
-import { deleteProblemFromList } from "@/app/authorized/[id]/listActions";
-import type { Problem } from "@/lib/problems";
-import { useState } from "react";
-import NeonLines from "@/components/custom/neonLine";
 import { FolderOpen, TrashIcon } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { deleteProblemFromList } from "@/app/authorized/[id]/listActions";
 import { ConfirmDialog } from "@/components/custom/confirmDialog";
+import NeonLines from "@/components/custom/neonLine";
+import { Button } from "@/components/ui/button";
+import type { Problem } from "@/lib/problems";
 
-interface ClientProblemListPageProps {
+interface ProblemListClientProps {
   exercises: Problem[];
 }
 
-export default function ProblemListPage({ exercises: initialExercises }: ClientProblemListPageProps) {
+export default function ProblemListClient({
+  exercises: initialExercises,
+}: ProblemListClientProps) {
   const [exercises, setExercises] = useState<Problem[]>(initialExercises);
   const [openDialogId, setOpenDialogId] = useState<number | null>(null);
-  const [isDeleting, setIsDeleting] = useState<number | null>(null);
 
   const handleDelete = async (id: number) => {
-    setIsDeleting(id);
     try {
       await deleteProblemFromList(id);
       setExercises((prev) => prev.filter((p) => p.id !== id));
     } catch (error) {
       console.error("Failed to delete problem:", error);
     } finally {
-      setIsDeleting(null);
       setOpenDialogId(null);
     }
   };
@@ -143,18 +142,19 @@ export default function ProblemListPage({ exercises: initialExercises }: ClientP
                       className="hover:cursor-pointer absolute bottom-0 right-0 pointer-events-auto"
                       onClick={() => setOpenDialogId(e.id)}
                     >
-                        <TrashIcon className="w-4 h-4" />
+                      <TrashIcon className="w-4 h-4" />
                     </Button>
                     <ConfirmDialog
                       open={openDialogId === e.id}
-                      onOpenChange={(open: boolean) => setOpenDialogId(open ? e.id : null)}
+                      onOpenChange={(open: boolean) =>
+                        setOpenDialogId(open ? e.id : null)
+                      }
                       title="Delete Exercise"
                       description="Are you sure you want to delete this exercise? This action cannot be undone."
                       confirmLabel="Delete"
                       cancelLabel="Cancel"
-                      onConfirm={async () => { 
+                      onConfirm={async () => {
                         handleDelete(e.id);
-
                       }}
                     />
                   </div>
