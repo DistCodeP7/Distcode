@@ -1,5 +1,5 @@
 {
-  "id": "06894dfa-0e31-4495-be46-b80cf1a92d45",
+  "id": "0226cded-77dc-41b4-916c-1c8b5c4c7dd7",
   "prevId": "706f8202-fc37-4ace-a808-debc0ae87e98",
   "version": "7",
   "dialect": "postgresql",
@@ -181,12 +181,6 @@
         },
         "time_configuring_network": {
           "name": "time_configuring_network",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "time_completed": {
-          "name": "time_completed",
           "type": "bigint",
           "primaryKey": false,
           "notNull": false

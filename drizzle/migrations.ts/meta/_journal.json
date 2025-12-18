@@ -166,15 +166,8 @@
     {
       "idx": 23,
       "version": "7",
-      "when": 1766060972116,
-      "tag": "0023_wealthy_thunderbolts",
-      "breakpoints": true
-    },
-    {
-      "idx": 24,
-      "version": "7",
-      "when": 1766061028472,
-      "tag": "0024_tiresome_proemial_gods",
+      "when": 1766070812461,
+      "tag": "0023_regular_abomination",
       "breakpoints": true
     }
   ]
