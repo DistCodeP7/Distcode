@@ -2,13 +2,6 @@ import MarkdownPreview from "@/components/custom/markdownPreview";
 import NeonLines from "@/components/custom/neonLine";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -31,24 +24,6 @@ export default function DocsPage() {
       <div className="container mx-auto py-6 md:py-10 px-4">
         {/* Header */}
         <div className="mb-8 space-y-4">
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href="/">Home</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink href="/docs">Docs</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink className="font-semibold text-primary">
-                  DistCode Protocol
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-
           <div className="flex items-center justify-between">
             <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">
               Documentation

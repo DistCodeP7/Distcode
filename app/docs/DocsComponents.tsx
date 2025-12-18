@@ -1,5 +1,6 @@
 "use client";
 
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,7 +10,6 @@ import {
 } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scrollArea";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
 
 // Shared data structure
 export const DOC_SECTIONS = [

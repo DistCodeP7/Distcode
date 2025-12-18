@@ -1,5 +1,3 @@
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import type React from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -7,6 +5,8 @@ import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import rehypeRaw from "rehype-raw";
 import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { ScrollArea } from "../ui/scrollArea";
 
 type MarkdownPreviewProps = {
@@ -108,7 +108,7 @@ const MarkdownPreview = ({ content }: MarkdownPreviewProps) => {
   };
 
   return (
-    <ScrollArea className="h-full w-full rounded-md border bg-card p-6 md:p-8">
+    <ScrollArea className="h-full w-full rounded-md border bg-black p-6 md:p-8">
       {/* Added break-words to prevent code overflow causing horizontal scroll on body */}
       <div className="prose dark:prose-invert max-w-none w-full break-words">
         <ReactMarkdown
