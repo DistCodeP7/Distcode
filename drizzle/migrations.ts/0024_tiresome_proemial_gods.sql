@@ -1,0 +1,1 @@
+ALTER TABLE "job_results" DROP COLUMN "time_completed";

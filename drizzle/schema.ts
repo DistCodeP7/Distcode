@@ -111,6 +111,11 @@ export const job_results = pgTable("job_results", {
   duration: bigint("duration", { mode: "bigint" }),
   queued_at: timestamp("queued_at"), //For stress testing
   finishedAt: timestamp("finished_at"),
+  time_reserving: bigint("time_reserving", {mode: "bigint"}),
+  time_compiling: bigint("time_compiling", {mode: "bigint"}),
+  time_running: bigint("time_running", {mode: "bigint"}),
+  time_pending: bigint("time_pending", {mode: "bigint"}),
+  time_configuring_network: bigint("time_configuring_network", {mode: "bigint"}),
   logs: jsonb("logs").$type<LogEventPayload[]>(),
 });
 

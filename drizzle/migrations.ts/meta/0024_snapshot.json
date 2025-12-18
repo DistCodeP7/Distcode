@@ -1,0 +1,694 @@
+{
+  "id": "834c5846-fa56-455d-ad0a-6f47fd7ea01f",
+  "prevId": "06894dfa-0e31-4495-be46-b80cf1a92d45",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.job_process_messages": {
+      "name": "job_process_messages",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "job_uid": {
+          "name": "job_uid",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "message_id": {
+          "name": "message_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "timestamp": {
+          "name": "timestamp",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "from": {
+          "name": "from",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "to": {
+          "name": "to",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_type": {
+          "name": "event_type",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "message_type": {
+          "name": "message_type",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "vector_clock": {
+          "name": "vector_clock",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "payload": {
+          "name": "payload",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "job_process_messages_job_uid_job_results_job_uid_fk": {
+          "name": "job_process_messages_job_uid_job_results_job_uid_fk",
+          "tableFrom": "job_process_messages",
+          "tableTo": "job_results",
+          "columnsFrom": [
+            "job_uid"
+          ],
+          "columnsTo": [
+            "job_uid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.job_results": {
+      "name": "job_results",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "job_uid": {
+          "name": "job_uid",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "problem_id": {
+          "name": "problem_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "outcome": {
+          "name": "outcome",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "test_results": {
+          "name": "test_results",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "duration": {
+          "name": "duration",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "queued_at": {
+          "name": "queued_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "finished_at": {
+          "name": "finished_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "time_reserving": {
+          "name": "time_reserving",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "time_compiling": {
+          "name": "time_compiling",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "time_running": {
+          "name": "time_running",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "time_pending": {
+          "name": "time_pending",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "time_configuring_network": {
+          "name": "time_configuring_network",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "logs": {
+          "name": "logs",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "job_results_user_id_users_userid_fk": {
+          "name": "job_results_user_id_users_userid_fk",
+          "tableFrom": "job_results",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "userid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "job_results_problem_id_problems_id_fk": {
+          "name": "job_results_problem_id_problems_id_fk",
+          "tableFrom": "job_results",
+          "tableTo": "problems",
+          "columnsFrom": [
+            "problem_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "job_results_job_uid_unique": {
+          "name": "job_results_job_uid_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "job_uid"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.problems": {
+      "name": "problems",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "problem_markdown": {
+          "name": "problem_markdown",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "student_code": {
+          "name": "student_code",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "solutionMarkdown": {
+          "name": "solutionMarkdown",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "protocol_code": {
+          "name": "protocol_code",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "test_code": {
+          "name": "test_code",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_published": {
+          "name": "is_published",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "title": {
+          "name": "title",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "difficulty": {
+          "name": "difficulty",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "test_alias": {
+          "name": "test_alias",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "selected_test_path": {
+          "name": "selected_test_path",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "test_build_command": {
+          "name": "test_build_command",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "test_entry_command": {
+          "name": "test_entry_command",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "test_envs": {
+          "name": "test_envs",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "submission_build_command": {
+          "name": "submission_build_command",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "submission_entry_command": {
+          "name": "submission_entry_command",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "global_envs": {
+          "name": "global_envs",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "replica_configs": {
+          "name": "replica_configs",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "timeout": {
+          "name": "timeout",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "last_modified": {
+          "name": "last_modified",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "problems_user_id_users_userid_fk": {
+          "name": "problems_user_id_users_userid_fk",
+          "tableFrom": "problems",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "userid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.userCode": {
+      "name": "userCode",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "problem_id": {
+          "name": "problem_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "code_submitted": {
+          "name": "code_submitted",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "userCode_user_id_users_userid_fk": {
+          "name": "userCode_user_id_users_userid_fk",
+          "tableFrom": "userCode",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "userid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "userCode_problem_id_problems_id_fk": {
+          "name": "userCode_problem_id_problems_id_fk",
+          "tableFrom": "userCode",
+          "tableTo": "problems",
+          "columnsFrom": [
+            "problem_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.user_completed_exercises": {
+      "name": "user_completed_exercises",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "problem_id": {
+          "name": "problem_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_completed": {
+          "name": "is_completed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "completed_at": {
+          "name": "completed_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "user_completed_exercises_user_id_users_userid_fk": {
+          "name": "user_completed_exercises_user_id_users_userid_fk",
+          "tableFrom": "user_completed_exercises",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "userid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "user_completed_exercises_problem_id_problems_id_fk": {
+          "name": "user_completed_exercises_problem_id_problems_id_fk",
+          "tableFrom": "user_completed_exercises",
+          "tableTo": "problems",
+          "columnsFrom": [
+            "problem_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.user_ratings": {
+      "name": "user_ratings",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "problem_id": {
+          "name": "problem_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rating": {
+          "name": "rating",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "user_ratings_user_id_users_userid_fk": {
+          "name": "user_ratings_user_id_users_userid_fk",
+          "tableFrom": "user_ratings",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "userid"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "user_ratings_problem_id_problems_id_fk": {
+          "name": "user_ratings_problem_id_problems_id_fk",
+          "tableFrom": "user_ratings",
+          "tableTo": "problems",
+          "columnsFrom": [
+            "problem_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar(256)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "userid": {
+          "name": "userid",
+          "type": "varchar(256)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(256)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "password": {
+          "name": "password",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "provider": {
+          "name": "provider",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "providerId": {
+          "name": "providerId",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "users_email_unique": {
+          "name": "users_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        },
+        "users_userid_unique": {
+          "name": "users_userid_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "userid"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
