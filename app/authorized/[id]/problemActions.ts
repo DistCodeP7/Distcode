@@ -86,6 +86,7 @@ export async function saveProblem(data: SaveProblemParams) {
         .update(problems)
         .set({
           ...problemData,
+          lastModified: new Date(),
         })
         .where(eq(problems.id, id));
     } else {
@@ -112,6 +113,7 @@ export async function saveProblem(data: SaveProblemParams) {
           globalEnvs: [],
           replicaConfigs: [{ alias: "replica-1", envs: [] }],
           timeout: 60,
+          lastModified: new Date(),
         } as NewProblem)
         .returning();
       exerciseId = result[0].id;

@@ -70,6 +70,7 @@ export const problems = pgTable(
       .notNull(),
     timeout: integer("timeout").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
+    lastModified: timestamp("last_modified").notNull(),
   },
 );
 

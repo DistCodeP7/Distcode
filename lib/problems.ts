@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { problems } from "@/drizzle/schema";
 import { db } from "@/lib/db";
 import type { Difficulty } from "@/types/challenge";
@@ -8,6 +8,7 @@ export type Problem = {
   description: string;
   difficulty: Difficulty;
   isPublished: boolean;
+  lastModified: Date;
 };
 
 export async function getProblemsByUserId(userId: string): Promise<Problem[]> {
@@ -18,9 +19,11 @@ export async function getProblemsByUserId(userId: string): Promise<Problem[]> {
       description: problems.description,
       difficulty: problems.difficulty,
       isPublished: problems.isPublished,
+      lastModified: problems.lastModified,
     })
     .from(problems)
-    .where(eq(problems.userId, userId));
+    .where(eq(problems.userId, userId))
+    .orderBy(desc(problems.lastModified));
 
   const problemRows = result.map(async (ex) => {
     return {
@@ -29,6 +32,7 @@ export async function getProblemsByUserId(userId: string): Promise<Problem[]> {
       title: ex.title,
       description: ex.description,
       difficulty: ex.difficulty as Difficulty,
+      lastModified: ex.lastModified,
     };
   });
 

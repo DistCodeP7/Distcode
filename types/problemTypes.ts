@@ -23,6 +23,7 @@ export type NewProblem = {
   globalEnvs: NewEnv[];
   replicaConfigs: NewReplicaConfig[];
   timeout: number;
+  lastModified: Date;
 };
 
 export type ActionResult =
