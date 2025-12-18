@@ -162,6 +162,13 @@
       "when": 1766055920593,
       "tag": "0022_salty_hardball",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1766070812461,
+      "tag": "0023_regular_abomination",
+      "breakpoints": true
     }
   ]
 }
