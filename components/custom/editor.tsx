@@ -3,7 +3,6 @@
 import { labToHex } from "@/utils/labToHex";
 import type { EditorProps, OnMount } from "@monaco-editor/react";
 import dynamic from "next/dynamic";
-import type React from "react";
 
 const MonacoEditor = dynamic(
   () => import("@monaco-editor/react").then((m) => m.default),
