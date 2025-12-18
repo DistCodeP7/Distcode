@@ -30,7 +30,7 @@ export default function ProblemListClient({
   };
 
   return (
-    <div className="relative w-full min-h-screen py-10">
+    <div className="relative w-full py-10">
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <NeonLines count={80} />
       </div>
