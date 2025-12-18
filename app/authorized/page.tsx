@@ -16,7 +16,7 @@ export default async function ProblemListPage() {
     );
   }
 
-  const submissions = await getProblemsByUserId(session.user.id);
+  const exercises = await getProblemsByUserId(session.user.id);
   
-  return <ClientProblemListPage submissions={submissions} />;
+  return <ClientProblemListPage exercises={exercises} />;
 }
