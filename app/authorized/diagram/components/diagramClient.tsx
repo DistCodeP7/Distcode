@@ -1,17 +1,15 @@
-// app/authorized/diagram/_components/DiagramClient.tsx
 "use client";
 
 import { useTheme } from "next-themes";
 import { useCallback, useMemo, useState } from "react";
 import type { TJob_Process_Messages } from "@/drizzle/schema";
-import { getExerciseJobUid, getTraceDataAction } from "../actions";
+import { getTraceDataAction } from "../actions";
 import { getActorColor, getLogicalTime, pairEvents } from "../trace";
 import { EventTable } from "./eventTable";
 import { type JobInfo, TraceHeaderCard } from "./traceHeaderCard";
 import { TracePlotCard } from "./tracePlotCard";
 
 export default function DiagramClient({
-  userId,
   initialJobs,
   initialJob,
   initialEvents,
@@ -21,7 +19,7 @@ export default function DiagramClient({
   initialJob: JobInfo;
   initialEvents: TJob_Process_Messages[];
 }) {
-  const [userJobInfo, setUserJobInfo] = useState<JobInfo[]>(initialJobs);
+  const [userJobInfo] = useState<JobInfo[]>(initialJobs);
   const [jobInfo, setJobInfo] = useState<JobInfo>(initialJob);
   const [rawEvents, setRawEvents] =
     useState<TJob_Process_Messages[]>(initialEvents);
@@ -30,23 +28,16 @@ export default function DiagramClient({
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme === "dark";
 
-  const refreshJobs = useCallback(async () => {
-    const result = await getExerciseJobUid(userId);
-    setUserJobInfo(
-      result.length
-        ? result
-        : [{ jobUid: "none", exerciseId: -1, exerciseTitle: "No jobs found" }]
-    );
-  }, [userId]);
-
   const fetchData = useCallback(async () => {
     if (!jobInfo?.jobUid) return;
     setIsLoading(true);
 
     const result = await getTraceDataAction(jobInfo.jobUid);
-    if (result.success && result.data)
+    if (result.success && result.data) {
       setRawEvents(result.data as TJob_Process_Messages[]);
-    else setRawEvents([]);
+    } else {
+      setRawEvents([]);
+    }
 
     setIsLoading(false);
   }, [jobInfo]);
@@ -149,8 +140,6 @@ export default function DiagramClient({
         isLoading={isLoading}
         onSelectJob={(j) => setJobInfo(j)}
         onFetch={fetchData}
-        // optional: if you want a “refresh list” button later
-        // onRefreshJobs={refreshJobs}
       />
 
       <TracePlotCard
