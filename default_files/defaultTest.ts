@@ -5,9 +5,6 @@ import (
 	"os"
 	"strings"
 	"testing"
-	"time"
-
-	//"runner/shared"
 
 	"github.com/distcodep7/dsnet/dsnet"
 	"github.com/distcodep7/dsnet/testing/controller"
