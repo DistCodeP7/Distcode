@@ -33,7 +33,6 @@ export default function ClientCreateChallenge({
     updateDetails,
     updateTestConfig,
     updateSubmission,
-    clearDraft,
   } = useCreateChallenge(baseForm, currentSelected);
 
   const onSubmit = async () => {
@@ -41,7 +40,6 @@ export default function ClientCreateChallenge({
     const result: ActionResult = await updateChallengeForm(exerciseId, form);
     if (result.success) {
       toast.success("Exercise submitted successfully!");
-      clearDraft();
       router.push(`/authorized/`);
     } else
       toast.error(

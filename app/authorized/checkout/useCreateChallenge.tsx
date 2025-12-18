@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type {
   CheckoutFormState,
   DetailsConfig,
@@ -10,11 +10,8 @@ import type {
 
 const useCreateChallenge = (
   baseFormParam: CheckoutFormState,
-  current: string[],
-  storageKey?: string
+  current: string[]
 ) => {
-  const key = storageKey ?? "challengeForm";
-
   const buildInitialForm = (): CheckoutFormState => {
     const base = baseFormParam;
     const baseTestFiles = { ...base.testContainer.testFiles };
@@ -36,16 +33,7 @@ const useCreateChallenge = (
     };
   };
 
-  // Initialize state directly from LocalStorage
-  const [form, setForm] = useState<CheckoutFormState>(() => {
-    const saved = localStorage.getItem(key);
-    return saved ? JSON.parse(saved) : buildInitialForm();
-  });
-
-  // Persist state to LocalStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem(key, JSON.stringify(form));
-  }, [form, key]);
+  const [form, setForm] = useState<CheckoutFormState>(() => buildInitialForm());
 
   const setCurrentStep = (step: number) =>
     setForm((prev) => ({ ...prev, step }));
@@ -83,8 +71,6 @@ const useCreateChallenge = (
       submission: { ...prev.submission, [field]: value },
     }));
 
-  const clearDraft = () => localStorage.removeItem(key);
-
   return {
     form,
     setForm,
@@ -94,7 +80,6 @@ const useCreateChallenge = (
     updateDetails,
     updateTestConfig,
     updateSubmission,
-    clearDraft,
   };
 };
 
