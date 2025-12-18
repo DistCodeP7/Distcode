@@ -1,8 +1,16 @@
 "use client";
 
-import Editor, { type EditorProps, type OnMount } from "@monaco-editor/react";
-import type React from "react";
 import { labToHex } from "@/utils/labToHex";
+import type { EditorProps, OnMount } from "@monaco-editor/react";
+import dynamic from "next/dynamic";
+
+const MonacoEditor = dynamic(
+  () => import("@monaco-editor/react").then((m) => m.default),
+  {
+    ssr: false,
+    loading: () => <div className="h-full w-full rounded-md border bg-muted" />,
+  }
+);
 
 type CustomEditorProps = EditorProps & {
   editorContent: string;
@@ -46,7 +54,7 @@ export default function CustomEditor({
     <div className="flex h-full flex-col">
       <div className="flex-1">
         <div className="h-full overflow-hidden rounded-md border">
-          <Editor
+          <MonacoEditor
             height="100%"
             language={language}
             value={editorContent}
