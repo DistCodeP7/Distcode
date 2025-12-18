@@ -93,7 +93,10 @@ export default function DocsPage() {
               </div>
               <Card>
                 <CardContent className="pt-6">
-                  <MarkdownPreview content={getSectionProtocol()} />
+                  <MarkdownPreview
+                    content={getSectionProtocol()}
+                    color="card"
+                  />
                 </CardContent>
                 <CardFooter />
               </Card>
@@ -183,7 +186,7 @@ export default function DocsPage() {
               <h3 className="text-xl font-semibold mb-2">
                 User Implementation
               </h3>
-              <Card className="bg-muted/30 border-primary/20">
+              <Card className="bg-muted/30">
                 <CardContent className="pt-6">
                   <MarkdownPreview
                     content={`\`\`\`go\n${echoUser()}\n\`\`\``}

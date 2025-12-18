@@ -11,6 +11,7 @@ import { ScrollArea } from "../ui/scrollArea";
 
 type MarkdownPreviewProps = {
   content?: string;
+  color?: string;
 };
 
 type CodeComponentProps = React.HTMLAttributes<HTMLElement> & {
@@ -19,7 +20,10 @@ type CodeComponentProps = React.HTMLAttributes<HTMLElement> & {
   children?: React.ReactNode;
 };
 
-const MarkdownPreview = ({ content }: MarkdownPreviewProps) => {
+const MarkdownPreview = ({
+  content,
+  color = "black",
+}: MarkdownPreviewProps) => {
   const components: Components = {
     h1: (props) => <h1 className="text-3xl font-bold mb-4" {...props} />,
     h2: (props) => (
@@ -108,7 +112,12 @@ const MarkdownPreview = ({ content }: MarkdownPreviewProps) => {
   };
 
   return (
-    <ScrollArea className="h-full w-full rounded-md border bg-black p-6 md:p-8">
+    <ScrollArea
+      className={cn(
+        "h-full w-full rounded-md border p-6 md:p-8",
+        color ? `bg-[${color}]` : ""
+      )}
+    >
       {/* Added break-words to prevent code overflow causing horizontal scroll on body */}
       <div className="prose dark:prose-invert max-w-none w-full break-words">
         <ReactMarkdown
