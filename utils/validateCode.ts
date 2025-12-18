@@ -32,7 +32,10 @@ export async function checkUserCode(submissionCode: Filemap) {
       .filter(Boolean);
 
     importLines.forEach((line) => {
-      const importSpecMatch = line.match(/([a-zA-Z0-9_.]*)\s*"([^"]+)"/);
+      // Ignore comment lines in import block
+      const trimmedLine = line.trim();
+      if (trimmedLine.startsWith("//")) return;
+      const importSpecMatch = trimmedLine.match(/([a-zA-Z0-9_.]*)\s*"([^"]+)"/);
       if (!importSpecMatch) return;
       const alias = importSpecMatch[1];
       const path = importSpecMatch[2];
