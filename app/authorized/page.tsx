@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import ProblemListClient from "@/app/authorized/problemListClient";
 import { getProblemsByUserId } from "@/lib/problems";
-import ProblemListClient from "./problemListClient";
 
 export default async function ProblemListPage() {
   const session = await getServerSession(authOptions);
@@ -17,6 +17,6 @@ export default async function ProblemListPage() {
   }
 
   const exercises = await getProblemsByUserId(session.user.id);
-  
+
   return <ProblemListClient exercises={exercises} />;
 }
