@@ -17,7 +17,7 @@ RUN pnpm build
 # 3. Production image
 FROM node:24-alpine AS runner
 WORKDIR /app
-ENV NODE_ENV production
+ENV NODE_ENV=production
 RUN npm install -g pnpm ts-node typescript drizzle-kit
 
 # Copy app files
