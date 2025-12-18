@@ -2,6 +2,7 @@
 
 import { eq } from "drizzle-orm";
 import { getServerSession } from "next-auth/next";
+import { uniqueNamesGenerator } from "unique-names-generator";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { problems } from "@/drizzle/schema";
 import { db } from "@/lib/db";
@@ -12,6 +13,7 @@ import type {
   NewProblem,
   SaveProblemParams,
 } from "@/types/problemTypes";
+import { customConfig } from "@/utils/randomName";
 import { checkUserCode } from "@/utils/validateCode";
 
 export async function saveProblem(data: SaveProblemParams) {
@@ -111,7 +113,9 @@ export async function saveProblem(data: SaveProblemParams) {
           submissionBuildCommand: "go build -o ./stud ./student/main.go",
           submissionEntryCommand: "./wrapper -cmd ./stud",
           globalEnvs: [],
-          replicaConfigs: [{ alias: "replica-1", envs: [] }],
+          replicaConfigs: [
+            { alias: uniqueNamesGenerator(customConfig), envs: [] },
+          ],
           timeout: 60,
           lastModified: new Date(),
         } as NewProblem)

@@ -36,11 +36,11 @@ export default async function Page({ searchParams }: SearchParams) {
     envs: Env[];
     id: number;
   }[];
-  exercise.replicaConfigs = replicaConfigs.map((replica, rIndex) => ({
+  exercise.replicaConfigs = replicaConfigs.map((replica) => ({
     ...replica,
     envs: replica.envs.map((env, eIndex) => ({
       ...env,
-      id: `replica-${rIndex}-env-${eIndex}`,
+      id: `${replica.alias}-env-${eIndex}`,
     })),
   }));
 
