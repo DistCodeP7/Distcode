@@ -2,6 +2,7 @@ import { Box, Cpu, Layers } from "lucide-react";
 import * as motion from "motion/react-client";
 import { useId } from "react";
 import { toast } from "sonner";
+import { uniqueNamesGenerator } from "unique-names-generator";
 import EnvList from "@/app/authorized/checkout/components/envList";
 import {
   Card,
@@ -16,7 +17,6 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Slider } from "@/components/ui/slider";
 import type { ReplicaConfig, SubmissionConfig } from "@/types/challenge";
-import { uniqueNamesGenerator } from "unique-names-generator";
 import { customConfig } from "@/utils/randomName";
 
 const StepThreeSubmission = ({
@@ -178,7 +178,7 @@ const StepThreeSubmission = ({
                   <CardTitle className="text-sm">
                     <div className="flex items-center gap-2">
                       <Box size={20} className="text-muted-foreground" />
-                      <p className="font-bold">{rep.alias}</p>
+                      <p className="font-bold">{`Replica-${i + 1}`}</p>
                     </div>
                   </CardTitle>
                 </CardHeader>

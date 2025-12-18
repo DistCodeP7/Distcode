@@ -2,6 +2,7 @@
 
 import { eq } from "drizzle-orm";
 import { getServerSession } from "next-auth/next";
+import { uniqueNamesGenerator } from "unique-names-generator";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { problems } from "@/drizzle/schema";
 import { db } from "@/lib/db";
@@ -12,9 +13,8 @@ import type {
   NewProblem,
   SaveProblemParams,
 } from "@/types/problemTypes";
-import { checkUserCode } from "@/utils/validateCode";
-import { uniqueNamesGenerator } from "unique-names-generator";
 import { customConfig } from "@/utils/randomName";
+import { checkUserCode } from "@/utils/validateCode";
 
 export async function saveProblem(data: SaveProblemParams) {
   const session = await getServerSession(authOptions);
