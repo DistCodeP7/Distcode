@@ -12,154 +12,127 @@ export default function DocsPage() {
         content={generateDocs(
           exampleProtocolCode,
           exampleTestCode,
-          exampleuserCode
+          exampleuserCode,
+          echoProtocol,
+          echoTest,
+          echoUser
         )}
       />
     </div>
   );
 }
 
-function generateDocs(...args: any[]) {
+function generateDocs(...args: Array<() => string>) {
+  const [
+    exampleProtocol,
+    exampleTest,
+    exampleUser,
+    echoProtocolFull,
+    echoTestFull,
+    echoUserFull,
+  ] = args.map((fn) => fn());
+
+  // Style to override the default button behavior for specific links
+  const linkStyle = `all: unset; color: #60a5fa; text-decoration: underline; cursor: pointer;`;
+  const backToTopLink = `<div style="text-align: right; margin-top: 1rem;"><a href="#distcode-documentation" style="${linkStyle}">^ Back to Top</a></div>`;
+
   return `
-# DistCode Documentation
-
-Welcome to the documentation page. Here you will find a guide and references to help you get started with our platform.
-Follow the link to the DSnet Go package for more in-depth information on the underlying networking library used by DistCode.
-
-<div style="text-align: center;">
-<a href="https://pkg.go.dev/github.com/distcodep7/dsnet" target="_blank" rel="noopener noreferrer">
-https://pkg.go.dev/github.com/distcodep7/dsnet
-</a>
+<div style="text-align: center; border-bottom: 2px solid #374151; padding-bottom: 1rem; margin-bottom: 2rem;">
+  <h1>DistCode Documentation</h1>
 </div>
 
+Welcome to the documentation page. Here you will find a guide and references to help you get started with our platform.
 
-DistCode uses a three-part code structure for exercises: Protocol Code, Test Code, and User Code. Below are examples of each part and a full user implementation of Echo at the bottom.
+<div style="background-color: #1f2937; border-left: 4px solid #3b82f6; padding: 1rem; margin: 1.5rem 0; border-radius: 0.5rem; color: #d1d5db;">
+  <p style="margin: 0; font-weight: bold;">Further Reading</p>
+  <p style="margin-top: 0.5rem;">
+    For more in-depth information on the underlying networking library used by DistCode, check out the official DSnet Go package docs.
+  </p>
+  <div style="text-align: left; margin-top: 1rem;"><a href="https://pkg.go.dev/github.com/distcodep7/dsnet" style="${linkStyle}"> https://pkg.go.dev/github.com/distcodep7/dsnet</a></div>
+</div>
 
-<div style="text-align: center; font-size: 14px;">
-
-## Table of Contents
-
-[Communication Protocol](#communication-protocol)
-
-[Testing Harness](#testing-harness)
-
-[User Submission](#user-submission)
-
-[Full Example: Echo Broadcast Exercise](#full-example-echo-broadcast-exercise)
-
+<div style="background-color: #1f2937; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 2rem;">
+  <h2 style="margin-top: 0; border-bottom: 1px solid #374151; padding-bottom: 0.5rem;">Table of Contents</h2>
+  <ul style="list-style: none; padding: 0; margin: 0;">
+    <li style="margin-top: 0.75rem;"><a href="#communication-protocol" style="${linkStyle}">Communication Protocol</a></li>
+    <li style="margin-top: 0.75rem;"><a href="#testing-harness" style="${linkStyle}">Testing Harness</a></li>
+    <li style="margin-top: 0.75rem;"><a href="#user-submission" style="${linkStyle}">User Submission</a></li>
+    <li style="margin-top: 0.75rem;"><a href="#full-example-echo-broadcast-exercise" style="${linkStyle}">Full Example: Echo Broadcast Exercise</a></li>
+  </ul>
 </div>
 
 ## Communication Protocol
-[Back to Top](#distcode-documentation)
 
-The protocol defines the message types and structures used in the exercise. DistCode exercises usually go with a internal-external message flow design, 
-where external messages are used as ***orchestration triggers*** between tester and worker nodes, while internal messages handle the core protocol logic.
+The protocol defines the message types and structures used in the exercise. DistCode exercises usually go with a internal-external message flow design, where external messages are used as ***orchestration triggers*** between tester and worker nodes, while internal messages handle the core protocol logic.
 
-An example protocol can be seen below with minimal message definitions to give an indication of the structure. At the top is the DSnet BaseMessage contract which must be embedded in all message types. 
-This defines the sender, receiver, and type of the message. 
+An example protocol can be seen below with minimal message definitions to give an indication of the structure. At the top is the DSnet BaseMessage contract which must be embedded in all message types. This defines the sender, receiver, and type of the message.
 
 \`\`\`go
-${exampleProtocolCode()}
+${exampleProtocol}
 \`\`\`
+${backToTopLink}
 
 ## Testing Harness
-[Back to Top](#distcode-documentation)
 
-The test code (***Testing harness***) sets up the testing environment, creates nodes needed to handle testing communication, and defines the test logic and topology of the exercise network.
-It interacts with the user's implementation through the defined protocol.
-The testing harness is responsible for sending trigger messages to start tests and evaluating the results based on the responses from the user's nodes.
+The test code (***Testing harness***) sets up the testing environment, creates nodes needed to handle testing communication, and defines the test logic and topology of the exercise network. It interacts with the user's implementation through the defined protocol. The testing harness is responsible for sending trigger messages to start tests and evaluating the results based on the responses from the user's nodes.
 
-A testConfig can be defined to set message event parameters such as probabilities and timeouts. 
-DSnet includes options for dropping, delaying and duplicating messages to simulate real-world network conditions. As well as options for simulating network latency spikes.
-The testing harness also has the capability to manipulate the network topology during the test, such as crashing, restarting nodes and partitioning the network, to test the robustness of the user's implementation.
+A testConfig can be defined to set message event parameters such as probabilities and timeouts. DSnet includes options for dropping, delaying and duplicating messages to simulate real-world network conditions. As well as options for simulating network latency spikes. The testing harness also has the capability to manipulate the network topology during the test, such as crashing, restarting nodes and partitioning the network, to test the robustness of the user's implementation.
 
 \`\`\`go
-${exampleTestCode()}
+${exampleTest}
 \`\`\`
+${backToTopLink}
 
 ## User Submission
-[Back to Top](#distcode-documentation)
 
-The user code is where the user implements the logic for their DSnet node(s) based on the provided protocol and environment.
-The user's implementation must adhere to the message structures and types defined in the protocol.
-Users will typically create one or more DSnet nodes, and implement event handlers to process incoming messages and respond appropriately.
+The user code is where the user implements the logic for their DSnet node(s) based on the provided protocol and environment. The user's implementation must adhere to the message structures and types defined in the protocol. Users will typically create one or more DSnet nodes, and implement event handlers to process incoming messages and respond appropriately.
 
 As seen in the example below, users are free to extend the DSnet Node interface to include additional state or helper methods as needed for their implementation.
 
 \`\`\`go
-${exampleuserCode()}
+${exampleUser}
 \`\`\`
+${backToTopLink}
 
 ---
 
 # Full Example: Echo Broadcast Exercise
-## Description
+### Description
 
-In this exercise, users are required to implement an algorithm that participates in an echo broadcast protocol.
-When a tester node sends a Trigger message to one of the worker nodes, that node must broadcast an EchoMessage to all other nodes in the network.
-Each node that receives an EchoMessage must reply with an EchoResponse back to the original sender.
-Once the original sender has received EchoResponses from all other nodes, it sends a ReplyReceived message back to the tester node indicating success.
+In this exercise, users are required to implement an algorithm that participates in an echo broadcast protocol. When a tester node sends a Trigger message to one of the worker nodes, that node must broadcast an EchoMessage to all other nodes in the network. Each node that receives an EchoMessage must reply with an EchoResponse back to the original sender. Once the original sender has received EchoResponses from all other nodes, it sends a ReplyReceived message back to the tester node indicating success.
 
-## Protocol
-[Back to Top](#distcode-documentation)
-
-The Echo Broadcast protocol consists of four message types: SendTrigger, EchoMessage, EchoResponse, and ReplyReceived, as defined below:
-
-Here, the sendTrigger and ReplyReceived messages are used for external communication between the tester and worker nodes.
-EchoMessage and EchoResponse are meant for internal protocol communication among the worker nodes, but the internal message protocol can be used by the user as they see fit.
+### Protocol
+The Echo Broadcast protocol consists of four message types: SendTrigger, EchoMessage, EchoResponse, and ReplyReceived, as defined below. Here, the sendTrigger and ReplyReceived messages are used for external communication between the tester and worker nodes. EchoMessage and EchoResponse are meant for internal protocol communication among the worker nodes.
 
 \`\`\`go
-${echoProtocol()}
+${echoProtocolFull}
 \`\`\`
 
-## Testing Harness
-[Back to Top](#distcode-documentation)
+### Testing Harness
+The testing harness for the above protocol can be seen below. DistCode uses a ***Disttest*** wrapper using the built-in Golang testing package to manage the lifecycle of the test. This wrapper handles logging of test results.
 
-The testing harness for the above protocol can be seen below:
-
-DistCode uses a ***Disttest*** wrapper using the built-in Golang testing package to manage the lifecycle of the test.
-This wrapper wraps all tests of a single exercise, handling logging of test results.
-
-Additionally, DistCode uses a ***WrapperManager*** to manage docker containers for each node in the network.
-This manager handles starting, stopping, and checking the readiness of each container.
-
-All exercises have a set of environment variables passed to each docker container at startup. This includes the list of peers in the network and the unique ID of the node.
-Test authors can set up environment variables either globally for all nodes or individually per node. 
-In the main function of the example below, the testing harness sets up a docker wrapperManager to handle network topology manipulation and readies all nodes before starting the test.
-
-Additionally, not seen in the the example, the wrapperManager can be used to simulate network partitions, node crashes, and restarts during the test as seen in the snippet below:
+Additionally, DistCode uses a ***WrapperManager*** to manage docker containers for each node in the network. This manager handles starting, stopping, and checking the readiness of each container. All exercises have a set of environment variables passed to each docker container at startup, including the list of peers and the unique ID of the node. The testing harness can also be used to simulate network partitions, node crashes, and restarts during the test, as seen in this snippet:
 
 \`\`\`go
 WM.Stop(ctx, "NodeID") // Simulate crash
 WM.Start(ctx, "NodeID") // Simulate restart
-WM.Reset(ctx, "NodeID") // Reset node
-
 controller.CreatePartition(group1, group2 []string) // Create partition
-controller.UnblockCommunication(nodeA, nodeB string) // Heal partition
+controller.HealPartition(group1, group2 []string) // Heal partition
 \`\`\`
 
-In the test, the testing harness creates controller with an empty testConfig (testConfig parameters can be found in on the DSnet package page), 
-a tester node and sends a SendTrigger message to one of the worker nodes to initiate the echo broadcast.
-It then waits for a ReplyReceived message from the worker node to determine if the test passed or failed.
+In the test, the harness creates a controller, a tester node, and sends a SendTrigger message to initiate the echo broadcast. It then waits for a ReplyReceived message to determine if the test passed or failed.
 
 \`\`\`go
-${echoTest()}
+${echoTestFull}
 \`\`\`
 
-## User Implementation
-[Back to Top](#distcode-documentation)
-
-Below is the complete code for the Echo Broadcast submission. This include an EchoNode extension of the DSnet Node.
-The user implements the node logic. The user is responsible for instantiating the node, handling incoming events, and sending messages according to the protocol.
-In this case, when a SendTrigger is received, the node broadcasts an EchoMessage to all other nodes.
-Upon receiving an EchoMessage, the node replies with an EchoResponse back to the sender.
-The node keeps track of received EchoResponses and once all have been received, it sends a ReplyReceived message back to the tester node.
+### User Implementation
+Below is the complete code for the Echo Broadcast submission. This includes an EchoNode extension of the DSnet Node. The user implements the node logic, instantiates the node, handles incoming events, and sends messages according to the protocol.
 
 \`\`\`go
-${echoUser()}
+${echoUserFull}
 \`\`\`
-
-[Back to Top](#distcode-documentation)
+${backToTopLink}
     `;
 }
 
@@ -278,7 +251,7 @@ function echoProtocol() {
 
 function echoTest() {
   return `
-    package test
+package test
 
 import (
 	"context"
@@ -384,7 +357,7 @@ func TestEchoTwoNodes(t *testing.T) {
 
 function echoUser() {
   return `
-    package main
+package main
 
 import (
 	"context"
