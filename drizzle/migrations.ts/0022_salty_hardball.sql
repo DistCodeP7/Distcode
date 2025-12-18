@@ -1,0 +1,1 @@
+ALTER TABLE "problems" ADD COLUMN "last_modified" timestamp NOT NULL;

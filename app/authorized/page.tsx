@@ -96,6 +96,15 @@ export default async function ProblemListPage() {
                     )}
                   </div>
 
+                  <div className="text-sm text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap">
+                    <span className="italic text-muted-foreground">
+                      Last modified at:
+                      {s.lastModified instanceof Date
+                        ? s.lastModified.toLocaleString()
+                        : s.lastModified}
+                    </span>
+                  </div>
+
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
                       <span>Difficulty:</span>
