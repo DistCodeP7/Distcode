@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type {
   CheckoutFormState,
   DetailsConfig,
@@ -10,10 +10,12 @@ import type {
 
 const useCreateChallenge = (
   baseFormParam: CheckoutFormState,
-  current: string[]
+  current: string[],
+  storageKey?: string
 ) => {
-  const baseForm = baseFormParam;
-  const buildInitialForm = (): CheckoutFormState => {
+  const key = storageKey ?? "challengeForm";
+
+  const [form, setForm] = useState<CheckoutFormState>(() => {
     const base = baseFormParam;
     const baseTestFiles = { ...base.testContainer.testFiles };
 
@@ -21,6 +23,7 @@ const useCreateChallenge = (
       baseTestFiles["test/main_test.go"] =
         base.testContainer.testFiles["test/main_test.go"];
     }
+
     Object.keys(baseTestFiles).forEach((f) => {
       if (f !== "test/main_test.go" && !current.includes(f)) {
         delete baseTestFiles[f];
@@ -31,36 +34,59 @@ const useCreateChallenge = (
       ...base,
       testContainer: { ...base.testContainer, testFiles: baseTestFiles },
     };
-  };
+  });
 
-  const [form, setForm] = useState<CheckoutFormState>(buildInitialForm);
+  const hasRestoredRef = useRef(false);
+
   useLayoutEffect(() => {
-    const saved = localStorage.getItem("challengeForm");
+    const saved = localStorage.getItem(key);
+
     if (saved) {
       try {
-        setForm(JSON.parse(saved));
+        const restored = JSON.parse(saved) as CheckoutFormState;
+        setForm(restored);
+        hasRestoredRef.current = true;
+        return;
       } catch (err) {
-        console.warn(
-          "Invalid challengeForm in localStorage, clearing it:",
-          err
-        );
-        localStorage.removeItem("challengeForm");
-        setForm(baseForm);
+        console.warn(`Invalid ${key} in localStorage, clearing it:`, err);
+        localStorage.removeItem(key);
       }
-    } else {
-      setForm(baseForm);
     }
-  }, [baseForm]);
+
+    const base = baseFormParam;
+    const baseTestFiles = { ...base.testContainer.testFiles };
+
+    if (base.testContainer.testFiles?.["test/main_test.go"]) {
+      baseTestFiles["test/main_test.go"] =
+        base.testContainer.testFiles["test/main_test.go"];
+    }
+
+    Object.keys(baseTestFiles).forEach((f) => {
+      if (f !== "test/main_test.go" && !current.includes(f)) {
+        delete baseTestFiles[f];
+      }
+    });
+
+    setForm({
+      ...base,
+      testContainer: { ...base.testContainer, testFiles: baseTestFiles },
+    });
+
+    hasRestoredRef.current = true;
+  }, [key, baseFormParam, current]);
 
   useEffect(() => {
-    localStorage.setItem("challengeForm", JSON.stringify(form));
-  }, [form]);
+    if (!hasRestoredRef.current) return;
+    localStorage.setItem(key, JSON.stringify(form));
+  }, [form, key]);
 
   const setCurrentStep = (step: number) => {
     setForm((prev) => ({ ...prev, step }));
   };
+
   const nextStep = () =>
     setForm((prev) => ({ ...prev, step: Math.min(prev.step + 1, 4) }));
+
   const prevStep = () =>
     setForm((prev) => ({ ...prev, step: Math.max(prev.step - 1, 1) }));
 
@@ -91,6 +117,10 @@ const useCreateChallenge = (
       submission: { ...prev.submission, [field]: value },
     }));
 
+  const clearDraft = () => {
+    localStorage.removeItem(key);
+  };
+
   return {
     form,
     setForm,
@@ -100,6 +130,7 @@ const useCreateChallenge = (
     updateDetails,
     updateTestConfig,
     updateSubmission,
+    clearDraft,
   };
 };
 
