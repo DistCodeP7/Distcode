@@ -38,10 +38,8 @@ export default function DocsPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* INSERT CLIENT COMPONENT HERE */}
           <DocsNavigation />
 
-          {/* MAIN CONTENT (Server Side Rendered) */}
           <main className="lg:col-span-9 space-y-10">
             {/* 1. Introduction */}
             <section id="intro" className="space-y-6">
