@@ -22,7 +22,7 @@ export default function Home() {
   return (
     <div className="relative w-full">
       <div className="absolute inset-0 -z-10 overflow-hidden">
-        <NeonLines count={160} />
+        <NeonLines />
       </div>
 
       <main className="flex flex-col items-center text-center sm:text-left gap-6 max-w-3xl mx-auto py-16">

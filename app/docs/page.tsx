@@ -18,7 +18,7 @@ export default function DocsPage() {
   return (
     <div className="w-full bg-background/95 relative selection:bg-primary/20">
       <div className="absolute inset-0 z-[-1] overflow-hidden pointer-events-none">
-        <NeonLines count={40} />
+        <NeonLines />
       </div>
 
       <div className="container mx-auto py-6 md:py-10 px-4">

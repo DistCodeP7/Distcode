@@ -17,8 +17,7 @@ export default async function SpaceTimeDiagramPage({
   const jobs = (await getExerciseJobUid(session.user.id)) as JobInfo[];
 
   const initialExerciseId = searchParams.exerciseId ?? "";
-  const initialJob =
-    searchParams.exerciseId 
+  const initialJob = searchParams.exerciseId
     ? jobs.find((j) => j.exerciseId.toString() === initialExerciseId)
     : null;
 

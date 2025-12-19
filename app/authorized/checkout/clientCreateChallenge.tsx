@@ -53,7 +53,7 @@ export default function ClientCreateChallenge({
     <div className="min-h-full bg-secondary/20 p-6 md:p-12 flex justify-center items-start">
       <div className="w-full max-w-5xl ">
         <div className="absolute inset-0 -z-10 overflow-hidden">
-          <NeonLines count={80} />
+          <NeonLines />
         </div>
         <Header step={form.step} setCurrentStep={setCurrentStep} />
 

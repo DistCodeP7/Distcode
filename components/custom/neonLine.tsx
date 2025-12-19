@@ -25,7 +25,7 @@ function NeonLine({ index, total }: NeonLineProps) {
   );
 }
 
-export default function NeonLines({ count = 45 }) {
+export default function NeonLines({ count = 40 }) {
   const lines = Array.from({ length: count }, (_, i) => ({
     index: i,
     key: `neon-${i}`,

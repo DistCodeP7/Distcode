@@ -7,7 +7,7 @@ export default async function ExercisesPage() {
   return (
     <div className="relative w-full py-10">
       <div className="absolute inset-0 -z-10 overflow-hidden">
-        <NeonLines count={160} />
+        <NeonLines />
       </div>
 
       <div className="container mx-auto flex flex-col gap-6">

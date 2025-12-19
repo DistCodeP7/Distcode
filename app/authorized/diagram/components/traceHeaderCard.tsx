@@ -1,6 +1,13 @@
 "use client";
 
-import { Activity, ChevronDown, ChevronUp, RefreshCw, Search } from "lucide-react";
+import {
+  Activity,
+  ChevronDown,
+  ChevronUp,
+  RefreshCw,
+  Search,
+} from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,7 +22,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdownMenu";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
 
 export type JobInfo = {
   jobUid: string;
@@ -50,37 +56,41 @@ export function TraceHeaderCard({
           <CardDescription>
             Exercise:{" "}
             <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2 min-w-[135px] justify-between items-center focus-visible:ring-0 focus:ring-0 focus:outline-none">
-                {jobInfo?.exerciseTitle || "Select Exercise"}
-                {openDropdown ? (
-                  <ChevronUp className="w-3 h-3" />
-                ) : (
-                  <ChevronDown className="w-3 h-3" />
-                )}
-              </Button>
-            </DropdownMenuTrigger>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2 min-w-[135px] justify-between items-center focus-visible:ring-0 focus:ring-0 focus:outline-none"
+                >
+                  {jobInfo?.exerciseTitle || "Select Exercise"}
+                  {openDropdown ? (
+                    <ChevronUp className="w-3 h-3" />
+                  ) : (
+                    <ChevronDown className="w-3 h-3" />
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
 
-            <DropdownMenuContent align="end" className="w-[200px]">
-              <div className="p-2 space-y-1">
-                <p className="text-sm font-medium">Select Exercise</p>
-                <div className="flex flex-col gap-1 overflow-auto">
-                  {userJobInfo.map((jid) => (
-                    <DropdownMenuItem
-                      key={jid.jobUid}
-                      className={cn(
-                        "justify-start font-mono text-xs",
-                        jid.jobUid === jobInfo?.jobUid ? "bg-muted" : ""
-                      )}
-                      onSelect={() => onSelectJob(jid)}
-                    >
-                      {jid.exerciseTitle}
-                    </DropdownMenuItem>
-                  ))}
+              <DropdownMenuContent align="end" className="w-[200px]">
+                <div className="p-2 space-y-1">
+                  <p className="text-sm font-medium">Select Exercise</p>
+                  <div className="flex flex-col gap-1 overflow-auto">
+                    {userJobInfo.map((jid) => (
+                      <DropdownMenuItem
+                        key={jid.jobUid}
+                        className={cn(
+                          "justify-start font-mono text-xs",
+                          jid.jobUid === jobInfo?.jobUid ? "bg-muted" : ""
+                        )}
+                        onSelect={() => onSelectJob(jid)}
+                      >
+                        {jid.exerciseTitle}
+                      </DropdownMenuItem>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </CardDescription>
         </div>
 

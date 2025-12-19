@@ -32,7 +32,7 @@ export default function ProblemListClient({
   return (
     <div className="relative w-full py-10">
       <div className="absolute inset-0 -z-10 overflow-hidden">
-        <NeonLines count={80} />
+        <NeonLines />
       </div>
       <div className="container mx-auto flex flex-col gap-6">
         <h1 className="text-4xl sm:text-5xl font-bold text-center sm:text-left text-foreground">
