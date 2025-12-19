@@ -43,7 +43,7 @@ export function EditorWithTerminalPanel({
       <ResizableHandle withHandle />
 
       {/* 4. Attach the ref passed from parent */}
-      <ResizablePanel ref={terminalPanelRef} defaultSize={50}>
+      <ResizablePanel ref={terminalPanelRef} defaultSize={0}>
         <div className="h-full">
           <div className="h-full flex flex-col min-h-0">
             <div className="flex-1 min-h-0">
