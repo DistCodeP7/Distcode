@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, ChevronDown, ChevronUp, Columns, RefreshCw, Search } from "lucide-react";
+import { Activity, ChevronDown, ChevronUp, RefreshCw, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -30,13 +30,14 @@ export function TraceHeaderCard({
   onSelectJob,
   onFetch,
 }: {
-  jobInfo: JobInfo;
+  jobInfo: JobInfo | null;
   userJobInfo: JobInfo[];
   isLoading: boolean;
   onSelectJob: (jid: JobInfo) => void;
   onFetch: () => void;
 }) {
   const [openDropdown, setOpenDropdown] = useState(false);
+  const [JobInfo, setJobInfo] = useState<JobInfo | null>(null);
 
   return (
     <Card>
@@ -48,17 +49,10 @@ export function TraceHeaderCard({
           </CardTitle>
           <CardDescription>
             Exercise:{" "}
-            <span className="font-mono text-foreground">
-              {jobInfo.exerciseTitle}
-            </span>
-          </CardDescription>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
+            <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                Select Exercise
+              <Button variant="outline" size="sm" className="gap-2 min-w-[135px] justify-between items-center focus-visible:ring-0 focus:ring-0 focus:outline-none">
+                {jobInfo?.exerciseTitle || "Select Exercise"}
                 {openDropdown ? (
                   <ChevronUp className="w-3 h-3" />
                 ) : (
@@ -70,13 +64,13 @@ export function TraceHeaderCard({
             <DropdownMenuContent align="end" className="w-[200px]">
               <div className="p-2 space-y-1">
                 <p className="text-sm font-medium">Select Exercise</p>
-                <div className="flex flex-col gap-1 max-h-60 overflow-auto">
+                <div className="flex flex-col gap-1 overflow-auto">
                   {userJobInfo.map((jid) => (
                     <DropdownMenuItem
                       key={jid.jobUid}
                       className={cn(
                         "justify-start font-mono text-xs",
-                        jid.jobUid === jobInfo.jobUid ? "bg-muted" : ""
+                        jid.jobUid === jobInfo?.jobUid ? "bg-muted" : ""
                       )}
                       onSelect={() => onSelectJob(jid)}
                     >
@@ -87,7 +81,10 @@ export function TraceHeaderCard({
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
+          </CardDescription>
+        </div>
 
+        <div className="flex items-center gap-3">
           <Button onClick={onFetch} disabled={isLoading} size="sm">
             {isLoading ? (
               <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
