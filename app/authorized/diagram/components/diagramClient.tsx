@@ -16,11 +16,11 @@ export default function DiagramClient({
 }: {
   userId: string;
   initialJobs: JobInfo[];
-  initialJob: JobInfo;
+  initialJob: JobInfo | null;
   initialEvents: TJob_Process_Messages[];
 }) {
   const [userJobInfo] = useState<JobInfo[]>(initialJobs);
-  const [jobInfo, setJobInfo] = useState<JobInfo>(initialJob);
+  const [jobInfo, setJobInfo] = useState<JobInfo | null>(initialJob);
   const [rawEvents, setRawEvents] =
     useState<TJob_Process_Messages[]>(initialEvents);
   const [isLoading, setIsLoading] = useState(false);

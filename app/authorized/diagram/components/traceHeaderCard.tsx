@@ -1,6 +1,13 @@
 "use client";
 
-import { Activity, Columns, RefreshCw, Search } from "lucide-react";
+import {
+  Activity,
+  ChevronDown,
+  ChevronUp,
+  RefreshCw,
+  Search,
+} from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,8 +18,10 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdownMenu";
+import { cn } from "@/lib/utils";
 
 export type JobInfo = {
   jobUid: string;
@@ -27,12 +36,15 @@ export function TraceHeaderCard({
   onSelectJob,
   onFetch,
 }: {
-  jobInfo: JobInfo;
+  jobInfo: JobInfo | null;
   userJobInfo: JobInfo[];
   isLoading: boolean;
   onSelectJob: (jid: JobInfo) => void;
   onFetch: () => void;
 }) {
+  const [openDropdown, setOpenDropdown] = useState(false);
+  const [JobInfo, setJobInfo] = useState<JobInfo | null>(null);
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-4">
@@ -43,43 +55,46 @@ export function TraceHeaderCard({
           </CardTitle>
           <CardDescription>
             Exercise:{" "}
-            <span className="font-mono text-foreground">
-              {jobInfo.exerciseTitle}
-            </span>
+            <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2 min-w-[135px] justify-between items-center focus-visible:ring-0 focus:ring-0 focus:outline-none"
+                >
+                  {jobInfo?.exerciseTitle || "Select Exercise"}
+                  {openDropdown ? (
+                    <ChevronUp className="w-3 h-3" />
+                  ) : (
+                    <ChevronDown className="w-3 h-3" />
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="end" className="w-[200px]">
+                <div className="p-2 space-y-1">
+                  <p className="text-sm font-medium">Select Exercise</p>
+                  <div className="flex flex-col gap-1 overflow-auto">
+                    {userJobInfo.map((jid) => (
+                      <DropdownMenuItem
+                        key={jid.jobUid}
+                        className={cn(
+                          "justify-start font-mono text-xs",
+                          jid.jobUid === jobInfo?.jobUid ? "bg-muted" : ""
+                        )}
+                        onSelect={() => onSelectJob(jid)}
+                      >
+                        {jid.exerciseTitle}
+                      </DropdownMenuItem>
+                    ))}
+                  </div>
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </CardDescription>
         </div>
 
         <div className="flex items-center gap-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                Select Exercise
-                <Columns className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-
-            <DropdownMenuContent align="end" className="w-[200px]">
-              <div className="p-2 space-y-1">
-                <p className="text-sm font-medium">Select Exercise</p>
-                <div className="flex flex-col gap-1 max-h-60 overflow-auto">
-                  {userJobInfo.map((jid) => (
-                    <Button
-                      key={jid.jobUid}
-                      variant={
-                        jid.jobUid === jobInfo.jobUid ? "secondary" : "ghost"
-                      }
-                      size="sm"
-                      className="justify-start font-mono text-xs"
-                      onClick={() => onSelectJob(jid)}
-                    >
-                      {jid.exerciseTitle}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
           <Button onClick={onFetch} disabled={isLoading} size="sm">
             {isLoading ? (
               <RefreshCw className="mr-2 h-4 w-4 animate-spin" />

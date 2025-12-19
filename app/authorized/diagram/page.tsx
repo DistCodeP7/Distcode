@@ -17,8 +17,9 @@ export default async function SpaceTimeDiagramPage({
   const jobs = (await getExerciseJobUid(session.user.id)) as JobInfo[];
 
   const initialExerciseId = searchParams.exerciseId ?? "";
-  const initialJob =
-    jobs.find((j) => j.exerciseId.toString() === initialExerciseId) ?? jobs[0];
+  const initialJob = searchParams.exerciseId
+    ? jobs.find((j) => j.exerciseId.toString() === initialExerciseId)
+    : null;
 
   let initialEvents: TJob_Process_Messages[] = [];
   if (initialJob?.jobUid) {
@@ -36,13 +37,7 @@ export default async function SpaceTimeDiagramPage({
           ? jobs
           : [{ jobUid: "none", exerciseId: -1, exerciseTitle: "No jobs found" }]
       }
-      initialJob={
-        initialJob ?? {
-          jobUid: "none",
-          exerciseId: -1,
-          exerciseTitle: "No jobs found",
-        }
-      }
+      initialJob={initialJob ?? null}
       initialEvents={initialEvents}
     />
   );
