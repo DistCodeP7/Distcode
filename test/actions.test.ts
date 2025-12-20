@@ -45,15 +45,17 @@ jest.mock("@/utils/validateCode", () => ({
   checkUserCode: (...args: any[]) => checkUserCodeMock(...args),
 }));
 
-jest.mock("@/lib/mq", () => ({
-  MQJobsSender: {
-    sendMessage: MQJobsSenderSendMessageMock,
-  },
-  MQJobsCanceller: {
-    sendMessage: MQJobsCancellerSendMessageMock,
-  },
-  ready: readyMock,
+jest.mock("@/lib/mq/mq", () => ({
+    MQJobsSender: {
+        send: MQJobsSenderSendMessageMock,
+        getQueueMetrics: jest.fn(),
+    },
+    MQJobsCanceller: {
+        publish: MQJobsCancellerSendMessageMock,
+    },
+    ready: readyMock,
 }));
+
 
 jest.mock("uuid", () => ({
   v4: () => "test-uuid",
