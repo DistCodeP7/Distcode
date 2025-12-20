@@ -1,12 +1,9 @@
 "use server";
 
-import { and, desc, eq } from "drizzle-orm";
-import { getServerSession } from "next-auth";
-import { v4 as uuid } from "uuid";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { problems, user_ratings, userCode } from "@/drizzle/schema";
 import { db } from "@/lib/db";
-import { MQJobsCanceller, MQJobsSender, ready } from "@/lib/mq";
+import { MQJobsCanceller, MQJobsSender, ready } from "@/lib/mq/mq";
 import { getUserById } from "@/lib/user";
 import type {
   ContainerConfigs,
@@ -16,6 +13,9 @@ import type {
   TestContainerConfig,
 } from "@/types/actionTypes";
 import { checkUserCode } from "@/utils/validateCode";
+import { and, desc, eq } from "drizzle-orm";
+import { getServerSession } from "next-auth";
+import { v4 as uuid } from "uuid";
 
 export async function getExercise({ params }: { params: { id: number } }) {
   const id = Number(params.id);
@@ -115,12 +115,14 @@ export async function submitCode(
   };
 
   await ready;
-  MQJobsSender.sendMessage(payload);
+  await MQJobsSender.send(payload);
+  const metrics = await MQJobsSender.getQueueMetrics();
 
   return {
     success: true,
     message: "Code submitted successfully",
     jobUid: payload.jobUid,
+    queueMetrics: metrics,
   };
 }
 
@@ -213,7 +215,7 @@ export async function cancelJobRequest(jobUid: string) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) return { error: "Unauthorized", status: 401 };
 
-  await MQJobsCanceller.sendMessage({
+  await MQJobsCanceller.publish({
     jobUid: jobUid,
     action: "cancel",
   });

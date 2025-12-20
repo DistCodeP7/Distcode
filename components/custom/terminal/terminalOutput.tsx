@@ -1,3 +1,4 @@
+import type { JobStatus } from "@/app/exercises/[id]/components/exerciseEditor";
 import { useTerminalController } from "@/components/custom/terminal//useTerminalController";
 import { ConsoleView } from "@/components/custom/terminal/consoleView";
 import { TerminalToolbar } from "@/components/custom/terminal/terminalToolbar";
@@ -7,9 +8,14 @@ import type { StreamingJobEvent } from "@/types/streamingEvents";
 type TerminalOutputProps = {
   messages: StreamingJobEvent[];
   exerciseId: number;
+  jobStatus?: JobStatus;
 };
 
-export function TerminalOutput({ messages, exerciseId }: TerminalOutputProps) {
+export function TerminalOutput({
+  messages,
+  exerciseId,
+  jobStatus,
+}: TerminalOutputProps) {
   const ctrl = useTerminalController(messages);
 
   return (
@@ -30,9 +36,8 @@ export function TerminalOutput({ messages, exerciseId }: TerminalOutputProps) {
         {ctrl.viewMode === "CONSOLE" && (
           <ConsoleView
             logs={ctrl.visibleLogs}
-            error={ctrl.finalResult?.error}
             phase={ctrl.phase}
-            outcome={ctrl.finalResult?.outcome}
+            jobStatus={jobStatus}
           />
         )}
         {ctrl.viewMode === "TESTS" && (
