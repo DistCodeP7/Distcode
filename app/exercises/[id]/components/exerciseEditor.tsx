@@ -1,8 +1,5 @@
 "use client";
 
-import { useRef, useState } from "react";
-import type { ImperativePanelHandle } from "react-resizable-panels";
-import { toast } from "sonner";
 import { cancelJobRequest, submitCode } from "@/app/exercises/[id]/actions";
 import { EditorActions } from "@/app/exercises/[id]/components/editorActions";
 import type { ExerciseEditorProps } from "@/app/exercises/[id]/components/editorProps";
@@ -19,6 +16,14 @@ import {
 import { useSSE } from "@/hooks/useSSE";
 import type { Filemap } from "@/types/actionTypes";
 import type { StreamingJobEvent } from "@/types/streamingEvents";
+import { useRef, useState } from "react";
+import type { ImperativePanelHandle } from "react-resizable-panels";
+import { toast } from "sonner";
+
+export type JobStatus = {
+  queueSize: number;
+  activeWorkers: number;
+} | null;
 
 export default function ExerciseEditor({
   exerciseId,
@@ -35,6 +40,8 @@ export default function ExerciseEditor({
     useSSE<StreamingJobEvent>("/api/stream");
 
   const [currentJobUid, setCurrentJobUid] = useState<string | null>(null);
+
+  const [jobStatus, setJobStatus] = useState<JobStatus>(null);
 
   const {
     file,
@@ -71,14 +78,20 @@ export default function ExerciseEditor({
     const result = await submitCode(problemContentMap, {
       params: { id: exerciseId },
     });
+
     if (result.error) {
       toast.error("Failed to submit code", { description: result.error });
       return;
     }
+
     setCanRate(false);
     terminalRef.current?.resize(80);
     if (result?.jobUid) {
       setCurrentJobUid(result.jobUid);
+      setJobStatus({
+        queueSize: result.queueMetrics.messageCount,
+        activeWorkers: result.queueMetrics.consumerCount,
+      });
     }
   };
 
@@ -86,6 +99,7 @@ export default function ExerciseEditor({
     if (!currentJobUid) return;
     cancelJobRequest(currentJobUid);
     setCurrentJobUid(null);
+    setJobStatus(null);
   };
 
   const editorActions = (
@@ -162,6 +176,7 @@ export default function ExerciseEditor({
             messages={messages}
             actions={editorActions}
             exerciseId={exerciseId}
+            jobStatus={jobStatus}
           />
         </ResizablePanel>
       </ResizablePanelGroup>

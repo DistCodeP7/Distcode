@@ -1,14 +1,28 @@
-import { AlertCircle, AlertTriangle } from "lucide-react";
+import type { JobStatus } from "@/app/exercises/[id]/components/exerciseEditor";
 import type { Outcome, Phase } from "@/types/streamingEvents";
+import { AlertCircle, AlertTriangle } from "lucide-react";
 
 type ConsoleViewProps = {
   logs: Array<{ phase: Phase; message: string; workerId?: string }>;
   error?: string | null;
   phase: Phase;
   outcome?: Outcome;
+  jobStatus?: JobStatus;
 };
 
-export function ConsoleView({ logs, error, phase, outcome }: ConsoleViewProps) {
+const Spinner = () => (
+  <span className="inline-flex items-center">
+    <span className="h-10 w-10 rounded-full border border-muted-foreground/40 border-t-transparent animate-spin" />
+  </span>
+);
+
+export function ConsoleView({
+  logs,
+  error,
+  phase,
+  outcome,
+  jobStatus,
+}: ConsoleViewProps) {
   const isCancelled = outcome === "CANCELED";
   const isTimeout = outcome === "TIMEOUT";
 
@@ -43,6 +57,40 @@ export function ConsoleView({ logs, error, phase, outcome }: ConsoleViewProps) {
             )}
           </div>
           <div className="whitespace-pre-wrap">{error}</div>
+        </div>
+      )}
+
+      {jobStatus && phase === "PENDING" && (
+        <div className="flex flex-col items-center justify-center py-10 gap-4 text-muted-foreground">
+          <Spinner />
+
+          <div className="text-sm">Waiting for an available worker</div>
+
+          <div className="flex gap-6 text-xs">
+            <div className="flex flex-col items-center">
+              <span className="text-[10px] uppercase tracking-wide text-muted-foreground/60">
+                Queue position
+              </span>
+              <span className="text-base font-medium text-foreground">
+                {jobStatus.queueSize}
+              </span>
+            </div>
+
+            <div className="flex flex-col items-center">
+              <span className="text-[10px] uppercase tracking-wide text-muted-foreground/60">
+                Active workers
+              </span>
+              <span className="text-base font-medium text-foreground">
+                {jobStatus.activeWorkers}
+              </span>
+            </div>
+          </div>
+
+          {jobStatus.queueSize > jobStatus.activeWorkers && (
+            <div className="text-xs italic text-muted-foreground/60">
+              Jobs are processed as workers become available
+            </div>
+          )}
         </div>
       )}
 

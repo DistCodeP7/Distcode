@@ -1,7 +1,8 @@
-import type { SetStateAction } from "react";
-import type { ImperativePanelHandle } from "react-resizable-panels";
 import type { Filemap } from "@/types/actionTypes";
 import type { StreamingJobEvent } from "@/types/streamingEvents";
+import type { SetStateAction } from "react";
+import type { ImperativePanelHandle } from "react-resizable-panels";
+import type { JobStatus } from "./exerciseEditor";
 
 export type EditorWithTerminalPanelProps = {
   activeFile: string;
@@ -12,6 +13,7 @@ export type EditorWithTerminalPanelProps = {
   actions: React.ReactNode;
   terminalPanelRef: React.RefObject<ImperativePanelHandle | null>;
   exerciseId: number;
+  jobStatus?: JobStatus;
 };
 
 export type ExerciseEditorProps = {

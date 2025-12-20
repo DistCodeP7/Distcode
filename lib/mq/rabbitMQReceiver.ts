@@ -1,6 +1,6 @@
-﻿import type { Channel, Connection, ConsumeMessage } from "amqplib";
-import { getMQConnection } from "@/app/mq/getMQConnection";
-import type { RabbitMQConfig } from "@/app/mq/rabbitMQConfig";
+﻿import { getMQConnection } from "@/lib/mq/getMQConnection";
+import type { RabbitMQConsumerConfig } from "@/lib/mq/rabbitMQConfig";
+import type { Channel, Connection, ConsumeMessage } from "amqplib";
 
 export class RabbitMQReceiver {
   private conn!: Connection;
@@ -10,7 +10,7 @@ export class RabbitMQReceiver {
   private exchangeType: string;
   private routingKey?: string;
 
-  constructor(RabbitMQConfig: RabbitMQConfig) {
+  constructor(RabbitMQConfig: RabbitMQConsumerConfig) {
     this.queue = RabbitMQConfig.queue;
     this.exchange = RabbitMQConfig.exchange;
     this.exchangeType = RabbitMQConfig.exchangeType || "direct";
@@ -21,12 +21,10 @@ export class RabbitMQReceiver {
     this.conn = await getMQConnection();
     this.channel = await this.conn.createChannel();
 
-    // Always assert queue
     if (this.queue) {
       await this.channel.assertQueue(this.queue, { durable: true });
     }
 
-    // Optionally assert and bind exchange
     if (this.exchange) {
       await this.channel.assertExchange(
         this.exchange,
