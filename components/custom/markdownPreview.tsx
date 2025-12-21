@@ -6,8 +6,8 @@ import rehypeRaw from "rehype-raw";
 import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scrollArea";
 import { cn } from "@/lib/utils";
-import { ScrollArea } from "../ui/scrollArea";
 
 type MarkdownPreviewProps = {
   content?: string;

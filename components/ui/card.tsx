@@ -1,7 +1,7 @@
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
-import { Separator } from "./separator";
+import { Separator } from "@/components/ui/separator";
 
 function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (

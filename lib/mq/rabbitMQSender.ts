@@ -1,5 +1,5 @@
-﻿import { getMQConnection } from "@/lib/mq/getMQConnection";
-import type { Channel, Connection } from "amqplib";
+﻿import type { Channel, Connection } from "amqplib";
+import { getMQConnection } from "@/lib/mq/getMQConnection";
 
 abstract class BaseRabbitMQSender {
   protected conn!: Connection;

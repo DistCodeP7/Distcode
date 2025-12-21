@@ -1,6 +1,6 @@
+import { AlertCircle, AlertTriangle } from "lucide-react";
 import type { JobStatus } from "@/app/exercises/[id]/components/exerciseEditor";
 import type { Outcome, Phase } from "@/types/streamingEvents";
-import { AlertCircle, AlertTriangle } from "lucide-react";
 
 type ConsoleViewProps = {
   logs: Array<{ phase: Phase; message: string; workerId?: string }>;

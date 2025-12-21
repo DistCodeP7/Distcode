@@ -1,5 +1,5 @@
-﻿import { RabbitMQReceiver } from "./rabbitMQReceiver";
-import { ExchangePublisher, QueueSender } from "./rabbitMQSender";
+﻿import { RabbitMQReceiver } from "@/lib/mq/rabbitMQReceiver";
+import { ExchangePublisher, QueueSender } from "@/lib/mq/rabbitMQSender";
 
 const sender = new QueueSender("jobs");
 

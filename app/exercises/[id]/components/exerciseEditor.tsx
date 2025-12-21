@@ -1,5 +1,8 @@
 "use client";
 
+import { useRef, useState } from "react";
+import type { ImperativePanelHandle } from "react-resizable-panels";
+import { toast } from "sonner";
 import { cancelJobRequest, submitCode } from "@/app/exercises/[id]/actions";
 import { EditorActions } from "@/app/exercises/[id]/components/editorActions";
 import type { ExerciseEditorProps } from "@/app/exercises/[id]/components/editorProps";
@@ -16,9 +19,6 @@ import {
 import { useSSE } from "@/hooks/useSSE";
 import type { Filemap } from "@/types/actionTypes";
 import type { StreamingJobEvent } from "@/types/streamingEvents";
-import { useRef, useState } from "react";
-import type { ImperativePanelHandle } from "react-resizable-panels";
-import { toast } from "sonner";
 
 export type JobStatus = {
   queueSize: number;
