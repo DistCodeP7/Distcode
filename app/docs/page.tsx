@@ -1,4 +1,5 @@
 import { ExternalLink, Link2, Terminal } from "lucide-react";
+import { DocsNavigation } from "@/app/docs/DocsComponents";
 import MarkdownPreview from "@/components/custom/markdownPreview";
 import NeonLines from "@/components/custom/neonLine";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -12,7 +13,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { DocsNavigation } from "./DocsComponents";
 
 export default function DocsPage() {
   return (

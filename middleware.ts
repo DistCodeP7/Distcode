@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { withAuth } from "next-auth/middleware";
-import { authOptions } from "./app/api/auth/[...nextauth]/route";
-import { getUserById } from "./lib/user";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { getUserById } from "@/lib/user";
 
 export const runtime = "nodejs";
 

@@ -154,7 +154,7 @@ const StepThreeSubmission = ({
               <Slider
                 value={[config.replicas]}
                 min={1}
-                max={5}
+                max={10}
                 step={1}
                 onValueChange={(val) => setReplicaCount(val[0])}
                 className="w-32"

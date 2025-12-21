@@ -1,10 +1,13 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import {
+  getExerciseJobUid,
+  getTraceDataAction,
+} from "@/app/authorized/diagram/actions";
 import DiagramClient from "@/app/authorized/diagram/components/diagramClient";
 import type { JobInfo } from "@/app/authorized/diagram/components/traceHeaderCard";
 import type { TJob_Process_Messages } from "@/drizzle/schema";
-import { getExerciseJobUid, getTraceDataAction } from "./actions";
 
 export default async function SpaceTimeDiagramPage({
   searchParams,

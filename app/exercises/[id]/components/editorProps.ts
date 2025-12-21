@@ -1,8 +1,8 @@
-import type { Filemap } from "@/types/actionTypes";
-import type { StreamingJobEvent } from "@/types/streamingEvents";
 import type { SetStateAction } from "react";
 import type { ImperativePanelHandle } from "react-resizable-panels";
-import type { JobStatus } from "./exerciseEditor";
+import type { JobStatus } from "@/app/exercises/[id]/components/exerciseEditor";
+import type { Filemap } from "@/types/actionTypes";
+import type { StreamingJobEvent } from "@/types/streamingEvents";
 
 export type EditorWithTerminalPanelProps = {
   activeFile: string;

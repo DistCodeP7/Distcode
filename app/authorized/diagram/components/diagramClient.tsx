@@ -2,12 +2,19 @@
 
 import { useTheme } from "next-themes";
 import { useCallback, useMemo, useState } from "react";
+import { getTraceDataAction } from "@/app/authorized/diagram/actions";
+import { EventTable } from "@/app/authorized/diagram/components/eventTable";
+import {
+  type JobInfo,
+  TraceHeaderCard,
+} from "@/app/authorized/diagram/components/traceHeaderCard";
+import { TracePlotCard } from "@/app/authorized/diagram/components/tracePlotCard";
+import {
+  getActorColor,
+  getLogicalTime,
+  pairEvents,
+} from "@/app/authorized/diagram/trace";
 import type { TJob_Process_Messages } from "@/drizzle/schema";
-import { getTraceDataAction } from "../actions";
-import { getActorColor, getLogicalTime, pairEvents } from "../trace";
-import { EventTable } from "./eventTable";
-import { type JobInfo, TraceHeaderCard } from "./traceHeaderCard";
-import { TracePlotCard } from "./tracePlotCard";
 
 export default function DiagramClient({
   initialJobs,
