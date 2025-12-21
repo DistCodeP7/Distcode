@@ -38,7 +38,7 @@ export default function DiagramClient({
   const fetchData = useCallback(async () => {
     if (!jobInfo?.jobUid) return;
     setIsLoading(true);
-
+    
     const result = await getTraceDataAction(jobInfo.jobUid);
     if (result.success && result.data) {
       setRawEvents(result.data as TJob_Process_Messages[]);
@@ -57,7 +57,7 @@ export default function DiagramClient({
       s.add(e.from);
       s.add(e.to);
     });
-    return Array.from(s).sort();
+    return Array.from(s);
   }, [rawEvents]);
 
   const { plotData, layout, dynamicHeight } = useMemo(() => {
