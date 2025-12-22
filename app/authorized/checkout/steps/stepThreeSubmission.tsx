@@ -34,15 +34,7 @@ const StepThreeSubmission = ({
     field: keyof ReplicaConfig,
     value: ReplicaConfig[keyof ReplicaConfig]
   ) => {
-    if (
-      field === "alias" &&
-      Object.values(config.replicaConfigs)
-        .map((r) => r.alias)
-        .includes(value as string)
-    ) {
-      toast.error("Each replica must have a unique alias.");
-      return;
-    }
+    // Alias uniqueness validation is deferred to the parent on Next/Submit
     const current = config.replicaConfigs[index] || {
       alias: uniqueNamesGenerator(customConfig),
       envs: [],
@@ -216,3 +208,31 @@ const StepThreeSubmission = ({
   );
 };
 export default StepThreeSubmission;
+
+export function validateReplicaAliases(cfg: SubmissionConfig) {
+  const aliases = Object.values(cfg.replicaConfigs || {}).map((r) =>
+    String(r.alias || "").trim()
+  );
+  const seen = new Set<string>();
+  const duplicates: string[] = [];
+
+  for (const a of aliases) {
+    if (!a) continue;
+    if (seen.has(a)) {
+      if (!duplicates.includes(a)) duplicates.push(a);
+    } else {
+      seen.add(a);
+    }
+  }
+
+  if (duplicates.length > 0) {
+    return {
+      valid: false,
+      message:
+        "Each replica must have a unique alias",
+      duplicates,
+    } as const;
+  }
+
+  return { valid: true as const };
+}

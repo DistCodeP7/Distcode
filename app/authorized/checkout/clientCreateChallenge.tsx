@@ -7,7 +7,9 @@ import FooterNav from "@/app/authorized/checkout/components/footer";
 import Header from "@/app/authorized/checkout/components/header";
 import StepFourSummary from "@/app/authorized/checkout/steps/stepFourSummary";
 import StepOneDetails from "@/app/authorized/checkout/steps/stepOneDetails";
-import StepThreeSubmission from "@/app/authorized/checkout/steps/stepThreeSubmission";
+import StepThreeSubmission, {
+  validateReplicaAliases,
+} from "@/app/authorized/checkout/steps/stepThreeSubmission";
 import StepTwoTestEnv from "@/app/authorized/checkout/steps/stepTwoTest";
 import useCreateChallenge from "@/app/authorized/checkout/useCreateChallenge";
 import NeonLines from "@/components/custom/neonLine";
@@ -36,6 +38,12 @@ export default function ClientCreateChallenge({
   } = useCreateChallenge(baseForm, currentSelected);
 
   const onSubmit = async () => {
+    const validation = validateReplicaAliases(form.submission);
+    if (!validation.valid) {
+      toast.error(validation.message);
+      return;
+    }
+
     if (!exerciseId) return;
     const result: ActionResult = await updateChallengeForm(exerciseId, form);
     if (result.success) {
@@ -80,7 +88,16 @@ export default function ClientCreateChallenge({
 
           <FooterNav
             step={form.step}
-            onNext={nextStep}
+            onNext={() => {
+              if (form.step === 3) {
+                const validation = validateReplicaAliases(form.submission);
+                if (!validation.valid) {
+                  toast.error(validation.message);
+                  return;
+                }
+              }
+              nextStep();
+            }}
             onPrev={prevStep}
             onSubmit={onSubmit}
           />
