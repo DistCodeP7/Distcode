@@ -1,5 +1,4 @@
-export const defaultMain = `
-package main
+export const defaultMain = `package main
 
 import (
 	"context"

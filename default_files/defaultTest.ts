@@ -2,9 +2,11 @@ export const defaultTest = `package test
 
 import (
 	"context"
+	"log"
 	"os"
 	"strings"
 	"testing"
+    "time"
 
 	//"runner/shared"
 
@@ -26,7 +28,24 @@ func TestMain(m *testing.M) {
     Id = os.Getenv("ID")
     ctx = context.Background()
     WM = wrapper.NewWrapperManager(8090, Peers...)
-    WM.ReadyAll(ctx)
+    
+    const attempts = 200
+	const sleepInterval = 50 * time.Millisecond
+	for i := 1; i <= attempts; i++ {
+		errors := WM.ReadyAll(ctx)
+		allReady := true
+		for peer, err := range errors {
+			if err != nil {
+				allReady = false
+				log.Printf("Peer %s not ready: %v", peer, err)
+			}
+		}
+		if allReady {
+			log.Println("All peers are ready")
+			break
+		}
+		time.Sleep(sleepInterval)
+	}
 
     code := m.Run()
     _ = disttest.Write("test_results.json")
